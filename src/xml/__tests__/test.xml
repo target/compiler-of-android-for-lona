@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <!-- Test comment -->
+  <color name="test_color_1">#AABBCC</color>
+  <color name="test_color_2">#DDEEFF</color>
+</root>
