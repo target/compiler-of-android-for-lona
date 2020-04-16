@@ -2,7 +2,7 @@
 
 This is the official `Android` plugin for the Lona compiler.
 
-It was created as a collaborative effort between Target and [dabbott](https://github.com/dabbott) (the author of Lona).
+It was created as a collaborative effort between Target and [dabbott](https://github.com/dabbott) (the original author of Lona).
 
 ## Overview
 

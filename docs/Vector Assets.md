@@ -21,7 +21,7 @@ A few aspects of a `VectorDrawable` can be modified programatically, e.g. we can
 
 However, sometimes it's desirable to be able to change individual elements of a vector at runtime. Let's call this **advanced** parameterization. It seems that individual elements of the `VectorDrawable` can't be accessed and manipulated programatically. If we need to do advanced parameterization, we'll have to fall back to Android's 2D drawing API.
 
-Both basic and advanced parameterization may take 2 forms: **compile-time** and **run-time** parameterization. When the permutations of parameters are finite, we can pre-generate all configurations of the SVG at compile-time (although if there are enough permutations, this may not be the best option). When the permutations are infinited, we have to determine how to render the SVG at run-time.
+Both basic and advanced parameterization may take 2 forms: **compile-time** and **runtime** parameterization. When the permutations of parameters are finite, we can pre-generate all configurations of the SVG at compile-time (although if there are enough permutations, this may not be the best option). When the permutations are infinite, we have to determine how to render the SVG at runtime.
 
 ### Android's 2D drawing API
 
