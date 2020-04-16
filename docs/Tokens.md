@@ -20,6 +20,7 @@ Lona color definitions are converted to `<color>` resources.
 
 <details>
   <summary>Example</summary>
+  <br />
 
 Lona definition:
 
@@ -41,6 +42,7 @@ Lona text styles are converted to `<style>` resources.
 
 <details>
   <summary>Example</summary>
+  <br />
 
 Lona definition:
 
@@ -72,6 +74,7 @@ Generated code:
 
 <details>
   <summary>Example with color reference</summary>
+  <br />
 
 Lona definition:
 
@@ -103,6 +106,7 @@ Lona will not attempt to generate a custom drawable to exactly match the defined
 
 <details>
   <summary>Example with default estimate</summary>
+  <br />
 
 Lona definition:
 
@@ -120,6 +124,7 @@ Generated code:
 
 <details>
   <summary>Example with specified elevation</summary>
+  <br />
 
 Lona definition:
 
