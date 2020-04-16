@@ -1,4 +1,4 @@
-# Tokens
+# Vector Assets
 
 This page outlines our strategy for converting SVG assets to assets consumable in Android apps.
 
@@ -19,9 +19,9 @@ Android Studio includes a GUI utility to convert an SVG file into a `VectorDrawa
 
 A few aspects of a `VectorDrawable` can be modified programatically, e.g. we can use `tintColor` to set the color of the whole asset. Let's call this **basic** parameterization.
 
-However, sometimes it's desirable to be able to change individual elements of a vector at runtime. Let's call this **advanced** parameterization. It seems that individual elements of the `VectorDrawable` can't be accessed and manipulated programatically. If we need to do advanced parameterization, we'll have to fall back on Android's 2D drawing API.
+However, sometimes it's desirable to be able to change individual elements of a vector at runtime. Let's call this **advanced** parameterization. It seems that individual elements of the `VectorDrawable` can't be accessed and manipulated programatically. If we need to do advanced parameterization, we'll have to fall back to Android's 2D drawing API.
 
-Both basic and advanced parameterization may take 2 forms: **compile-time** and **run-time** parameterization. When the permutations of parameters are finite, we can pre-generate all versions of the SVG at compile-time (although if there are enough permutations, this may not be the best option). When the permutations are infinited, we have to determine how to render the SVG at run-time.
+Both basic and advanced parameterization may take 2 forms: **compile-time** and **run-time** parameterization. When the permutations of parameters are finite, we can pre-generate all configurations of the SVG at compile-time (although if there are enough permutations, this may not be the best option). When the permutations are infinited, we have to determine how to render the SVG at run-time.
 
 ### Android's 2D drawing API
 
@@ -31,7 +31,7 @@ One notable drawback is that custom drawables can't be used in XML prior to API 
 
 ## Strategy
 
-Lona will try to "just work": the compiler will detect the best way to convert an SVG based on how its used throughout the Lona workspace. However, if the SVG isn't used at all, or if the developer knows it may be used in more ways than just the current ones in the workspace, they can provide additional configuration/hints to the compiler.
+Lona will try to "just work": the compiler will detect the best way to convert an SVG based on how it's used throughout the Lona workspace. However, if the SVG isn't used at all, or if the developer knows it may be used in more ways than just the current ones in the workspace, they can provide additional configuration/hints to the compiler.
 
 Lona's conversion algorithm will do the following:
 
@@ -51,15 +51,15 @@ For each SVG file:
 
 A few examples:
 
-- An SVG is included in the workspace but never instantiated as an `Image` in Lona:
+- An SVG is included in the workspace, but never instantiated as an `Image` in Lona:
 
   - If the SVG can be losslessly converted to a VectorDrawable: the compiler will generate a single VectorDrawable
-  - Otherwise: the compiler will generate N PNGs, for each desired size.
+  - Otherwise: the compiler will generate N PNGs, one for each desired size.
 
 - An SVG is instantiated in Lona, with 3 different tint colors:
 
   - If the SVG can be losslessly converted to a VectorDrawable: the compiler will generate a single VectorDrawable
-  - Otherwise: the compiler will generate 3N PNGs, for each (desired size) x (tint color).
+  - Otherwise: the compiler will generate 3N PNGs, one for each (desired size) x (tint color).
 
 - An SVG is instantiated in Lona, configured to support a custom fill and stroke parameter:
 
@@ -68,7 +68,7 @@ A few examples:
 Compiler options (TBD) will allow more customization.
 
 - E.g. if the N gets too large (> 20 PNGs for a given SVG) we instead generate a single custom drawable.
-- E.g. potentially requiring a custom drawable could be considered a Lona error and designers will not be allowed to configure vector graphics in that way.
+- E.g. requiring a custom drawable could be considered a Lona error, and designers will not be allowed to configure vector graphics in that way.
 
 ### Converting to VectorDrawable
 

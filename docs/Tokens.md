@@ -8,7 +8,7 @@ This page outlines our strategy for converting Lona variables to definitions con
 
 ## Strategy
 
-Definitions of shared colors and text styles are most commonly defined as resources in XML. While it's possible to define anything using Kotlin, this is not idiomatic. For this reason, we "flatten" dynamic Lona values (e.g. function calls) into constants that can be represented in XML (CSS has similar limitations).
+Definitions of shared colors, text styles, and elevations are most commonly defined as resources in XML. While it's possible to define these using Kotlin, it's not idiomatic. For this reason, we "flatten" dynamic Lona values (e.g. function calls) into constants that can be represented in XML (CSS has similar limitations).
 
 ## Converting
 
