@@ -472,12 +472,12 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
-"@lona/compiler@^0.1.10":
-  version "0.1.10"
-  resolved "https://registry.yarnpkg.com/@lona/compiler/-/compiler-0.1.10.tgz#d5015ff8febfa2412710d7bc86fee009fbf938ee"
-  integrity sha512-t8IjstL6sMash+JRDbYeWmhBc66kjtBCtgoD5Uxc+Cs00n3pzZ1VQdfP0nXiqfbEiyxflMoGR8uvlpKt7q0hIQ==
+"@lona/compiler@^0.1.11":
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/@lona/compiler/-/compiler-0.1.11.tgz#ed97f6c74ccaee2a28fbd288f58769968150f0fc"
+  integrity sha512-jHf1A9miNw0wtAINfIHullX/6de9Mwl4PVeXrWi0klGCKu3QAQzraakQrtPzgqBk5GNjVM5ZrY9m177am+QNvQ==
   dependencies:
-    "@lona/serialization" "^0.3.0"
+    "@lona/serialization" "^0.3.10"
     color "^3.1.2"
     glob "^7.1.6"
     lodash.camelcase "^4.3.0"
@@ -490,7 +490,7 @@
     uuid "^7.0.2"
     yargs "^15.1.0"
 
-"@lona/serialization@^0.3.0", "@lona/serialization@^0.3.10":
+"@lona/serialization@^0.3.10":
   version "0.3.10"
   resolved "https://registry.yarnpkg.com/@lona/serialization/-/serialization-0.3.10.tgz#84ccaa07cfa44c29229121a1832534cf1c9e625e"
   integrity sha512-o33tHTVE/Mv/ZU9ivk27eBRyon8LlWY9+QGB0NKHfcyVkdvPkxUSRxV1kRWWUVwG0+n7dQEX/lYhitVNzAy0Aw==

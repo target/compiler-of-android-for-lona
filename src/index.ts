@@ -1,24 +1,12 @@
-import * as path from 'path'
 import { LogicAST } from '@lona/serialization'
 import { Plugin } from '@lona/compiler/lib/plugins'
 import { Helpers } from '@lona/compiler/lib/helpers'
-import upperFirst from 'lodash.upperfirst'
-import camelCase from 'lodash.camelcase'
-
-function convertNode(
-  logicNode: LogicAST.SyntaxNode,
-  filePath: string,
-  helpers: Helpers
-): string | null {
-  if (
-    logicNode.type !== 'topLevelDeclarations' ||
-    logicNode.data.declarations.length === 0
-  ) {
-    return null
-  }
-
-  return ''
-}
+import * as Tokens from '@lona/compiler/lib/plugins/tokens'
+import * as Resources from './android/resources'
+import * as Color from './tokens/color'
+import * as Shadow from './tokens/shadow'
+import * as TextStyle from './tokens/textStyle'
+import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 
 async function parseFile(
   filePath: string,
@@ -26,22 +14,51 @@ async function parseFile(
   options: {
     [argName: string]: unknown
   }
-): Promise<string> {
-  const logicNode = helpers.config.logicFiles[filePath]
+): Promise<void> {
+  return Promise.reject('Not implemented')
+}
 
-  if (!logicNode) return ''
+function createColorsResourceFile(tokens: Token[]) {
+  const colors: Color.Token[] = tokens.flatMap(({ qualifiedName, value }) =>
+    value.type === 'color'
+      ? [{ qualifiedName: qualifiedName, value: value.value }]
+      : []
+  )
 
-  const kotlinAst = convertNode(logicNode, filePath, helpers)
+  return Resources.createFile(
+    colors
+      .map(Color.convert)
+      .map(element => ({ type: 'element', data: element }))
+  )
+}
 
-  if (!kotlinAst) return ''
+function createShadowsResourceFile(tokens: Token[]) {
+  const shadows: Shadow.Token[] = tokens.flatMap(({ qualifiedName, value }) =>
+    value.type === 'shadow'
+      ? [{ qualifiedName: qualifiedName, value: value.value }]
+      : []
+  )
 
-  // // only output file if we passed an output option
-  // const outputFile =
-  //   typeof options['output'] !== 'undefined' ? helpers.fs.writeFile : undefined
+  return Resources.createFile(
+    shadows
+      .map(Shadow.convert)
+      .map(element => ({ type: 'element', data: element }))
+  )
+}
 
-  // return `${renderJS(jsAST, { outputFile, reporter: helpers.reporter })}`
+function createTextStyleResourceFile(tokens: Token[]) {
+  const textStyles: TextStyle.Token[] = tokens.flatMap(
+    ({ qualifiedName, value }) =>
+      value.type === 'textStyle'
+        ? [{ qualifiedName: qualifiedName, value: value.value }]
+        : []
+  )
 
-  return ''
+  return Resources.createFile(
+    textStyles
+      .map(TextStyle.convert)
+      .map(element => ({ type: 'element', data: element }))
+  )
 }
 
 async function parseWorkspace(
@@ -51,28 +68,35 @@ async function parseWorkspace(
     [argName: string]: unknown
   }
 ): Promise<void> {
-  const paths = [...helpers.config.logicPaths, ...helpers.config.documentPaths]
-  const imports = []
+  let convertedWorkspace: Tokens.ConvertedWorkspace
 
-  await Promise.all(
-    paths.map(async filePath => {
-      const convertedContent = await parseFile(filePath, helpers, options)
-
-      if (!convertedContent) return
-
-      const name = upperFirst(
-        camelCase(path.basename(filePath, path.extname(filePath)))
-      )
-
-      const outputPath = path.join(path.dirname(filePath), `${name}.js`)
-
-      imports.push(outputPath)
-
-      await helpers.fs.writeFile(outputPath, convertedContent)
+  try {
+    const converted = await Tokens.parseWorkspace(workspacePath, helpers, {
+      output: false,
     })
+
+    if (!converted) {
+      Promise.reject('Problem')
+      return
+    }
+
+    convertedWorkspace = converted
+  } catch (error) {
+    console.log('Failed to convert tokens')
+    return Promise.reject(error)
+  }
+
+  const tokens = convertedWorkspace.files.flatMap(file =>
+    file.contents.type === 'flatTokens' ? file.contents.value : []
   )
 
-  return
+  const colorsFile = createColorsResourceFile(tokens)
+  const shadowsFile = createShadowsResourceFile(tokens)
+  const textStylesFile = createTextStyleResourceFile(tokens)
+
+  await helpers.fs.writeFile('colors.xml', colorsFile)
+  await helpers.fs.writeFile('elevations.xml', shadowsFile)
+  await helpers.fs.writeFile('text-styles.xml', textStylesFile)
 }
 
 const plugin: Plugin = {

@@ -26,6 +26,8 @@ const formatXmlDecl = (xmlDecl: Xml.XmlDecl): Doc =>
   ])
 
 const formatElement = (element: Xml.Element): Doc => {
+  const opening = concat(['<', element.tag])
+
   const attributes =
     element.attributes.length > 0
       ? indent([
@@ -35,21 +37,16 @@ const formatElement = (element: Xml.Element): Doc => {
       : ''
 
   if (element.content.length === 0) {
-    return group(['<', element.tag, attributes, ' />'])
+    return group([opening, attributes, ' />'])
   }
 
   return group([
-    '<',
-    element.tag,
-    attributes,
-    '>',
+    group([opening, attributes, '>']),
     group(
       indent([softline, join(softline, element.content.map(formatContent))])
     ),
     softline,
-    '</',
-    element.tag,
-    '>',
+    concat(['</', element.tag, '>']),
   ])
 }
 
