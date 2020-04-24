@@ -41,7 +41,7 @@ export const createStyle = (
  *
  * <?xml version="1.0" encoding="utf-8"?>
  * <resources>
- *     <color name="primary">#FF0000</color>
+ *   ...
  * </resources>
  */
 export const createFile = (resources: XML.Content[]): string => {

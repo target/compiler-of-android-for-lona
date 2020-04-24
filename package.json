@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Lona compiler: Android code generation",
   "main": "lib/index.js",
+  "bin": "lib/bin.js",
   "files": [
     "lib"
   ],
@@ -18,6 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@lona/serialization": "^0.3.10",
+    "@lona/svg-model": "^2.0.0",
     "color": "^3.1.2",
     "glob": "^7.1.6",
     "lodash.camelcase": "^4.3.0",
