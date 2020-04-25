@@ -3,6 +3,7 @@
 import fs from 'fs'
 import { parse, convert } from './svg/index'
 import { createFile } from './android/vectorDrawable'
+import { createBuildScript, DEFAULT_BUILD_CONFIG } from './android/gradle'
 
 const [, , command, inputPath] = process.argv
 

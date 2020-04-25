@@ -25,7 +25,7 @@ const formatXmlDecl = (xmlDecl: Xml.XmlDecl): Doc =>
     '?>',
   ])
 
-const formatElement = (element: Xml.Element): Doc => {
+export const formatElement = (element: Xml.Element): Doc => {
   const opening = concat(['<', element.tag])
 
   const attributes =
