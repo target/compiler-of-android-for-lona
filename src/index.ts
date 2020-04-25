@@ -50,7 +50,10 @@ function createShadowsResourceFile(tokens: Token[]) {
   )
 }
 
-function createTextStyleResourceFile(tokens: Token[]) {
+function createTextStyleResourceFile(
+  tokens: Token[],
+  options: TextStyle.Options
+) {
   const textStyles: TextStyle.Token[] = tokens.flatMap(
     ({ qualifiedName, value }) =>
       value.type === 'textStyle'
@@ -60,7 +63,7 @@ function createTextStyleResourceFile(tokens: Token[]) {
 
   return Resources.createFile(
     textStyles
-      .map(TextStyle.convert)
+      .map(textStyle => TextStyle.convert(textStyle, options))
       .map(element => ({ type: 'element', data: element }))
   )
 }
@@ -69,16 +72,22 @@ async function parseWorkspace(
   workspacePath: string,
   helpers: Helpers,
   options: {
-    [argName: string]: unknown
+    // Files
+    output?: string
+    dryRun?: boolean
+    // Android
+    packageName?: string
+    minSdkVersion?: number
   }
 ): Promise<void> {
-  if (typeof options.packageName !== 'string') {
+  if (!options.packageName) {
     return Promise.reject(
       'The --package-name [name] option is required when generating an Android package, e.g. com.lona.my_library'
     )
   }
 
   const packageName = options.packageName
+  const minSdkVersion = options.minSdkVersion || 21
 
   let convertedWorkspace: Tokens.ConvertedWorkspace
 
@@ -102,23 +111,20 @@ async function parseWorkspace(
     file.contents.type === 'flatTokens' ? file.contents.value : []
   )
 
-  const outputPath =
-    typeof options.output === 'string' ? options.output : process.cwd()
+  const outputPath = options.output || process.cwd()
 
-  const { volume, fs: source } = createLibraryFiles(outputPath, {
+  const { fs: source } = createLibraryFiles(outputPath, {
     buildScript: createBuildScript(DEFAULT_BUILD_CONFIG),
     androidManifest: createManifest(packageName),
     colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
     elevationResources: tokens ? createShadowsResourceFile(tokens) : undefined,
     textStyleResources: tokens
-      ? createTextStyleResourceFile(tokens)
+      ? createTextStyleResourceFile(tokens, { minSdkVersion })
       : undefined,
     drawableResources: [],
   })
 
-  const isDryRun = options.dryRun === true
-
-  if (typeof options.output === 'string' && !isDryRun) {
+  if (options.output && !options.dryRun) {
     copy(source, fs, options.output)
   } else {
     console.error('\nThe following files will be generated:\n')
@@ -131,7 +137,7 @@ async function parseWorkspace(
 
     if (!options.output) {
       console.error(
-        '\nUse the --ouput [path] flag to specify the output directory.\n'
+        '\nUse the --ouput [path] option to specify the output directory.\n'
       )
     }
   }

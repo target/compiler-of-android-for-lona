@@ -3,14 +3,17 @@ import { convert } from '../textStyle'
 
 describe('Tokens / Text Style', () => {
   test('converts a text style', () => {
-    const textStyle = convert({
-      qualifiedName: ['my', 'test'],
-      value: {
-        fontFamily: 'Helvetica',
-        fontSize: 24,
-        fontWeight: '400',
+    const textStyle = convert(
+      {
+        qualifiedName: ['my', 'test'],
+        value: {
+          fontFamily: 'Helvetica',
+          fontSize: 24,
+          fontWeight: '400',
+        },
       },
-    })
+      { minSdkVersion: 29 }
+    )
 
     const mock: XML.Element = {
       tag: 'style',
@@ -41,6 +44,26 @@ describe('Tokens / Text Style', () => {
           },
         },
       ],
+    }
+
+    expect(textStyle).toEqual(mock)
+  })
+
+  test('ignores font weight if SDK < 26', () => {
+    const textStyle = convert(
+      {
+        qualifiedName: ['my', 'test'],
+        value: {
+          fontWeight: '400',
+        },
+      },
+      { minSdkVersion: 25 }
+    )
+
+    const mock: XML.Element = {
+      tag: 'style',
+      attributes: [{ name: 'name', value: 'my_test' }],
+      content: [],
     }
 
     expect(textStyle).toEqual(mock)

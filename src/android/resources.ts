@@ -1,6 +1,31 @@
 import * as XML from '../xml/ast'
 import print from '../xml/print'
 
+const parseCSSColor: (color: string) => number[] = require('csscolorparser')
+  .parseCSSColor
+
+export function cssToHexColor(cssColor: string): string {
+  const toHex = (value: number): string => {
+    const converted = value.toString(16)
+    if (converted.length === 1) {
+      return `0${converted}`
+    } else {
+      return converted
+    }
+  }
+
+  const [r, g, b, a] = parseCSSColor(cssColor)
+  const components = [r, g, b, ...(a !== 1 ? [Math.ceil(a * 255)] : [])]
+
+  return (
+    '#' +
+    components
+      .map(toHex)
+      .join('')
+      .toUpperCase()
+  )
+}
+
 export const createColor = (name: string, value: string): XML.Element => {
   return {
     tag: 'color',

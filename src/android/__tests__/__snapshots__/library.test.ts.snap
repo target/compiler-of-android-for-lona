@@ -4,9 +4,9 @@ exports[`Android / Library creates a library module 1`] = `
 Object {
   "/.gitignore": "/build
 ",
-  "/build.gradle": "apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+  "/build.gradle": "apply plugin: \\"com.android.library\\"
+apply plugin: \\"kotlin-android\\"
+apply plugin: \\"kotlin-android-extensions\\"
 
 android {
     compileSdkVersion 29
@@ -21,9 +21,9 @@ android {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version'
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.core:core-ktx:1.2.0'
+    implementation \\"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version\\"
+    implementation \\"androidx.appcompat:appcompat:1.1.0\\"
+    implementation \\"androidx.core:core-ktx:1.2.0\\"
 }",
   "/src/main/AndroidManifest.xml": "<manifest
   xmlns:android=\\"http://schemas.android.com/apk/res/android\\"

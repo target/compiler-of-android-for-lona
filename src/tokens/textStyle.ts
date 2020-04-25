@@ -1,13 +1,17 @@
 import { TextStyleValue } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 import * as XML from '../xml/ast'
-import { createStyle, createItem } from '../android/resources'
+import { createStyle, createItem, cssToHexColor } from '../android/resources'
 
 export type Token = {
   qualifiedName: string[]
   value: TextStyleValue
 }
 
-export const convert = (token: Token): XML.Element => {
+export type Options = {
+  minSdkVersion: number
+}
+
+export const convert = (token: Token, options: Options): XML.Element => {
   const {
     fontFamily,
     fontSize,
@@ -27,12 +31,12 @@ export const convert = (token: Token): XML.Element => {
     items.push(createItem('android:textSize', `${fontSize}sp`))
   }
 
-  if (fontWeight) {
+  if (options.minSdkVersion >= 26 && fontWeight) {
     items.push(createItem('android:fontWeight', `${fontWeight}`))
   }
 
   if (color) {
-    items.push(createItem('android:textColor', color.css))
+    items.push(createItem('android:textColor', cssToHexColor(color.css)))
   }
 
   if (lineHeight && fontSize) {

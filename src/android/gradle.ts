@@ -16,7 +16,7 @@ export type BuildScript = {
 }
 
 const createApplyPluginStatement = (plugin: string): string =>
-  `apply plugin: '${plugin}'`
+  `apply plugin: "${plugin}"`
 
 const createAndroidBlock = (android: AndroidConfig): string[] =>
   `android {
@@ -32,7 +32,7 @@ const createAndroidBlock = (android: AndroidConfig): string[] =>
 }`.split('\n')
 
 const createDependencyStatement = (dependency: string): string =>
-  `implementation '${dependency}'`
+  `implementation "${dependency}"`
 
 const createBlock = (identifier: string, statements: string[]): string[] =>
   statements.length === 0

@@ -1,6 +1,6 @@
 import { ColorValue } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 import * as XML from '../xml/ast'
-import { createColor } from '../android/resources'
+import { createColor, cssToHexColor } from '../android/resources'
 
 export type Token = {
   qualifiedName: string[]
@@ -8,5 +8,8 @@ export type Token = {
 }
 
 export const convert = (token: Token): XML.Element => {
-  return createColor(token.qualifiedName.join('_'), token.value.css)
+  return createColor(
+    token.qualifiedName.join('_'),
+    cssToHexColor(token.value.css)
+  )
 }
