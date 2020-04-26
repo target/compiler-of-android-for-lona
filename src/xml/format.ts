@@ -9,8 +9,9 @@ const quoted = (doc: Doc): Doc => concat(['"', doc, '"'])
 
 export const formatDocument = (document: Xml.Document): Doc =>
   concat([
-    formatProlog(document.prolog),
-    hardline,
+    ...(document.prolog.xmlDecl
+      ? [formatProlog(document.prolog), hardline]
+      : []),
     formatElement(document.element),
   ])
 

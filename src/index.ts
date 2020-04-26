@@ -1,16 +1,20 @@
 import fs from 'fs'
-import { LogicAST } from '@lona/serialization'
+import path from 'path'
 import { Plugin } from '@lona/compiler/lib/plugins'
 import { Helpers } from '@lona/compiler/lib/helpers'
+import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import * as Tokens from '@lona/compiler/lib/plugins/tokens'
+import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
+import { describeComparison, copy } from 'buffs'
+
+import { getConfig } from './lona'
+import { createLibraryFiles, createManifest } from './android/library'
+import { createBuildScript, DEFAULT_BUILD_CONFIG } from './android/gradle'
 import * as Resources from './android/resources'
 import * as Color from './tokens/color'
 import * as Shadow from './tokens/shadow'
 import * as TextStyle from './tokens/textStyle'
-import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
-import { describeComparison, copy } from 'buffs'
-import { createLibraryFiles, createManifest } from './android/library'
-import { createBuildScript, DEFAULT_BUILD_CONFIG } from './android/gradle'
+import * as SVG from './svg/index'
 
 async function parseFile(
   filePath: string,
@@ -111,6 +115,21 @@ async function parseWorkspace(
     file.contents.type === 'flatTokens' ? file.contents.value : []
   )
 
+  const workspaceConfig = await getConfig(workspacePath)
+
+  const svgRelativePaths = FileSearch.sync(workspacePath, '**/*.svg', {
+    ignore: workspaceConfig.ignore,
+  })
+
+  const vectorDrawables: [string, string][] = svgRelativePaths.map(
+    relativePath => {
+      return [
+        relativePath.replace(/.svg$/, '.xml'),
+        SVG.convertFile(path.join(workspacePath, relativePath)),
+      ]
+    }
+  )
+
   const outputPath = options.output || process.cwd()
 
   const { fs: source } = createLibraryFiles(outputPath, {
@@ -121,7 +140,7 @@ async function parseWorkspace(
     textStyleResources: tokens
       ? createTextStyleResourceFile(tokens, { minSdkVersion })
       : undefined,
-    drawableResources: [],
+    drawableResources: vectorDrawables,
   })
 
   if (options.output && !options.dryRun) {

@@ -36,11 +36,11 @@ describe('Android / VectorDrawable', () => {
         },
         {
           name: 'android:viewportWidth',
-          value: '24dp',
+          value: '24',
         },
         {
           name: 'android:viewportHeight',
-          value: '24dp',
+          value: '24',
         },
       ],
       content: [

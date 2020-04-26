@@ -135,14 +135,14 @@ export const vectorElement = (vector: Vector): XML.Element => {
   if (vector.viewportWidth) {
     attributes.push({
       name: 'android:viewportWidth',
-      value: `${vector.viewportWidth}dp`,
+      value: `${vector.viewportWidth}`,
     })
   }
 
   if (vector.viewportHeight) {
     attributes.push({
       name: 'android:viewportHeight',
-      value: `${vector.viewportHeight}dp`,
+      value: `${vector.viewportHeight}`,
     })
   }
 

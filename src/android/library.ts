@@ -1,3 +1,4 @@
+import path from 'path'
 import { createFs } from 'buffs'
 import * as XML from '../xml/ast'
 import { printElement } from '../xml/print'
@@ -32,7 +33,7 @@ export type Library = {
   colorResources?: string
   elevationResources?: string
   textStyleResources?: string
-  drawableResources: string[]
+  drawableResources: [string, string][]
 }
 
 /**
@@ -57,6 +58,11 @@ export type Library = {
  * @returns An in-memory filesystem containing the generated files
  */
 export function createLibraryFiles(rootPath: string, library: Library) {
+  const drawables = library.drawableResources.map(([key, value]) => [
+    path.join('src/main/res/drawable', key.replace(/[\/\-]/g, '_')),
+    value,
+  ])
+
   return createFs(
     {
       '.gitignore': '/build\n',
@@ -71,6 +77,7 @@ export function createLibraryFiles(rootPath: string, library: Library) {
       ...(library.textStyleResources && {
         'src/main/res/values/text-styles.xml': library.textStyleResources,
       }),
+      ...(drawables.length > 0 && Object.fromEntries(drawables)),
     },
     rootPath
   )

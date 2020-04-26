@@ -505,10 +505,10 @@
     uuid "^7.0.2"
     yargs "^15.1.0"
 
-"@lona/svg-model@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@lona/svg-model/-/svg-model-2.0.0.tgz#c0f6396cc07c160816a59f1e5b6628f7a08e308e"
-  integrity sha512-5RMVwhrVOCRUWTPJJUhqdZngddJr3sjliC39P2FpItqSKvWTsuV16PvRknLQ6mY1L/zcFzj4OD3oIiDffT9DKQ==
+"@lona/svg-model@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@lona/svg-model/-/svg-model-2.1.0.tgz#fb4371b26c1978b8524bb42daeccf0475a8452df"
+  integrity sha512-+RSiszkpePJ9Mt7FUALh/3Pzur2HW34iqpL7RIiGoNRGJLbcNGAB7ic4bVBkn3mpNY6VlI0fBpkUzcZxvvtDzg==
   dependencies:
     csscolorparser "^1.0.3"
     element-to-path "^1.2.0"

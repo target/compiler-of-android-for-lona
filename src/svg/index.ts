@@ -1,3 +1,4 @@
+import fs from 'fs'
 import model, { SVG, Rect, Path } from '@lona/svg-model'
 import * as VectorDrawable from '../android/vectorDrawable'
 
@@ -6,8 +7,16 @@ export function parse(svgString: string): SVG {
 }
 
 function convertPath(path: Path): VectorDrawable.Path {
+  const { commands, style } = path.data.params
+
   return {
-    pathData: path.data.params.commands,
+    pathData: commands,
+    ...(style.fill && { fillColor: style.fill }),
+    ...(style.stroke && { strokeColor: style.stroke }),
+    ...(style.strokeWidth > 0 && { strokeWidth: style.strokeWidth }),
+    ...(style.strokeLineCap !== 'butt' && {
+      strokeLineCap: style.strokeLineCap,
+    }),
   }
 }
 
@@ -26,4 +35,11 @@ export function convert(model: SVG): VectorDrawable.Vector {
     viewportHeight: viewBox.height,
     elements: model.data.children.map(convertPath),
   }
+}
+
+export function convertFile(filePath: string): string {
+  const data = fs.readFileSync(filePath, 'utf8')
+  const svg = parse(data)
+  const vector = convert(svg)
+  return VectorDrawable.createFile(vector)
 }
