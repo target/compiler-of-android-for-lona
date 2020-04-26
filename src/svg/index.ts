@@ -9,14 +9,17 @@ export function parse(svgString: string): SVG {
 function convertPath(path: Path): VectorDrawable.Path {
   const { commands, style } = path.data.params
 
+  const hasStroke = style.stroke && style.strokeWidth > 0
+
   return {
     pathData: commands,
     ...(style.fill && { fillColor: style.fill }),
-    ...(style.stroke && { strokeColor: style.stroke }),
-    ...(style.strokeWidth > 0 && { strokeWidth: style.strokeWidth }),
-    ...(style.strokeLineCap !== 'butt' && {
-      strokeLineCap: style.strokeLineCap,
-    }),
+    ...(hasStroke && { strokeColor: style.stroke }),
+    ...(hasStroke && { strokeWidth: style.strokeWidth }),
+    ...(hasStroke &&
+      style.strokeLineCap !== 'butt' && {
+        strokeLineCap: style.strokeLineCap,
+      }),
   }
 }
 

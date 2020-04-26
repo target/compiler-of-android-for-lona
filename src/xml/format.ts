@@ -31,10 +31,12 @@ export const formatElement = (element: Xml.Element): Doc => {
 
   const attributes =
     element.attributes.length > 0
-      ? indent([
-          line,
-          group(join(line, element.attributes.map(formatAttribute))),
-        ])
+      ? indent(
+          indent([
+            line,
+            group(join(line, element.attributes.map(formatAttribute))),
+          ])
+        )
       : ''
 
   if (element.content.length === 0) {
@@ -65,11 +67,7 @@ const formatContent = (content: Xml.Content): Doc => {
 }
 
 const formatAttribute = (attribute: Xml.Attribute): Doc =>
-  group([
-    attribute.name,
-    '=',
-    indent(concat([softline, quoted(attribute.value)])),
-  ])
+  concat([attribute.name, '=', quoted(attribute.value)])
 
 const formatComment = (comment: Xml.Comment): Doc => `<!-- ${comment} -->`
 
