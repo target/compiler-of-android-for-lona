@@ -3,6 +3,35 @@ import { createFs } from 'buffs'
 import * as XML from '../xml/ast'
 import { printElement } from '../xml/print'
 
+function createKotlinAssetGallery(
+  packageName: string,
+  drawableResourceNames: string[]
+): string {
+  const drawableResources = drawableResourceNames
+    .map(name => `${' '.repeat(8)}GalleryItem("${name}", R.drawable.${name})`)
+    .join(',\n')
+
+  return `package ${packageName}.gallery
+
+import ${packageName}.R
+
+object Gallery {
+
+    /*
+     * A list of all generated assets.
+     */
+    val ALL_ASSETS = listOf(
+${drawableResources}
+    )
+
+    /**
+     * An item representing a generated asset.
+     */
+    data class GalleryItem(val id: String, val resourceId: Int)
+}
+`
+}
+
 /**
  * Create an Android manifest file for a library module.
  *
@@ -27,9 +56,14 @@ export function createManifest(packageName: string): string {
   return printElement(root)
 }
 
+const formatDrawableName = (name: string): string => {
+  return name.replace(/[\/\-]/g, '_').toLowerCase()
+}
+
 export type Library = {
-  androidManifest: string
-  buildScript: string
+  packageName: string
+  androidManifest?: string
+  buildScript?: string
   colorResources?: string
   elevationResources?: string
   textStyleResources?: string
@@ -47,6 +81,10 @@ export type Library = {
  * └── src
  *     └── main
  *         ├── AndroidManifest.xml
+ *         ├── java
+ *         │   └── ${packageName}
+ *         │       └── gallery
+ *         │           └── Gallery.kt
  *         └── res
  *             ├── drawable
  *             │   └── <various drawables>
@@ -59,15 +97,17 @@ export type Library = {
  */
 export function createLibraryFiles(rootPath: string, library: Library) {
   const drawables = library.drawableResources.map(([key, value]) => [
-    path.join('src/main/res/drawable', key.replace(/[\/\-]/g, '_')),
+    path.join('src/main/res/drawable', formatDrawableName(key)),
     value,
   ])
 
   return createFs(
     {
       '.gitignore': '/build\n',
-      'build.gradle': library.buildScript,
-      'src/main/AndroidManifest.xml': library.androidManifest,
+      ...(library.buildScript && { 'build.gradle': library.buildScript }),
+      ...(library.androidManifest && {
+        'src/main/AndroidManifest.xml': library.androidManifest,
+      }),
       ...(library.colorResources && {
         'src/main/res/values/colors.xml': library.colorResources,
       }),
@@ -78,6 +118,18 @@ export function createLibraryFiles(rootPath: string, library: Library) {
         'src/main/res/values/text-styles.xml': library.textStyleResources,
       }),
       ...(drawables.length > 0 && Object.fromEntries(drawables)),
+      ...(drawables.length > 0 && {
+        [path.join(
+          'src/main/java',
+          library.packageName.replace(/[.]/g, '/'),
+          'gallery/Gallery.kt'
+        )]: createKotlinAssetGallery(
+          library.packageName,
+          library.drawableResources.map(pair =>
+            formatDrawableName(pair[0]).slice(0, -4)
+          )
+        ),
+      }),
     },
     rootPath
   )

@@ -82,6 +82,8 @@ async function parseWorkspace(
     // Android
     packageName?: string
     minSdkVersion?: number
+    generateAndroidManifest?: boolean
+    generateBuildScript?: boolean
   }
 ): Promise<void> {
   if (!options.packageName) {
@@ -92,6 +94,14 @@ async function parseWorkspace(
 
   const packageName = options.packageName
   const minSdkVersion = options.minSdkVersion || 21
+  const generateAndroidManifest =
+    typeof options.generateAndroidManifest === 'boolean'
+      ? options.generateAndroidManifest
+      : true
+  const generateBuildScript =
+    typeof options.generateBuildScript === 'boolean'
+      ? options.generateBuildScript
+      : true
 
   let convertedWorkspace: Tokens.ConvertedWorkspace
 
@@ -121,20 +131,25 @@ async function parseWorkspace(
     ignore: workspaceConfig.ignore,
   })
 
-  const vectorDrawables: [string, string][] = svgRelativePaths.map(
-    relativePath => {
-      return [
-        relativePath.replace(/.svg$/, '.xml'),
-        SVG.convertFile(path.join(workspacePath, relativePath)),
-      ]
-    }
-  )
+  const vectorDrawables: [string, string][] = []
+
+  for (let relativePath of svgRelativePaths) {
+    vectorDrawables.push([
+      relativePath.replace(/.svg$/, '.xml'),
+      await SVG.convertFile(path.join(workspacePath, relativePath)),
+    ])
+  }
 
   const outputPath = options.output || process.cwd()
 
   const { fs: source } = createLibraryFiles(outputPath, {
-    buildScript: createBuildScript(DEFAULT_BUILD_CONFIG),
-    androidManifest: createManifest(packageName),
+    packageName,
+    buildScript: generateBuildScript
+      ? createBuildScript(DEFAULT_BUILD_CONFIG)
+      : undefined,
+    androidManifest: generateAndroidManifest
+      ? createManifest(packageName)
+      : undefined,
     colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
     elevationResources: tokens ? createShadowsResourceFile(tokens) : undefined,
     textStyleResources: tokens

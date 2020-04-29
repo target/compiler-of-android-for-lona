@@ -1,9 +1,9 @@
 import fs from 'fs'
-import model, { SVG, Rect, Path } from '@lona/svg-model'
+import { convert as convertSvg, SVG, Rect, Path } from '@lona/svg-model'
 import * as VectorDrawable from '../android/vectorDrawable'
 
-export function parse(svgString: string): SVG {
-  return model(svgString)
+export function parse(svgString: string): Promise<SVG> {
+  return convertSvg(svgString)
 }
 
 function convertPath(path: Path): VectorDrawable.Path {
@@ -24,7 +24,7 @@ function convertPath(path: Path): VectorDrawable.Path {
 }
 
 export function convert(model: SVG): VectorDrawable.Vector {
-  const viewBox: Rect = model.data.params.viewBox || {
+  const viewBox: Rect = model.params.viewBox || {
     x: 0,
     y: 0,
     width: 0,
@@ -36,13 +36,13 @@ export function convert(model: SVG): VectorDrawable.Vector {
     height: viewBox.height,
     viewportWidth: viewBox.width,
     viewportHeight: viewBox.height,
-    elements: model.data.children.map(convertPath),
+    elements: model.children.map(convertPath),
   }
 }
 
-export function convertFile(filePath: string): string {
+export async function convertFile(filePath: string): Promise<string> {
   const data = fs.readFileSync(filePath, 'utf8')
-  const svg = parse(data)
+  const svg = await parse(data)
   const vector = convert(svg)
   return VectorDrawable.createFile(vector)
 }
