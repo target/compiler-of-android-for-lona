@@ -12,7 +12,8 @@
     "build": "rm -rf ./lib && tsc --declaration",
     "build:watch": "rm -rf ./lib && tsc --declaration --watch",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "svg2vector": "ts-node ./src/bin.ts svg2vector"
   },
   "repository": "https://github.com/target/compiler-of-android-for-lona",
   "author": "Target",
@@ -20,7 +21,8 @@
   "dependencies": {
     "@lona/serialization": "^0.3.10",
     "@lona/svg-model": "^2.1.0",
-    "buffs": "^0.1.0",
+    "@types/sharp": "^0.25.0",
+    "buffs": "^0.1.1",
     "csscolorparser": "^1.0.3",
     "glob": "^7.1.6",
     "lodash.camelcase": "^4.3.0",
@@ -30,6 +32,7 @@
     "lodash.snakecase": "^4.1.1",
     "lodash.upperfirst": "^4.3.1",
     "prettier": "^1.19.1",
+    "sharp": "^0.25.2",
     "uuid": "^7.0.2"
   },
   "devDependencies": {

@@ -1,7 +1,8 @@
 import path from 'path'
-import { createFs } from 'buffs'
+import { createFs, IFS, copy } from 'buffs'
 import * as XML from '../xml/ast'
 import { printElement } from '../xml/print'
+import { formatDrawableName } from '../svg'
 
 function createKotlinAssetGallery(
   packageName: string,
@@ -56,10 +57,6 @@ export function createManifest(packageName: string): string {
   return printElement(root)
 }
 
-const formatDrawableName = (name: string): string => {
-  return name.replace(/[\/\-]/g, '_').toLowerCase()
-}
-
 export type Library = {
   packageName: string
   androidManifest?: string
@@ -67,7 +64,7 @@ export type Library = {
   colorResources?: string
   elevationResources?: string
   textStyleResources?: string
-  drawableResources: [string, string][]
+  drawableResources: [string, IFS][]
 }
 
 /**
@@ -96,12 +93,7 @@ export type Library = {
  * @returns An in-memory filesystem containing the generated files
  */
 export function createLibraryFiles(rootPath: string, library: Library) {
-  const drawables = library.drawableResources.map(([key, value]) => [
-    path.join('src/main/res/drawable', formatDrawableName(key)),
-    value,
-  ])
-
-  return createFs(
+  const target = createFs(
     {
       '.gitignore': '/build\n',
       ...(library.buildScript && { 'build.gradle': library.buildScript }),
@@ -117,20 +109,23 @@ export function createLibraryFiles(rootPath: string, library: Library) {
       ...(library.textStyleResources && {
         'src/main/res/values/text-styles.xml': library.textStyleResources,
       }),
-      ...(drawables.length > 0 && Object.fromEntries(drawables)),
-      ...(drawables.length > 0 && {
+      ...(library.drawableResources.length > 0 && {
         [path.join(
           'src/main/java',
           library.packageName.replace(/[.]/g, '/'),
           'gallery/Gallery.kt'
         )]: createKotlinAssetGallery(
           library.packageName,
-          library.drawableResources.map(pair =>
-            formatDrawableName(pair[0]).slice(0, -4)
-          )
+          library.drawableResources.map(pair => formatDrawableName(pair[0]))
         ),
       }),
     },
     rootPath
   )
+
+  library.drawableResources.forEach(([key, source]) => {
+    copy(source, target.fs, '/', path.join(rootPath, 'src/main/res'))
+  })
+
+  return target
 }

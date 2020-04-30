@@ -5,7 +5,7 @@ import { Helpers } from '@lona/compiler/lib/helpers'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import * as Tokens from '@lona/compiler/lib/plugins/tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
-import { describeComparison, copy } from 'buffs'
+import { describeComparison, copy, IFS } from 'buffs'
 
 import { getConfig } from './lona'
 import { createLibraryFiles, createManifest } from './android/library'
@@ -131,12 +131,16 @@ async function parseWorkspace(
     ignore: workspaceConfig.ignore,
   })
 
-  const vectorDrawables: [string, string][] = []
+  const vectorDrawables: [string, IFS][] = []
 
   for (let relativePath of svgRelativePaths) {
+    const data = await fs.promises.readFile(
+      path.join(workspacePath, relativePath)
+    )
+
     vectorDrawables.push([
-      relativePath.replace(/.svg$/, '.xml'),
-      await SVG.convertFile(path.join(workspacePath, relativePath)),
+      relativePath,
+      await SVG.createFiles(relativePath, data),
     ])
   }
 

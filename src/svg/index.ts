@@ -1,48 +1,61 @@
-import fs from 'fs'
-import { convert as convertSvg, SVG, Rect, Path } from '@lona/svg-model'
+import path from 'path'
+import { parse, convert } from './convert'
 import * as VectorDrawable from '../android/vectorDrawable'
+import { createFs, IFS } from 'buffs'
+import { rasterize } from './rasterize'
 
-export function parse(svgString: string): Promise<SVG> {
-  return convertSvg(svgString)
+type PixelDensity = {
+  name: string
+  value: number
+  scale: number
 }
 
-function convertPath(path: Path): VectorDrawable.Path {
-  const { commands, style } = path.data.params
+const ALL_PIXEL_DENSITIES: PixelDensity[] = [
+  { name: 'mdpi', value: 160, scale: 1 },
+  { name: 'hdpi', value: 240, scale: 1.5 },
+  { name: 'xhdpi', value: 320, scale: 2 },
+  { name: 'xxhdpi', value: 480, scale: 3 },
+  { name: 'xxxhdpi', value: 640, scale: 4 },
+]
 
-  const hasStroke = style.stroke && style.strokeWidth > 0
-
-  return {
-    pathData: commands,
-    ...(style.fill && { fillColor: style.fill }),
-    ...(hasStroke && { strokeColor: style.stroke }),
-    ...(hasStroke && { strokeWidth: style.strokeWidth }),
-    ...(hasStroke &&
-      style.strokeLineCap !== 'butt' && {
-        strokeLineCap: style.strokeLineCap,
-      }),
-  }
+export const formatDrawableName = (
+  relativePath: string,
+  extname: string = ''
+): string => {
+  const fileName = relativePath.replace(/[\/\-]/g, '_').toLowerCase()
+  return path.basename(fileName, '.svg') + (extname ? `.${extname}` : '')
 }
 
-export function convert(model: SVG): VectorDrawable.Vector {
-  const viewBox: Rect = model.params.viewBox || {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
+export async function createFiles(
+  relativePath: string,
+  data: Buffer
+): Promise<IFS> {
+  const { fs } = createFs()
+
+  const svg = await parse(data.toString('utf8'))
+  const lossless =
+    svg.metadata.unsupportedElements.length === 0 &&
+    svg.metadata.unsupportedAttributes.length === 0
+
+  if (lossless) {
+    const vectorDrawable = VectorDrawable.createFile(convert(svg))
+    const name = formatDrawableName(relativePath, 'xml')
+    fs.mkdirSync('/drawable')
+    fs.writeFileSync(path.join('/drawable', name), vectorDrawable)
+  } else {
+    const name = formatDrawableName(relativePath, 'png')
+
+    for (const density of ALL_PIXEL_DENSITIES) {
+      const viewBox = svg.params.viewBox
+      const png = await rasterize(data, {
+        width: (viewBox?.width ?? 0) * density.scale,
+        height: (viewBox?.height ?? 0) * density.scale,
+      })
+      const directoryName = `/drawable-${density.name}`
+      fs.mkdirSync(directoryName)
+      fs.writeFileSync(path.join(directoryName, name), png)
+    }
   }
 
-  return {
-    width: viewBox.width,
-    height: viewBox.height,
-    viewportWidth: viewBox.width,
-    viewportHeight: viewBox.height,
-    elements: model.children.map(convertPath),
-  }
-}
-
-export async function convertFile(filePath: string): Promise<string> {
-  const data = fs.readFileSync(filePath, 'utf8')
-  const svg = await parse(data)
-  const vector = convert(svg)
-  return VectorDrawable.createFile(vector)
+  return fs
 }
