@@ -28,5 +28,25 @@ dependencies {
   "/src/main/AndroidManifest.xml": "<manifest
     xmlns:android=\\"http://schemas.android.com/apk/res/android\\"
     package=\\"com.lona.test\\" />",
+  "/src/main/java/com/lona/test/gallery/Gallery.kt": "package com.lona.test.gallery
+
+import com.lona.test.R
+
+object Gallery {
+
+    /*
+     * A list of all generated assets.
+     */
+    val ALL_ASSETS = listOf(
+        GalleryItem(\\"test\\", R.drawable.test)
+    )
+
+    /**
+     * An item representing a generated asset.
+     */
+    data class GalleryItem(val id: String, val resourceId: Int)
+}
+",
+  "/src/main/res/drawable/test.xml": "",
 }
 `;
