@@ -4,7 +4,7 @@ import { Helpers } from '@lona/compiler/lib/helpers'
 import { describeComparison, copy } from 'buffs'
 
 import * as Options from './options'
-import { convert } from './workspace'
+import { convert } from './lona/workspace'
 
 async function parseWorkspace(
   workspacePath: string,

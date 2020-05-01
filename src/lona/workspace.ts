@@ -6,14 +6,14 @@ import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import * as Tokens from '@lona/compiler/lib/plugins/tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 
-import { getConfig, Config } from './lona'
-import { createLibraryFiles, createManifest } from './android/library'
-import { createBuildScript, DEFAULT_BUILD_CONFIG } from './android/gradle'
-import * as Resources from './android/resources'
-import * as Color from './tokens/color'
-import * as Shadow from './tokens/shadow'
-import * as TextStyle from './tokens/textStyle'
-import { createFiles as createSvgDrawableFiles } from './svg/drawable'
+import { getConfig, Config } from './config'
+import { createLibraryFiles, createManifest } from '../android/library'
+import { createBuildScript, DEFAULT_BUILD_CONFIG } from '../android/gradle'
+import * as Resources from '../android/resources'
+import * as Color from './color'
+import * as Shadow from './shadow'
+import * as TextStyle from './textStyle'
+import { createFiles as createSvgDrawableFiles } from '../svg/drawable'
 
 function createColorsResourceFile(tokens: Token[]) {
   const colors: Color.Token[] = tokens.flatMap(({ qualifiedName, value }) =>
