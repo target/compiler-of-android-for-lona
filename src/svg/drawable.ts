@@ -4,21 +4,11 @@ import { parse, convert } from './convert'
 import * as VectorDrawable from '../android/vectorDrawable'
 import { createFs, IFS } from 'buffs'
 import { rasterize } from './rasterize'
+import { ALL_PIXEL_DENSITIES } from '../android/pixelDensity'
 
-type PixelDensity = {
-  name: string
-  value: number
-  scale: number
-}
-
-const ALL_PIXEL_DENSITIES: PixelDensity[] = [
-  { name: 'mdpi', value: 160, scale: 1 },
-  { name: 'hdpi', value: 240, scale: 1.5 },
-  { name: 'xhdpi', value: 320, scale: 2 },
-  { name: 'xxhdpi', value: 480, scale: 3 },
-  { name: 'xxxhdpi', value: 640, scale: 4 },
-]
-
+/**
+ * Flatten a file path into a single snake_case filename
+ */
 export const formatDrawableName = (
   relativePath: string,
   extname: string = ''
@@ -43,6 +33,22 @@ function containsReallyLongString(svg: SVG): boolean {
   return false
 }
 
+/**
+ * Convert an SVG file into either a VectorDrawable or a set of PNGs.
+ *
+ * The file path will be flattened, e.g. /assets/icons/example.svg will become either:
+ *
+ *   /drawable/assets_icons_example.xml
+ *
+ *   OR
+ *
+ *   /drawable-mdpi/assets_icons_example.png
+ *   /drawable-hdpi/assets_icons_example.png
+ *   ...
+ *
+ * @param relativePath The SVG file's path, relative to the workspace root.
+ * @param data SVG file data
+ */
 export async function createFiles(
   relativePath: string,
   data: Buffer
@@ -56,21 +62,25 @@ export async function createFiles(
     !containsReallyLongString(svg)
   ) {
     const name = formatDrawableName(relativePath, 'xml')
+    const directoryName = '/drawable'
 
     const vectorDrawable = VectorDrawable.createFile(convert(svg))
-    await fs.promises.mkdir('/drawable')
-    await fs.promises.writeFile(path.join('/drawable', name), vectorDrawable)
+
+    await fs.promises.mkdir(directoryName)
+    await fs.promises.writeFile(path.join(directoryName, name), vectorDrawable)
   } else {
     const name = formatDrawableName(relativePath, 'png')
 
     await Promise.all(
       ALL_PIXEL_DENSITIES.map(async density => {
-        const viewBox = svg.params.viewBox
-        const png = await rasterize(data, {
-          width: (viewBox?.width ?? 0) * density.scale,
-          height: (viewBox?.height ?? 0) * density.scale,
-        })
         const directoryName = `/drawable-${density.name}`
+
+        const { width, height } = svg.params.viewBox ?? { width: 0, height: 0 }
+        const png = await rasterize(data, {
+          width: width * density.scale,
+          height: height * density.scale,
+        })
+
         await fs.promises.mkdir(directoryName)
         await fs.promises.writeFile(path.join(directoryName, name), png)
       })
