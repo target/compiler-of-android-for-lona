@@ -7,7 +7,7 @@ import * as Tokens from '@lona/compiler/lib/plugins/tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 import { describeComparison, copy, IFS } from 'buffs'
 
-import { getConfig } from './lona'
+import { getConfig, Config } from './lona'
 import { createLibraryFiles, createManifest } from './android/library'
 import { createBuildScript, DEFAULT_BUILD_CONFIG } from './android/gradle'
 import * as Resources from './android/resources'
@@ -72,6 +72,30 @@ function createTextStyleResourceFile(
   )
 }
 
+async function convertSvgFiles(
+  workspaceConfig: Config,
+  workspacePath: string
+): Promise<[string, IFS][]> {
+  const svgRelativePaths = FileSearch.sync(workspacePath, '**/*.svg', {
+    ignore: workspaceConfig.ignore,
+  })
+
+  return Promise.all(
+    svgRelativePaths.map(async relativePath => {
+      const data = await fs.promises.readFile(
+        path.join(workspacePath, relativePath)
+      )
+
+      const result: [string, IFS] = [
+        relativePath,
+        await createSvgDrawableFiles(relativePath, data),
+      ]
+
+      return result
+    })
+  )
+}
+
 async function parseWorkspace(
   workspacePath: string,
   helpers: Helpers,
@@ -127,22 +151,10 @@ async function parseWorkspace(
 
   const workspaceConfig = await getConfig(workspacePath)
 
-  const svgRelativePaths = FileSearch.sync(workspacePath, '**/*.svg', {
-    ignore: workspaceConfig.ignore,
-  })
-
-  const vectorDrawables: [string, IFS][] = []
-
-  for (let relativePath of svgRelativePaths) {
-    const data = await fs.promises.readFile(
-      path.join(workspacePath, relativePath)
-    )
-
-    vectorDrawables.push([
-      relativePath,
-      await createSvgDrawableFiles(relativePath, data),
-    ])
-  }
+  const vectorDrawables: [string, IFS][] = await convertSvgFiles(
+    workspaceConfig,
+    workspacePath
+  )
 
   const outputPath = options.output || process.cwd()
 

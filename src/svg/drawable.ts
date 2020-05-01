@@ -55,23 +55,26 @@ export async function createFiles(
     svg.metadata.unsupportedFeatures.length === 0 &&
     !containsReallyLongString(svg)
   ) {
-    const vectorDrawable = VectorDrawable.createFile(convert(svg))
     const name = formatDrawableName(relativePath, 'xml')
-    fs.mkdirSync('/drawable')
-    fs.writeFileSync(path.join('/drawable', name), vectorDrawable)
+
+    const vectorDrawable = VectorDrawable.createFile(convert(svg))
+    await fs.promises.mkdir('/drawable')
+    await fs.promises.writeFile(path.join('/drawable', name), vectorDrawable)
   } else {
     const name = formatDrawableName(relativePath, 'png')
 
-    for (const density of ALL_PIXEL_DENSITIES) {
-      const viewBox = svg.params.viewBox
-      const png = await rasterize(data, {
-        width: (viewBox?.width ?? 0) * density.scale,
-        height: (viewBox?.height ?? 0) * density.scale,
+    await Promise.all(
+      ALL_PIXEL_DENSITIES.map(async density => {
+        const viewBox = svg.params.viewBox
+        const png = await rasterize(data, {
+          width: (viewBox?.width ?? 0) * density.scale,
+          height: (viewBox?.height ?? 0) * density.scale,
+        })
+        const directoryName = `/drawable-${density.name}`
+        await fs.promises.mkdir(directoryName)
+        await fs.promises.writeFile(path.join(directoryName, name), png)
       })
-      const directoryName = `/drawable-${density.name}`
-      fs.mkdirSync(directoryName)
-      fs.writeFileSync(path.join(directoryName, name), png)
-    }
+    )
   }
 
   return fs
