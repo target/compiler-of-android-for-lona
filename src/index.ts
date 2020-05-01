@@ -14,7 +14,7 @@ import * as Resources from './android/resources'
 import * as Color from './tokens/color'
 import * as Shadow from './tokens/shadow'
 import * as TextStyle from './tokens/textStyle'
-import * as SVG from './svg/index'
+import { createFiles as createSvgDrawableFiles } from './svg/drawable'
 
 async function parseFile(
   filePath: string,
@@ -140,7 +140,7 @@ async function parseWorkspace(
 
     vectorDrawables.push([
       relativePath,
-      await SVG.createFiles(relativePath, data),
+      await createSvgDrawableFiles(relativePath, data),
     ])
   }
 

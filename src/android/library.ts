@@ -2,7 +2,7 @@ import path from 'path'
 import { createFs, IFS, copy } from 'buffs'
 import * as XML from '../xml/ast'
 import { printElement } from '../xml/print'
-import { formatDrawableName } from '../svg'
+import { formatDrawableName } from '../svg/drawable'
 
 function createKotlinAssetGallery(
   packageName: string,

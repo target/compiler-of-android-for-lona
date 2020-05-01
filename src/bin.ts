@@ -22,16 +22,12 @@ async function main() {
 
       console.log(xml)
 
-      if (
-        svg.metadata.unsupportedElements.length > 0 ||
-        svg.metadata.unsupportedAttributes.length > 0
-      ) {
+      if (svg.metadata.unsupportedFeatures.length > 0) {
         console.error()
         console.error(
-          `Failed to convert SVG to VectorDrawable losslessly due to unsupported features: ${[
-            ...svg.metadata.unsupportedElements,
-            ...svg.metadata.unsupportedAttributes,
-          ].join(', ')}`
+          `Failed to convert SVG to VectorDrawable losslessly due to unsupported features: ${svg.metadata.unsupportedFeatures.join(
+            ', '
+          )}`
         )
       }
     }

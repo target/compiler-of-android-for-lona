@@ -42,7 +42,7 @@ const pointString = (point: Point): string => {
   return `${round(point.x, 3)},${round(point.y, 3)}`
 }
 
-const pathString = (commands: Command[]): string => {
+export const pathString = (commands: Command[]): string => {
   return commands
     .map(command => {
       switch (command.type) {
