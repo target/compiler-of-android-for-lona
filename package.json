@@ -22,7 +22,7 @@
     "@lona/serialization": "^0.3.10",
     "@lona/svg-model": "^2.1.0",
     "@types/sharp": "^0.25.0",
-    "buffs": "^0.1.1",
+    "buffs": "^0.2.0",
     "csscolorparser": "^1.0.3",
     "glob": "^7.1.6",
     "lodash.camelcase": "^4.3.0",

@@ -10,7 +10,7 @@ describe('Android / Library', () => {
       androidManifest: createManifest('com.lona.test'),
       generateGallery: true,
       drawableResources: [
-        ['test.svg', createFs({ 'drawable/test.xml': '' }, '/').fs],
+        ['test.svg', createFs({ 'drawable/test.xml': '' }).fs],
       ],
     })
 

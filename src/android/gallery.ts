@@ -41,12 +41,9 @@ export function createGalleryFiles(
 ): IFS {
   const gallery = createKotlinAssetGallery(packageName, drawableResourceNames)
 
-  const { fs } = createFs(
-    {
-      '/gallery/Gallery.kt': gallery,
-    },
-    '/'
-  )
+  const { fs } = createFs({
+    '/gallery/Gallery.kt': gallery,
+  })
 
   return fs
 }
