@@ -8,6 +8,7 @@ describe('Android / Library', () => {
       packageName: 'com.lona.test',
       buildScript: createBuildScript(DEFAULT_BUILD_CONFIG),
       androidManifest: createManifest('com.lona.test'),
+      generateGallery: true,
       drawableResources: [
         ['test.svg', createFs({ 'drawable/test.xml': '' }, '/').fs],
       ],

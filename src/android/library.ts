@@ -3,7 +3,7 @@ import { createFs, IFS, copy } from 'buffs'
 import * as XML from '../xml/ast'
 import { printElement } from '../xml/print'
 import { formatDrawableName } from '../svg/drawable'
-import { createKotlinAssetGallery } from './gallery'
+import { createKotlinAssetGallery, createGalleryFiles } from './gallery'
 
 /**
  * Create an Android manifest file for a library module.
@@ -36,6 +36,7 @@ export type Library = {
   colorResources?: string
   elevationResources?: string
   textStyleResources?: string
+  generateGallery: boolean
   drawableResources: [string, IFS][]
 }
 
@@ -65,6 +66,11 @@ export type Library = {
  * @returns An in-memory filesystem containing the generated files
  */
 export function createLibraryFiles(rootPath: string, library: Library) {
+  const classPath = path.join(
+    'src/main/java',
+    library.packageName.replace(/[.]/g, '/')
+  )
+
   const target = createFs(
     {
       '.gitignore': '/build\n',
@@ -81,19 +87,17 @@ export function createLibraryFiles(rootPath: string, library: Library) {
       ...(library.textStyleResources && {
         'src/main/res/values/text-styles.xml': library.textStyleResources,
       }),
-      ...(library.drawableResources.length > 0 && {
-        [path.join(
-          'src/main/java',
-          library.packageName.replace(/[.]/g, '/'),
-          'gallery/Gallery.kt'
-        )]: createKotlinAssetGallery(
-          library.packageName,
-          library.drawableResources.map(pair => formatDrawableName(pair[0]))
-        ),
-      }),
     },
     rootPath
   )
+
+  if (library.drawableResources && library.generateGallery) {
+    const gallery = createGalleryFiles(
+      library.packageName,
+      library.drawableResources.map(pair => formatDrawableName(pair[0]))
+    )
+    copy(gallery, target.fs, '/', path.join(rootPath, classPath))
+  }
 
   library.drawableResources.forEach(([key, source]) => {
     copy(source, target.fs, '/', path.join(rootPath, 'src/main/res'))

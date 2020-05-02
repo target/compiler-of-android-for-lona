@@ -1,5 +1,7 @@
+import { IFS, createFs } from 'buffs'
+
 /**
- * Create a gallery class to showcase all assets
+ * Create a gallery class that lists every generated drawable
  */
 export function createKotlinAssetGallery(
   packageName: string,
@@ -28,4 +30,23 @@ ${drawableResources}
     data class GalleryItem(val id: String, val resourceId: Int)
 }
 `
+}
+
+/**
+ * Create a gallery to showcase all assets
+ */
+export function createGalleryFiles(
+  packageName: string,
+  drawableResourceNames: string[]
+): IFS {
+  const gallery = createKotlinAssetGallery(packageName, drawableResourceNames)
+
+  const { fs } = createFs(
+    {
+      '/gallery/Gallery.kt': gallery,
+    },
+    '/'
+  )
+
+  return fs
 }

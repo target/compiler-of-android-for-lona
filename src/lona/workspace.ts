@@ -91,6 +91,7 @@ export type ConvertOptions = {
   minSdkVersion: number
   generateAndroidManifest: boolean
   generateBuildScript: boolean
+  generateGallery: boolean
 }
 
 /**
@@ -109,6 +110,7 @@ export async function convert(
     minSdkVersion,
     generateAndroidManifest,
     generateBuildScript,
+    generateGallery,
   } = options
 
   let convertedWorkspace: Tokens.ConvertedWorkspace
@@ -147,6 +149,7 @@ export async function convert(
     androidManifest: generateAndroidManifest
       ? createManifest(packageName)
       : undefined,
+    generateGallery,
     colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
     elevationResources: tokens ? createShadowsResourceFile(tokens) : undefined,
     textStyleResources: tokens

@@ -7,6 +7,7 @@ export type Raw = {
   minSdkVersion?: number
   generateAndroidManifest?: boolean
   generateBuildScript?: boolean
+  generateGallery?: boolean
 }
 
 export type Validated = {
@@ -17,6 +18,7 @@ export type Validated = {
   minSdkVersion: number
   generateAndroidManifest: boolean
   generateBuildScript: boolean
+  generateGallery: boolean
 }
 
 export function validate(
@@ -48,6 +50,10 @@ export function validate(
       generateBuildScript:
         typeof options.generateBuildScript === 'boolean'
           ? options.generateBuildScript
+          : true,
+      generateGallery:
+        typeof options.generateGallery === 'boolean'
+          ? options.generateGallery
           : true,
     },
   }
