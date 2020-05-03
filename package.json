@@ -21,8 +21,6 @@
   "dependencies": {
     "@lona/serialization": "^0.3.10",
     "@lona/svg-model": "3.0.0-alpha.3",
-    "@types/sharp": "^0.25.0",
-    "@types/xml2js": "^0.4.5",
     "buffs": "^0.2.0",
     "csscolorparser": "^1.0.3",
     "glob": "^7.1.6",
@@ -50,7 +48,9 @@
     "@types/lodash.upperfirst": "^4.3.6",
     "@types/node": "^13.7.6",
     "@types/prettier": "^1.19.0",
+    "@types/sharp": "^0.25.0",
     "@types/uuid": "^7.0.0",
+    "@types/xml2js": "^0.4.5",
     "jest": "^25.1.0",
     "ts-jest": "^25.2.1",
     "ts-node": "^8.6.2",
