@@ -4,6 +4,9 @@
   "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "sync": "npx ts-node index.ts"
+  },
   "dependencies": {
     "fs-extra": "^9.0.0"
   },
