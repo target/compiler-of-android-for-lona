@@ -5,6 +5,7 @@ import util from 'util'
 import * as Xml from './xml/parse'
 import { parse, convert } from './svg/convert'
 import { createFile } from './android/vectorDrawable'
+import { getConfig } from './template/config'
 
 const [, , command, inputPath] = process.argv
 
@@ -21,8 +22,12 @@ async function main() {
 
       const parsed = Xml.parse(data)
 
-      const inspected = util.inspect(parsed, false, null, true)
+      const config = getConfig(parsed)
 
+      // const inspected = util.inspect(parsed, false, null, true)
+      // console.log(inspected)
+
+      const inspected = util.inspect(config, false, null, true)
       console.log(inspected)
       break
     }
