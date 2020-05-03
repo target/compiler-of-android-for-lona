@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import fs from 'fs'
+import util from 'util'
+import * as Xml from './xml/parse'
 import { parse, convert } from './svg/convert'
 import { createFile } from './android/vectorDrawable'
 
@@ -8,6 +10,22 @@ const [, , command, inputPath] = process.argv
 
 async function main() {
   switch (command) {
+    case 'parse': {
+      if (!inputPath) {
+        console.log('No filename given')
+
+        process.exit(1)
+      }
+
+      const data = await fs.promises.readFile(inputPath, 'utf8')
+
+      const parsed = Xml.parse(data)
+
+      const inspected = util.inspect(parsed, false, null, true)
+
+      console.log(inspected)
+      break
+    }
     case 'svg2vector': {
       if (!inputPath) {
         console.log('No svg2vector filename given')
@@ -30,7 +48,10 @@ async function main() {
           )}`
         )
       }
+      break
     }
+    default:
+      console.log('no command passed')
   }
 }
 

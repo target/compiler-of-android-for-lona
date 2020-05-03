@@ -22,6 +22,7 @@
     "@lona/serialization": "^0.3.10",
     "@lona/svg-model": "3.0.0-alpha.3",
     "@types/sharp": "^0.25.0",
+    "@types/xml2js": "^0.4.5",
     "buffs": "^0.2.0",
     "csscolorparser": "^1.0.3",
     "glob": "^7.1.6",
@@ -33,7 +34,8 @@
     "lodash.upperfirst": "^4.3.1",
     "prettier": "^1.19.1",
     "sharp": "^0.25.2",
-    "uuid": "^7.0.2"
+    "uuid": "^7.0.2",
+    "xml2js": "^0.4.23"
   },
   "devDependencies": {
     "@lona/compiler": "^0.1.11",
