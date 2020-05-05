@@ -1,5 +1,4 @@
 import * as XML from '../xml/ast'
-import { parse } from '../xml/parse'
 import {
   getAttributes,
   findElementByTag,
