@@ -7,7 +7,7 @@ type GlobalVariableDefinition = {
 
 export type Globals = { [key: string]: any }
 
-export function getGlobals(root: XML.Element): Globals {
+export function parse(root: XML.Element): Globals {
   const elements = XML.findElementsByTag(root, 'global')
 
   const definitions: GlobalVariableDefinition[] = elements.map(element => {

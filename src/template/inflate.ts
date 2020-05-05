@@ -6,18 +6,8 @@ import * as XML from '../xml'
 import * as FreeMarker from '../freemarker'
 
 import { Config, getConfig } from './config'
-import * as Recipe from './recipe'
-import { getGlobals, Globals } from './globals'
-
-async function readXML(filePath: string): Promise<XML.Element> {
-  const templateString = await fs.promises.readFile(filePath, 'utf8')
-  return XML.parse(templateString)
-}
-
-async function readTemplate(templatePath: string): Promise<Config> {
-  const templateElement = await readXML(templatePath)
-  return getConfig(templateElement)
-}
+import { parse as parseRecipe, Recipe } from './recipe'
+import { parse as parseGlobals, Globals } from './globals'
 
 type CreateContextOptions = { projectName?: string }
 
@@ -74,11 +64,12 @@ function createFreemarkerContext(
   }
 }
 
-async function inflateFMT(
+function inflateFMT(
+  source: IFS,
   filePath: string,
   context: FreeMarker.Context
-): Promise<string> {
-  const data = await fs.promises.readFile(filePath, 'utf8')
+): string {
+  const data = source.readFileSync(filePath, 'utf8')
   const template = FreeMarker.parse(data)
   if (template.ast.errors) {
     console.log('ERROR: Failed to parse', filePath)
@@ -87,27 +78,40 @@ async function inflateFMT(
   return inflated
 }
 
-async function readRecipe(
-  recipePath: string,
-  context: FreeMarker.Context
-): Promise<Recipe.Recipe> {
-  const inflated = await inflateFMT(recipePath, context)
-  const xml = XML.parse(inflated)
-  return Recipe.parse(xml)
+function readXML(source: IFS, filePath: string): XML.Element {
+  const templateString = source.readFileSync(filePath, 'utf8')
+  return XML.parse(templateString)
 }
 
-async function readGlobals(
+function readTemplate(source: IFS, templatePath: string): Config {
+  const templateElement = readXML(source, templatePath)
+  return getConfig(templateElement)
+}
+
+function readRecipe(
+  source: IFS,
+  recipePath: string,
+  context: FreeMarker.Context
+): Recipe {
+  const inflated = inflateFMT(source, recipePath, context)
+  const xml = XML.parse(inflated)
+  return parseRecipe(xml)
+}
+
+function readGlobals(
+  source: IFS,
   globalsPath: string,
   context: FreeMarker.Context
-): Promise<Globals> {
-  const inflated = await inflateFMT(globalsPath, context)
+): Globals {
+  const inflated = inflateFMT(source, globalsPath, context)
   const xml = XML.parse(inflated)
-  return getGlobals(xml)
+  return parseGlobals(xml)
 }
 
 async function execute(
+  source: IFS,
   directoryPath: string,
-  recipe: Recipe.Recipe,
+  recipe: Recipe,
   context: FreeMarker.Context
 ): Promise<IFS> {
   const { fs: target, volume } = createFs()
@@ -154,6 +158,7 @@ async function execute(
         break
       case 'instantiate':
         const inflated = await inflateFMT(
+          source,
           resolveSourcePath(command.value.from),
           context
         )
@@ -191,41 +196,43 @@ async function execute(
 }
 
 export async function inflate(
-  templatePath: string,
+  source: IFS,
+  sourcePath: string,
   options: { projectName?: string }
 ): Promise<IFS> {
+  const templatePath = path.join(sourcePath, 'template.xml')
+
   console.warn('inflating:', templatePath)
 
-  const directoryPath = path.dirname(templatePath)
-
-  const template = await readTemplate(templatePath)
+  const template = await readTemplate(source, templatePath)
 
   const { globals: globalsName, execute: recipeName } = template
 
-  const globalsPath = path.join(directoryPath, globalsName)
+  const globalsPath = path.join(sourcePath, globalsName)
 
   // console.warn('INFO: reading globals:', globalsPath)
 
   const globals = await readGlobals(
+    source,
     globalsPath,
     createFreemarkerContext(options)
   )
 
   // console.log('INFO: globals', util.inspect(globals, false, null, true))
 
-  const recipePath = path.join(directoryPath, recipeName)
+  const recipePath = path.join(sourcePath, recipeName)
 
   const sharedContext = createFreemarkerContext(options, globals)
 
   // console.warn('INFO: reading recipe:', recipePath)
 
-  const recipe = await readRecipe(recipePath, sharedContext)
+  const recipe = await readRecipe(source, recipePath, sharedContext)
 
   // console.log('recipe', util.inspect(recipe, false, null, true))
 
   // console.warn('INFO: executing recipe:', recipePath)
 
-  const target = await execute(directoryPath, recipe, sharedContext)
+  const target = await execute(source, sourcePath, recipe, sharedContext)
 
   return target
 

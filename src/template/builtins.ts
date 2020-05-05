@@ -9,12 +9,12 @@ export function templatePathForName(
     case 'project':
       return path.join(
         __dirname,
-        '../../templates/android-studio/gradle-projects/NewAndroidProject/template.xml'
+        '../../templates/android-studio/gradle-projects/NewAndroidProject'
       )
     case 'module':
       return path.join(
         __dirname,
-        '../../templates/android-studio/gradle-projects/NewAndroidModule/template.xml'
+        '../../templates/android-studio/gradle-projects/NewAndroidModule'
       )
   }
 }

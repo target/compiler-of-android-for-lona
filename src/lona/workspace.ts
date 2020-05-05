@@ -153,13 +153,13 @@ export async function convert(
   ): Promise<IFS> {
     switch (templateName) {
       case 'module':
-        return await inflate(templatePathForName(template), { projectName })
+        return await inflate(fs, templatePathForName(template), { projectName })
 
       case 'project':
-        const moduleFiles = await inflate(templatePathForName('module'), {
+        const moduleFiles = await inflate(fs, templatePathForName('module'), {
           projectName,
         })
-        const projectFiles = await inflate(templatePathForName('project'), {
+        const projectFiles = await inflate(fs, templatePathForName('project'), {
           projectName,
         })
 

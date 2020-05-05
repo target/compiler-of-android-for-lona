@@ -1,5 +1,5 @@
 import * as XML from '../../xml'
-import { getGlobals } from '../globals'
+import { parse } from '../globals'
 
 describe('Template / Globals', () => {
   it('parses globals', () => {
@@ -8,7 +8,7 @@ describe('Template / Globals', () => {
   <global id="bool" type="boolean" value="true" />
 </globals>`)
 
-    expect(getGlobals(globals)).toEqual({
+    expect(parse(globals)).toEqual({
       str: 'test',
       bool: true,
     })

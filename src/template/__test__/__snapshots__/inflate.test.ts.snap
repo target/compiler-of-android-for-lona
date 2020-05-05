@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Template / Inflate inflates module template 1`] = `
+"/
+├── androidTest / com / lona / designsystem / ApplicationTest.java
+└── example
+    ├── .gitignore
+    ├── build.gradle
+    ├── libs
+    └── src
+        ├── com / lona / designsystem
+        └── main
+            ├── AndroidManifest.xml
+            └── res
+                ├── drawable
+                └── values / strings.xml"
+`;
+
+exports[`Template / Inflate inflates project template 1`] = `
+"/
+├── .gitignore
+├── build.gradle
+├── gradle / wrapper
+│   ├── gradle-wrapper.jar
+│   └── gradle-wrapper.properties
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── local.properties
+└── settings.gradle"
+`;
