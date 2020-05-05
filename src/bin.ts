@@ -16,18 +16,18 @@ const [, , command, inputPath, outputPath] = process.argv
 async function main() {
   switch (command) {
     case 'template': {
-      if (!inputPath) {
-        console.log('No filename given')
-        process.exit(1)
-      }
+      // if (!inputPath) {
+      //   console.log('No filename given')
+      //   process.exit(1)
+      // }
 
-      const result = await inflate(inputPath)
+      // const result = await inflate('example', inputPath)
 
-      console.log(describe(result, '/'))
+      // console.log(describe(result, '/'))
 
-      if (outputPath) {
-        copy(result, fs, '/', outputPath)
-      }
+      // if (outputPath) {
+      //   copy(result, fs, '/', outputPath)
+      // }
 
       break
     }

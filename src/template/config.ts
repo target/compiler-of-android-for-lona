@@ -5,30 +5,10 @@ import {
   findElementsByTag,
 } from '../xml/traverse'
 
-// <?xml version="1.0"?>
-// <template
-//     format="5"
-//     revision="2"
-//     name="Android Project"
-//     description="Creates a new Android project.">
-//     <category value="Application" />
-//     <parameter
-//         id="makeIgnore"
-//         name="Create .gitignore file"
-//         type="boolean"
-//         default="true" />
-//     <thumbs>
-//         <thumb>android-module.png</thumb>
-//     </thumbs>
-//     <globals file="globals.xml.ftl" />
-//     <execute file="recipe.xml.ftl" />
-// </template>
-
 export type ConfigParameter = {
   id: string
   name: string
-  type: string
-  default: string
+  default: string | boolean
 }
 
 export type Config = {
@@ -48,8 +28,10 @@ function getParameter(element: XML.Element): ConfigParameter {
   return {
     id: attributes.id,
     name: attributes.name,
-    type: attributes.type,
-    default: attributes.default,
+    default:
+      attributes.type === 'boolean'
+        ? attributes.default === 'true'
+        : attributes.default,
   }
 }
 

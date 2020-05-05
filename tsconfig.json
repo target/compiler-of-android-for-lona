@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "target": "es2017",
     "module": "commonjs",
     "outDir": "./lib",
     "rootDir": "./src",
@@ -8,7 +8,8 @@
     "esModuleInterop": true,
     "types": ["node", "jest"],
     "typeRoots": ["node_modules/@types", "src/types"],
-    "lib": ["ESNext"]
+    "lib": ["ESNext"],
+    "preserveSymlinks": true
   },
   "exclude": ["node_modules", "**/*.test.ts", "scripts", "lib", "tools"]
 }

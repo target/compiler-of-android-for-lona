@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { IFS } from 'buffs'
+import { IFS, createFs, copy } from 'buffs'
 import { Helpers } from '@lona/compiler/lib/helpers'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import * as Tokens from '@lona/compiler/lib/plugins/tokens'
@@ -14,6 +14,8 @@ import * as Color from './color'
 import * as Shadow from './shadow'
 import * as TextStyle from './textStyle'
 import { createFiles as createSvgDrawableFiles } from '../svg/drawable'
+import { templatePathForName, BuiltInTemplateNames } from '../template/builtins'
+import { inflate } from '../template/inflate'
 
 function createColorsResourceFile(tokens: Token[]) {
   const colors: Color.Token[] = tokens.flatMap(({ qualifiedName, value }) =>
@@ -86,6 +88,7 @@ async function convertSvgFiles(
 }
 
 export type ConvertOptions = {
+  template: BuiltInTemplateNames
   outputPath: string
   packageName: string
   minSdkVersion: number
@@ -105,6 +108,7 @@ export async function convert(
   options: ConvertOptions
 ): Promise<IFS> {
   const {
+    template,
     outputPath,
     packageName,
     minSdkVersion,
@@ -141,20 +145,52 @@ export async function convert(
     workspacePath
   )
 
-  return createLibraryFiles(outputPath, {
-    packageName,
-    buildScript: generateBuildScript
-      ? createBuildScript(DEFAULT_BUILD_CONFIG)
-      : undefined,
-    androidManifest: generateAndroidManifest
-      ? createManifest(packageName)
-      : undefined,
-    generateGallery,
-    colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
-    elevationResources: tokens ? createShadowsResourceFile(tokens) : undefined,
-    textStyleResources: tokens
-      ? createTextStyleResourceFile(tokens, { minSdkVersion })
-      : undefined,
-    drawableResources: vectorDrawables,
-  }).fs
+  const projectParts = packageName.split('.')
+  const projectName = projectParts[projectParts.length - 1]
+
+  async function inflateTemplate(
+    templateName: BuiltInTemplateNames
+  ): Promise<IFS> {
+    switch (templateName) {
+      case 'module':
+        return await inflate(templatePathForName(template), { projectName })
+
+      case 'project':
+        const moduleFiles = await inflate(templatePathForName('module'), {
+          projectName,
+        })
+        const projectFiles = await inflate(templatePathForName('project'), {
+          projectName,
+        })
+
+        // const projectRoot = `/${projectName}`
+        // projectFiles.mkdirSync(projectRoot, { recursive: true })
+        copy(moduleFiles, projectFiles, '/', '/')
+
+        return projectFiles
+    }
+  }
+
+  const inflatedTemplate = await inflateTemplate(template)
+  const combined = createFs().fs
+  copy(inflatedTemplate, combined, '/', outputPath)
+
+  return combined
+
+  // return createLibraryFiles(outputPath, {
+  //   packageName,
+  //   buildScript: generateBuildScript
+  //     ? createBuildScript(DEFAULT_BUILD_CONFIG)
+  //     : undefined,
+  //   androidManifest: generateAndroidManifest
+  //     ? createManifest(packageName)
+  //     : undefined,
+  //   generateGallery,
+  //   colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
+  //   elevationResources: tokens ? createShadowsResourceFile(tokens) : undefined,
+  //   textStyleResources: tokens
+  //     ? createTextStyleResourceFile(tokens, { minSdkVersion })
+  //     : undefined,
+  //   drawableResources: vectorDrawables,
+  // }).fs
 }

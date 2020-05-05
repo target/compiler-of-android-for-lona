@@ -31,25 +31,6 @@ export type Command =
 
 export type Recipe = Command[]
 
-// <?xml version="1.0"?>
-// <recipe>
-//   <instantiate
-//     from="gradle.properties.ftl"
-//     to="/example/gradle.properties" />
-//   <copy
-//     from="/gradle/wrapper"
-//     to="/example/" />
-//   <merge
-//     from="settings.gradle.ftl"
-//     to="${escapeXmlAttribute(topOut)}/settings.gradle" />
-//   <dependency
-//     mavenUrl="com.android.support:appcompat-v7:${targetApi}.+" />
-//   <dependency
-//     name="android-support-v4"
-//     revision="8" />
-//   <mkdir
-//     at="${escapeXmlAttribute(projectOut)}/libs" />
-// </recipe>
 export function parse(root: XML.Element): Command[] {
   return getChildrenElements(root).flatMap(
     (element: XML.Element): Command[] => {

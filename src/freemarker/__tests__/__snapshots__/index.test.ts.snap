@@ -1,0 +1,58 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Freemarker parses a template 1`] = `
+ProgramNode {
+  "body": Array [
+    ConditionNode {
+      "consequent": Array [
+        TextNode {
+          "end": 10,
+          "loc": Object {
+            "end": Object {
+              "column": 11,
+              "line": 1,
+            },
+            "start": Object {
+              "column": 8,
+              "line": 1,
+            },
+          },
+          "start": 7,
+          "text": "yes",
+          "type": "Text",
+        },
+      ],
+      "end": 7,
+      "loc": Object {
+        "end": Object {
+          "column": 8,
+          "line": 1,
+        },
+        "start": Object {
+          "column": 1,
+          "line": 1,
+        },
+      },
+      "params": Object {
+        "name": "x",
+        "type": "Identifier",
+      },
+      "start": 0,
+      "type": "Condition",
+    },
+  ],
+  "end": 15,
+  "loc": Object {
+    "end": Object {
+      "column": 16,
+      "line": 1,
+    },
+    "start": Object {
+      "column": 1,
+      "line": 1,
+    },
+  },
+  "start": 0,
+  "type": "Program",
+}
+`;

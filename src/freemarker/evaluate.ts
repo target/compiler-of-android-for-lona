@@ -172,10 +172,28 @@ export function evaluateExpression(
             evaluateExpression(left, context) ==
             evaluateExpression(right, context)
           )
+        case 'gt':
+        case '>':
+          return (
+            evaluateExpression(left, context) >
+            evaluateExpression(right, context)
+          )
         case 'gte':
         case '>=':
           return (
-            evaluateExpression(left, context) >
+            evaluateExpression(left, context) >=
+            evaluateExpression(right, context)
+          )
+        case 'lt':
+        case '<':
+          return (
+            evaluateExpression(left, context) <
+            evaluateExpression(right, context)
+          )
+        case 'lte':
+        case '<=':
+          return (
+            evaluateExpression(left, context) <=
             evaluateExpression(right, context)
           )
         default:
@@ -303,3 +321,5 @@ export function evaluateBody(
 export function evaluate(program: ProgramNode, context: Context): string {
   return evaluateBody(program.body || [], context)
 }
+
+export { ProgramNode }

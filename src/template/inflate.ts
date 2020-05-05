@@ -7,9 +7,7 @@ import * as FreeMarker from '../freemarker'
 
 import { Config, getConfig } from './config'
 import * as Recipe from './recipe'
-import { GlobalVariableDefinition, getGlobals } from './globals'
-
-type Globals = { [key: string]: string }
+import { getGlobals, Globals } from './globals'
 
 async function readXML(filePath: string): Promise<XML.Element> {
   const templateString = await fs.promises.readFile(filePath, 'utf8')
@@ -21,14 +19,22 @@ async function readTemplate(templatePath: string): Promise<Config> {
   return getConfig(templateElement)
 }
 
-function createFreemarkerContext(globals: Globals = {}): FreeMarker.Context {
+type CreateContextOptions = { projectName?: string }
+
+function createFreemarkerContext(
+  options: CreateContextOptions,
+  globals: Globals = {}
+): FreeMarker.Context {
+  const projectPrefix = options.projectName || '.'
+
   return {
     data: {
+      ...globals,
       topOut: '.',
-      projectOut: '.',
-      srcDir: './src',
-      manifestDir: './src/main',
-      resDir: './src/main/res',
+      projectOut: `./${projectPrefix}`,
+      srcDir: `./${projectPrefix}/src`,
+      manifestDir: `./${projectPrefix}/src/main`,
+      resDir: `./${projectPrefix}/src/main/res`,
       baseTheme: 'none',
       makeIgnore: true,
       createActivity: false,
@@ -64,7 +70,6 @@ function createFreemarkerContext(globals: Globals = {}): FreeMarker.Context {
       slashedPackageName: (packageName: string): string =>
         packageName.replace(/\./g, '/'),
       compareVersions: (a: string, b: string): boolean => false,
-      ...globals,
     },
   }
 }
@@ -75,6 +80,9 @@ async function inflateFMT(
 ): Promise<string> {
   const data = await fs.promises.readFile(filePath, 'utf8')
   const template = FreeMarker.parse(data)
+  if (template.ast.errors) {
+    console.log('ERROR: Failed to parse', filePath)
+  }
   const inflated = FreeMarker.evaluate(template.ast, context)
   return inflated
 }
@@ -94,13 +102,7 @@ async function readGlobals(
 ): Promise<Globals> {
   const inflated = await inflateFMT(globalsPath, context)
   const xml = XML.parse(inflated)
-  return getGlobals(xml).reduce(
-    (result: Globals, item: GlobalVariableDefinition) => {
-      result[item.id] = item.value
-      return result
-    },
-    {}
-  )
+  return getGlobals(xml)
 }
 
 async function execute(
@@ -118,6 +120,13 @@ async function execute(
     }
   }
 
+  const resolveTargetPath = (filePath: string): string => {
+    // if (filePath.startsWith('./') || filePath.startsWith('../')) {
+    //   return path.join('/', filePath)
+    // }
+    return path.join('/', filePath)
+  }
+
   for (const command of recipe) {
     switch (command.type) {
       case 'dependency':
@@ -132,25 +141,44 @@ async function execute(
       case 'mkdir':
         // if (!command.value.at) break
         try {
-          await target.promises.mkdir(path.join('/', command.value.at))
+          target.mkdirSync(
+            path.join('/', resolveTargetPath(command.value.at)),
+            {
+              recursive: true,
+            }
+          )
         } catch {}
         break
       case 'merge': // TODO: Actually merge files
+        console.log('should merge', command.value)
+        break
       case 'instantiate':
         const inflated = await inflateFMT(
           resolveSourcePath(command.value.from),
           context
         )
         // console.log('inflated', inflated, command)
-        target.mkdirSync(path.dirname(command.value.to), { recursive: true })
-        target.writeFileSync(command.value.to, inflated, 'utf8')
+        target.mkdirSync(path.dirname(resolveTargetPath(command.value.to)), {
+          recursive: true,
+        })
+        target.writeFileSync(
+          resolveTargetPath(command.value.to),
+          inflated,
+          'utf8'
+        )
         break
       case 'copy':
+        console.log(
+          'INFO: Copy',
+          command.value,
+          resolveSourcePath(command.value.from),
+          resolveTargetPath(command.value.to)
+        )
         copy(
           fs,
           target,
           resolveSourcePath(command.value.from),
-          command.value.to
+          resolveTargetPath(command.value.to)
         )
         break
     }
@@ -162,7 +190,12 @@ async function execute(
   return target
 }
 
-export async function inflate(templatePath: string): Promise<IFS> {
+export async function inflate(
+  templatePath: string,
+  options: { projectName?: string }
+): Promise<IFS> {
+  console.warn('inflating:', templatePath)
+
   const directoryPath = path.dirname(templatePath)
 
   const template = await readTemplate(templatePath)
@@ -170,19 +203,30 @@ export async function inflate(templatePath: string): Promise<IFS> {
   const { globals: globalsName, execute: recipeName } = template
 
   const globalsPath = path.join(directoryPath, globalsName)
-  const globals = await readGlobals(globalsPath, createFreemarkerContext())
 
-  // console.log('globals', globals)
+  // console.warn('INFO: reading globals:', globalsPath)
+
+  const globals = await readGlobals(
+    globalsPath,
+    createFreemarkerContext(options)
+  )
+
+  // console.log('INFO: globals', util.inspect(globals, false, null, true))
 
   const recipePath = path.join(directoryPath, recipeName)
 
-  const sharedContext = createFreemarkerContext(globals)
+  const sharedContext = createFreemarkerContext(options, globals)
+
+  // console.warn('INFO: reading recipe:', recipePath)
+
   const recipe = await readRecipe(recipePath, sharedContext)
 
-  const inspected = util.inspect(recipe, false, null, true)
-  // console.log('inspect', inspected)
+  // console.log('recipe', util.inspect(recipe, false, null, true))
+
+  // console.warn('INFO: executing recipe:', recipePath)
 
   const target = await execute(directoryPath, recipe, sharedContext)
+
   return target
 
   // return createFs().fs

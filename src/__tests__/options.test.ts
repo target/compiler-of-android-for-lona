@@ -1,6 +1,7 @@
 import * as Options from '../options'
 
 const defaultRawOptions: Options.Raw = {
+  template: 'module',
   packageName: 'com.example.test',
   minSdkVersion: 21,
 }
@@ -10,6 +11,7 @@ describe('Options', () => {
     const raw: Options.Raw = defaultRawOptions
 
     const validated: Options.Validated = {
+      template: 'module',
       shouldOutputFiles: false,
       dryRun: false,
       outputPath: 'cwd',

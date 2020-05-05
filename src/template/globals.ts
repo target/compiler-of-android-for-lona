@@ -1,23 +1,26 @@
 import * as XML from '../xml'
 
-export type GlobalVariableDefinition = {
+type GlobalVariableDefinition = {
   id: string
-  value: string
+  value: string | boolean
 }
 
-// Format:
-//
-// <globals>
-//     <global id="topOut" value="." />
-//     <global id="mavenUrl" value="mavenCentral" />
-//     <global id="buildToolsVersion" value="${buildApi}" />
-// </globals>
-export function getGlobals(root: XML.Element): GlobalVariableDefinition[] {
+export type Globals = { [key: string]: any }
+
+export function getGlobals(root: XML.Element): Globals {
   const elements = XML.findElementsByTag(root, 'global')
 
-  return elements.map(element => {
-    const { id, value } = XML.getAttributes(element)
+  const definitions: GlobalVariableDefinition[] = elements.map(element => {
+    const { id, value, type } = XML.getAttributes(element)
 
-    return { id, value }
+    return { id, value: type === 'boolean' ? value == 'true' : value }
   })
+
+  return definitions.reduce(
+    (result: Globals, item: GlobalVariableDefinition) => {
+      result[item.id] = item.value
+      return result
+    },
+    {}
+  )
 }
