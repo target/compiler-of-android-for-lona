@@ -19,7 +19,7 @@ async function parseWorkspace(
     process.cwd()
   )
 
-  console.log(validatedOptions)
+  // console.log(validatedOptions)
 
   if (validatedOptions.type === 'error') {
     return Promise.reject(validatedOptions.value)
@@ -32,13 +32,13 @@ async function parseWorkspace(
   if (shouldOutputFiles) {
     copy(source, fs, outputPath)
   } else {
-    console.error('\nThe following files will be generated:\n')
+    console.error(`\nThe following files will be generated at ${outputPath}:\n`)
 
-    const description = describe(source, '/')
+    // const description = describe(source, '/')
 
-    // const description = describeComparison(source, fs, outputPath, {
-    //   colorize: true,
-    // })
+    const description = describeComparison(source, fs, outputPath, {
+      colorize: true,
+    })
 
     console.error(description)
 

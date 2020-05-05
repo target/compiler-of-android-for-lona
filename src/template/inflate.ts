@@ -9,13 +9,15 @@ import { Config, getConfig } from './config'
 import { parse as parseRecipe, Recipe } from './recipe'
 import { parse as parseGlobals, Globals } from './globals'
 
-type CreateContextOptions = { projectName?: string }
+type CreateContextOptions = { packageName: string }
 
 function createFreemarkerContext(
-  options: CreateContextOptions,
+  { packageName }: CreateContextOptions,
   globals: Globals = {}
 ): FreeMarker.Context {
-  const projectPrefix = options.projectName || '.'
+  const projectParts = packageName.split('.')
+  const projectName = projectParts[projectParts.length - 1]
+  const projectPrefix = projectName || '.'
 
   return {
     data: {
@@ -29,13 +31,13 @@ function createFreemarkerContext(
       makeIgnore: true,
       createActivity: false,
       sdkDir: process.env.ANDROID_HOME,
-      appTitle: 'designsystem',
-      projectName: 'designsystem',
-      simpleName: 'DesignSystem',
+      appTitle: projectName,
+      projectName: projectName,
+      simpleName: projectName,
       buildApi: 29,
       buildApiString: '29.0.2',
       buildToolsVersion: '29.0.2',
-      packageName: 'com.lona.designsystem',
+      packageName: packageName,
       WearprojectName: '',
       minApi: '21',
       minApiLevel: 21,
@@ -108,27 +110,25 @@ function readGlobals(
   return parseGlobals(xml)
 }
 
-async function execute(
+function execute(
   source: IFS,
-  directoryPath: string,
+  sourcePath: string,
+  targetPath: string,
   recipe: Recipe,
   context: FreeMarker.Context
-): Promise<IFS> {
-  const { fs: target, volume } = createFs()
+): IFS {
+  const { fs: target } = createFs()
 
   const resolveSourcePath = (filePath: string): string => {
     if (filePath.startsWith('/')) {
       return filePath
     } else {
-      return path.join(directoryPath, 'root', filePath)
+      return path.join(sourcePath, 'root', filePath)
     }
   }
 
   const resolveTargetPath = (filePath: string): string => {
-    // if (filePath.startsWith('./') || filePath.startsWith('../')) {
-    //   return path.join('/', filePath)
-    // }
-    return path.join('/', filePath)
+    return path.join(targetPath, filePath)
   }
 
   for (const command of recipe) {
@@ -140,7 +140,7 @@ async function execute(
           context.data.dependencyList.push(command.value)
         }
 
-        console.log('dep', command)
+        // console.log('dep', command)
         break
       case 'mkdir':
         // if (!command.value.at) break
@@ -153,11 +153,31 @@ async function execute(
           )
         } catch {}
         break
-      case 'merge': // TODO: Actually merge files
-        console.log('should merge', command.value)
+      // TODO: Smarter merge
+      case 'merge': {
+        // console.log('should merge', command.value)
+
+        const mergeSourcePath = resolveSourcePath(command.value.from)
+        const mergeTargetPath = resolveTargetPath(command.value.to)
+
+        // console.log('source', mergeSourcePath, 'target', mergeTargetPath)
+
+        const inflated = inflateFMT(source, mergeSourcePath, context)
+
+        const initialText = source.existsSync(mergeTargetPath)
+          ? source.readFileSync(mergeTargetPath, 'utf8')
+          : ''
+
+        const mergedText = [initialText, inflated]
+          .filter(x => x.length > 0)
+          .join('\n')
+
+        target.writeFileSync(mergeTargetPath, mergedText)
+
         break
-      case 'instantiate':
-        const inflated = await inflateFMT(
+      }
+      case 'instantiate': {
+        const inflated = inflateFMT(
           source,
           resolveSourcePath(command.value.from),
           context
@@ -172,13 +192,14 @@ async function execute(
           'utf8'
         )
         break
-      case 'copy':
-        console.log(
-          'INFO: Copy',
-          command.value,
-          resolveSourcePath(command.value.from),
-          resolveTargetPath(command.value.to)
-        )
+      }
+      case 'copy': {
+        // console.log(
+        //   'INFO: Copy',
+        //   command.value,
+        //   resolveSourcePath(command.value.from),
+        //   resolveTargetPath(command.value.to)
+        // )
         copy(
           fs,
           target,
@@ -186,6 +207,7 @@ async function execute(
           resolveTargetPath(command.value.to)
         )
         break
+      }
     }
   }
 
@@ -195,16 +217,17 @@ async function execute(
   return target
 }
 
-export async function inflate(
+export function inflate(
   source: IFS,
   sourcePath: string,
-  options: { projectName?: string }
-): Promise<IFS> {
+  targetPath: string,
+  options: CreateContextOptions
+): IFS {
   const templatePath = path.join(sourcePath, 'template.xml')
 
-  console.warn('inflating:', templatePath)
+  // console.warn('inflating:', templatePath)
 
-  const template = await readTemplate(source, templatePath)
+  const template = readTemplate(source, templatePath)
 
   const { globals: globalsName, execute: recipeName } = template
 
@@ -212,7 +235,7 @@ export async function inflate(
 
   // console.warn('INFO: reading globals:', globalsPath)
 
-  const globals = await readGlobals(
+  const globals = readGlobals(
     source,
     globalsPath,
     createFreemarkerContext(options)
@@ -226,13 +249,13 @@ export async function inflate(
 
   // console.warn('INFO: reading recipe:', recipePath)
 
-  const recipe = await readRecipe(source, recipePath, sharedContext)
+  const recipe = readRecipe(source, recipePath, sharedContext)
 
   // console.log('recipe', util.inspect(recipe, false, null, true))
 
   // console.warn('INFO: executing recipe:', recipePath)
 
-  const target = await execute(source, sourcePath, recipe, sharedContext)
+  const target = execute(source, sourcePath, targetPath, recipe, sharedContext)
 
   return target
 

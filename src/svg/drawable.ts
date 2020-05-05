@@ -18,7 +18,7 @@ export const formatDrawableName = (
 }
 
 /**
- * Strings in XML files will crash the Android build and app.
+ * Really long strings in XML files will crash the Android build and app.
  * The limit is currently 0x7FFF, defined here:
  * https://android.googlesource.com/platform/frameworks/base.git/+/master/tools/aapt2/StringPool.cpp#340
  */

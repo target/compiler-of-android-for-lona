@@ -61,11 +61,11 @@ export type Library = {
  *             └── values
  *                 └── <various values>.xml
  *
- * @param rootPath
+ * @param srcPath
  * @param library
  * @returns An in-memory filesystem containing the generated files
  */
-export function createLibraryFiles(rootPath: string, library: Library) {
+export function createLibraryFiles(srcPath: string, library: Library) {
   const classPath = path.join(
     'src/main/java',
     library.packageName.replace(/[.]/g, '/')
@@ -73,34 +73,34 @@ export function createLibraryFiles(rootPath: string, library: Library) {
 
   const target = createFs(
     {
-      '.gitignore': '/build\n',
-      ...(library.buildScript && { 'build.gradle': library.buildScript }),
-      ...(library.androidManifest && {
-        'src/main/AndroidManifest.xml': library.androidManifest,
-      }),
+      // '.gitignore': '/build\n',
+      // ...(library.buildScript && { 'build.gradle': library.buildScript }),
+      // ...(library.androidManifest && {
+      //   'src/main/AndroidManifest.xml': library.androidManifest,
+      // }),
       ...(library.colorResources && {
-        'src/main/res/values/colors.xml': library.colorResources,
+        'main/res/values/colors.xml': library.colorResources,
       }),
       ...(library.elevationResources && {
-        'src/main/res/values/elevations.xml': library.elevationResources,
+        'main/res/values/elevations.xml': library.elevationResources,
       }),
       ...(library.textStyleResources && {
-        'src/main/res/values/text-styles.xml': library.textStyleResources,
+        'main/res/values/text-styles.xml': library.textStyleResources,
       }),
     },
-    rootPath
+    srcPath
   )
 
-  if (library.drawableResources && library.generateGallery) {
-    const gallery = createGalleryFiles(
-      library.packageName,
-      library.drawableResources.map(pair => formatDrawableName(pair[0]))
-    )
-    copy(gallery, target.fs, '/', path.join(rootPath, classPath))
-  }
+  // if (library.drawableResources && library.generateGallery) {
+  //   const gallery = createGalleryFiles(
+  //     library.packageName,
+  //     library.drawableResources.map(pair => formatDrawableName(pair[0]))
+  //   )
+  //   copy(gallery, target.fs, '/', path.join(srcPath, classPath))
+  // }
 
   library.drawableResources.forEach(([key, source]) => {
-    copy(source, target.fs, '/', path.join(rootPath, 'src/main/res'))
+    copy(source, target.fs, '/', path.join(srcPath, 'main/res'))
   })
 
   return target

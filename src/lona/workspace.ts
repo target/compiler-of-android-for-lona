@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { IFS, createFs, copy } from 'buffs'
+import { Union } from 'unionfs'
+import { IFS, createFs, copy, describe } from 'buffs'
 import { Helpers } from '@lona/compiler/lib/helpers'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import * as Tokens from '@lona/compiler/lib/plugins/tokens'
@@ -87,6 +88,49 @@ async function convertSvgFiles(
   )
 }
 
+export function inflateTemplate(
+  templateName: BuiltInTemplateNames,
+  packageName: string,
+  outputPath: string
+): { files: IFS; srcPath: string } {
+  switch (templateName) {
+    case 'module':
+      return {
+        files: inflate(fs, templatePathForName('module'), outputPath, {
+          packageName,
+        }),
+        srcPath: 'designlibrary/src',
+      }
+
+    case 'project':
+      const projectFiles = inflate(
+        fs,
+        templatePathForName('project'),
+        outputPath,
+        {
+          packageName,
+        }
+      )
+
+      const fsAndProject = new Union()
+      fsAndProject.use(fs)
+      fsAndProject.use(projectFiles)
+
+      const moduleFiles = inflate(
+        fsAndProject,
+        templatePathForName('module'),
+        outputPath,
+        {
+          packageName,
+        }
+      )
+
+      copy(moduleFiles, projectFiles, '/', '/')
+
+      return { files: projectFiles, srcPath: 'designlibrary/src' }
+  }
+}
+
 export type ConvertOptions = {
   template: BuiltInTemplateNames
   outputPath: string
@@ -145,52 +189,30 @@ export async function convert(
     workspacePath
   )
 
-  const projectParts = packageName.split('.')
-  const projectName = projectParts[projectParts.length - 1]
+  const { files: templateFiles, srcPath } = inflateTemplate(
+    template,
+    packageName,
+    outputPath
+  )
 
-  async function inflateTemplate(
-    templateName: BuiltInTemplateNames
-  ): Promise<IFS> {
-    switch (templateName) {
-      case 'module':
-        return await inflate(fs, templatePathForName(template), { projectName })
+  const libraryFiles = createLibraryFiles(path.join(outputPath, srcPath), {
+    packageName,
+    buildScript: generateBuildScript
+      ? createBuildScript(DEFAULT_BUILD_CONFIG)
+      : undefined,
+    androidManifest: generateAndroidManifest
+      ? createManifest(packageName)
+      : undefined,
+    generateGallery,
+    colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
+    elevationResources: tokens ? createShadowsResourceFile(tokens) : undefined,
+    textStyleResources: tokens
+      ? createTextStyleResourceFile(tokens, { minSdkVersion })
+      : undefined,
+    drawableResources: vectorDrawables,
+  }).fs
 
-      case 'project':
-        const moduleFiles = await inflate(fs, templatePathForName('module'), {
-          projectName,
-        })
-        const projectFiles = await inflate(fs, templatePathForName('project'), {
-          projectName,
-        })
+  copy(libraryFiles, templateFiles, '/', '/')
 
-        // const projectRoot = `/${projectName}`
-        // projectFiles.mkdirSync(projectRoot, { recursive: true })
-        copy(moduleFiles, projectFiles, '/', '/')
-
-        return projectFiles
-    }
-  }
-
-  const inflatedTemplate = await inflateTemplate(template)
-  const combined = createFs().fs
-  copy(inflatedTemplate, combined, '/', outputPath)
-
-  return combined
-
-  // return createLibraryFiles(outputPath, {
-  //   packageName,
-  //   buildScript: generateBuildScript
-  //     ? createBuildScript(DEFAULT_BUILD_CONFIG)
-  //     : undefined,
-  //   androidManifest: generateAndroidManifest
-  //     ? createManifest(packageName)
-  //     : undefined,
-  //   generateGallery,
-  //   colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
-  //   elevationResources: tokens ? createShadowsResourceFile(tokens) : undefined,
-  //   textStyleResources: tokens
-  //     ? createTextStyleResourceFile(tokens, { minSdkVersion })
-  //     : undefined,
-  //   drawableResources: vectorDrawables,
-  // }).fs
+  return templateFiles
 }
