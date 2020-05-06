@@ -23,7 +23,7 @@
     "@lona/svg-model": "3.0.0-alpha.3",
     "buffs": "^0.2.1",
     "csscolorparser": "^1.0.3",
-    "freemarker-parser": "^1.1.6",
+    "freemarker-parser": "dabbott/freemarker-parser#dist",
     "glob": "^7.1.6",
     "lodash.camelcase": "^4.3.0",
     "lodash.escaperegexp": "^4.1.2",

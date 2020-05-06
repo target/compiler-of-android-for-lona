@@ -1930,10 +1930,9 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-freemarker-parser@^1.1.6:
+freemarker-parser@dabbott/freemarker-parser#dist:
   version "1.1.6"
-  resolved "https://registry.yarnpkg.com/freemarker-parser/-/freemarker-parser-1.1.6.tgz#0972455bf2b92f3d9cdbf0c16eaee6d9885c19db"
-  integrity sha512-Jt98Izk62Uu+21e3yHAdl1dI4d3Zmx5JuVpuT/vxwJLJTwt77ZdU+Fz8p2zjImjT1O5FKU7+3yt3LzbOHOQFJQ==
+  resolved "https://codeload.github.com/dabbott/freemarker-parser/tar.gz/a97ba27e5b37cae721ae14be9eb653d7289fd3dd"
 
 fs-constants@^1.0.0:
   version "1.0.0"
