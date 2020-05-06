@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Freemarker parses a template 1`] = `
+exports[`Freemarker / Parse parses a template 1`] = `
 ProgramNode {
   "body": Array [
     ConditionNode {
