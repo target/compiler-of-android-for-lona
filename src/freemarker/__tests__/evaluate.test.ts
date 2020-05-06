@@ -7,16 +7,32 @@ import {
   evaluateCallExpression,
   evaluateLogicalExpression,
   evaluateBinaryExpression,
-} from '../evaluate'
+} from '../evaluate/expression'
 import ParamNames from 'freemarker-parser/dist/enum/ParamNames'
 
 describe('Freemarker / Evaluate', () => {
-  it('evaluates a template', () => {
-    const template = '<#if x>yes</#if>'
-    const ast = parse(template).ast as ProgramNode
+  describe('Node', () => {
+    it('evaluates a condition', () => {
+      const template = '<#if x>yes</#if>'
+      const ast = parse(template).ast as ProgramNode
 
-    expect(evaluate(ast, new Context({ x: true }))).toEqual('yes')
-    expect(evaluate(ast, new Context({ x: false }))).toEqual('')
+      expect(evaluate(ast, new Context({ x: true }))).toEqual('yes')
+      expect(evaluate(ast, new Context({ x: false }))).toEqual('')
+    })
+
+    it('evaluates an interpolation node', () => {
+      const template = '${x}'
+      const ast = parse(template).ast as ProgramNode
+
+      expect(evaluate(ast, new Context({ x: 'hello' }))).toEqual('hello')
+    })
+
+    it('evaluates a list node', () => {
+      const template = '<#list x as element>${element}</#list>'
+      const ast = parse(template).ast as ProgramNode
+
+      expect(evaluate(ast, new Context({ x: ['a', 'b', 'c'] }))).toEqual('abc')
+    })
   })
 
   describe('Expression', () => {
