@@ -21,8 +21,13 @@ exports[`Template / Inflate inflates module template 2`] = `
 "
 buildscript {
     repositories {
+        
+        
         google()
+        
         jcenter()
+        
+        
 
     }
     dependencies {
@@ -36,8 +41,13 @@ apply plugin: 'com.android.library'
 
 
 repositories {
+        
+        
         google()
+        
         jcenter()
+        
+        
 
 }
 
@@ -86,8 +96,13 @@ exports[`Template / Inflate inflates project template 2`] = `
 
 buildscript {
     repositories {
+        
+        
         google()
+        
         jcenter()
+        
+        
 
     }
     dependencies {
@@ -100,8 +115,13 @@ buildscript {
 
 allprojects {
     repositories {
+        
+        
         google()
+        
         jcenter()
+        
+        
 
     }
 }

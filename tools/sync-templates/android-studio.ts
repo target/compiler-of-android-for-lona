@@ -2,6 +2,7 @@ import os from 'os'
 import fs from 'fs-extra'
 import path from 'path'
 import { execSync } from 'child_process'
+import * as Glob from 'glob'
 
 const ANDROID_STUDIO_TOOLS_REPO =
   'https://android.googlesource.com/platform/tools/base'
@@ -40,6 +41,28 @@ export default function sync() {
   )
 
   const downloadedTemplatesPath = path.join(repositoryPath, 'templates')
+
+  const gradleBuildFiles = Glob.sync('**/build.gradle.ftl', {
+    cwd: downloadedTemplatesPath,
+  })
+
+  const repositoryListTemplate = `$1<#if repositoryList??>
+$1<#list repositoryList as repository>
+$1\$\{repository\}
+$1</#list>
+$1</#if>`
+
+  // Replace the hardcoded repository "jcenter()" with a list variable
+  for (const file of gradleBuildFiles) {
+    const filePath = path.join(downloadedTemplatesPath, file)
+    const original = fs.readFileSync(filePath, 'utf8')
+    const updated = original.replace(
+      new RegExp(/( *)jcenter\(\)/, 'g'),
+      repositoryListTemplate
+    )
+    fs.writeFileSync(filePath, updated)
+  }
+
   const localTemplatesPath = path.join(
     __dirname,
     '../../templates/android-studio'

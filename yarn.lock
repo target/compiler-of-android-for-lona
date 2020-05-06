@@ -1141,10 +1141,10 @@ buffer@^5.5.0:
     base64-js "^1.0.2"
     ieee754 "^1.1.4"
 
-buffs@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/buffs/-/buffs-0.2.0.tgz#d0abfe54b04081aae83676b7570cb97435819e47"
-  integrity sha512-HPEhbTuza1pUZ53ygD04WemqJrJ/sQyNt9eUk4H+zZtD3kw64vjD8EEymQ+qJ5JK0B+opwdQ9Qr2wrq8zRaLVA==
+buffs@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/buffs/-/buffs-0.2.1.tgz#0fe77d2a52fe4b6d5c30c998bd3f0f82365e1197"
+  integrity sha512-Mgp35+7/7lk2Qzv4tSjNv6T4bzfDKh+2TbOYoPi7ILZxkYZR4z7lcf0tSaI1cV/R258OX8rchybhee1COAxmJw==
   dependencies:
     chalk "^4.0.0"
     memfs "^3.1.2"

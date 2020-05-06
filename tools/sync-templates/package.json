@@ -8,9 +8,11 @@
     "sync": "npx ts-node index.ts"
   },
   "dependencies": {
-    "fs-extra": "^9.0.0"
+    "fs-extra": "^9.0.0",
+    "glob": "^7.1.6"
   },
   "devDependencies": {
-    "@types/fs-extra": "^8.1.0"
+    "@types/fs-extra": "^8.1.0",
+    "@types/glob": "^7.1.1"
   }
 }

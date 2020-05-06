@@ -21,7 +21,7 @@
   "dependencies": {
     "@lona/serialization": "^0.3.10",
     "@lona/svg-model": "3.0.0-alpha.3",
-    "buffs": "^0.2.0",
+    "buffs": "^0.2.1",
     "csscolorparser": "^1.0.3",
     "freemarker-parser": "^1.1.6",
     "glob": "^7.1.6",

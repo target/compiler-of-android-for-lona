@@ -270,14 +270,25 @@ export function evaluateList(node: ListNode, context: Context): string {
     return ''
   }
 
-  // Set up child scope
-  const scopeValue = context.data[identifier]
-  context.data[identifier] = variable
+  // Save parent scope variable, if one exists
+  const savedParentScopeValue = context.data[identifier]
 
-  const result = evaluateBody(node.body, context)
+  const listValue = evaluateExpression(identifiers[0], context)
 
-  // Restore parent scope
-  context.data[identifier] = scopeValue
+  let result = ''
+
+  if (!Array.isArray(listValue)) {
+    console.error('Non-list value used in <#list>:', listValue, node)
+    return result
+  }
+
+  listValue.forEach(element => {
+    context.data[identifier] = element
+    result += evaluateBody(node.body, context)
+  })
+
+  // Restore parent scope variable
+  context.data[identifier] = savedParentScopeValue
 
   return result
 }

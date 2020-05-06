@@ -2,7 +2,11 @@
 
 buildscript {
     repositories {
-        jcenter()
+        <#if repositoryList??>
+        <#list repositoryList as repository>
+        ${repository}
+        </#list>
+        </#if>
 <#if mavenUrl != "mavenCentral">
         maven {
             url '${mavenUrl}'
@@ -19,7 +23,11 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
+        <#if repositoryList??>
+        <#list repositoryList as repository>
+        ${repository}
+        </#list>
+        </#if>
 <#if mavenUrl != "mavenCentral">
         maven {
             url '${mavenUrl}'

@@ -28,6 +28,7 @@ function createFreemarkerContext(
       srcDir: `./${projectPrefix}/src`,
       manifestDir: `./${projectPrefix}/src/main`,
       resDir: `./${projectPrefix}/src/main/res`,
+      repositoryList: ['google()', 'jcenter()'],
       baseTheme: 'none',
       makeIgnore: true,
       createActivity: false,
@@ -178,17 +179,11 @@ function execute(
         break
       }
       case 'instantiate': {
-        let inflated = inflateFMT(
+        const inflated = inflateFMT(
           source,
           resolveSourcePath(command.value.from),
           context
         )
-        if (path.basename(command.value.from) === 'build.gradle.ftl') {
-          inflated = inflated.replace(
-            new RegExp(/( *)jcenter\(\)/, 'g'),
-            '$1google()\n$1jcenter()'
-          )
-        }
         target.mkdirSync(path.dirname(resolveTargetPath(command.value.to)), {
           recursive: true,
         })
