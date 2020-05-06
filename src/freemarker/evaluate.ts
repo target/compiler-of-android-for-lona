@@ -18,10 +18,7 @@ import {
   BuiltInExpression,
   BinaryExpression,
 } from 'freemarker-parser/src/interface/Params'
-
-export type Context = {
-  data: any
-}
+import { Context } from './context'
 
 export function evaluateCondition(
   node: ConditionNode,
@@ -46,11 +43,11 @@ export function evaluateExpression(
     case 'Identifier': {
       const expression = unclassified as Identifier
 
-      if (!(expression.name in context.data)) {
+      if (!context.has(expression.name)) {
         console.log('missing field', expression.name)
       }
 
-      return context.data[expression.name]
+      return context.get(expression.name)
     }
     case 'Literal': {
       const expression = unclassified as Literal
@@ -271,7 +268,7 @@ export function evaluateList(node: ListNode, context: Context): string {
   }
 
   // Save parent scope variable, if one exists
-  const savedParentScopeValue = context.data[identifier]
+  const savedParentScopeValue = context.get(identifier)
 
   const listValue = evaluateExpression(identifiers[0], context)
 
@@ -283,12 +280,12 @@ export function evaluateList(node: ListNode, context: Context): string {
   }
 
   listValue.forEach(element => {
-    context.data[identifier] = element
+    context.set(identifier, element)
     result += evaluateBody(node.body, context)
   })
 
   // Restore parent scope variable
-  context.data[identifier] = savedParentScopeValue
+  context.set(identifier, savedParentScopeValue)
 
   return result
 }
