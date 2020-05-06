@@ -6,15 +6,29 @@ import util from 'util'
 import * as Xml from './xml/parse'
 import { parse, convert } from './svg/convert'
 import { createFile } from './android/vectorDrawable'
-import { getConfig } from './template/config'
+// import { getConfig } from './template/config'
 import * as FreeMarker from './freemarker'
 import { inflate } from './template/inflate'
 import { describe, copy } from 'buffs'
+import { getConfig } from './lona/config'
+
+import createHelpers from '@lona/compiler/lib/helpers'
+import plugin from './index'
 
 const [, , command, inputPath, outputPath] = process.argv
 
 async function main() {
   switch (command) {
+    case 'convert': {
+      if (!inputPath) {
+        console.log('No workspace path given')
+        process.exit(1)
+      }
+
+      const helpers = await createHelpers(inputPath)
+      await plugin.parseWorkspace(inputPath, helpers, {})
+      console.log('Done!')
+    }
     case 'template': {
       // if (!inputPath) {
       //   console.log('No filename given')
@@ -60,25 +74,25 @@ async function main() {
     //   console.log(result)
     //   break
     // }
-    case 'template-config': {
-      if (!inputPath) {
-        console.log('No filename given')
-        process.exit(1)
-      }
+    // case 'template-config': {
+    //   if (!inputPath) {
+    //     console.log('No filename given')
+    //     process.exit(1)
+    //   }
 
-      const data = await fs.promises.readFile(inputPath, 'utf8')
+    //   const data = await fs.promises.readFile(inputPath, 'utf8')
 
-      const parsed = Xml.parse(data)
+    //   const parsed = Xml.parse(data)
 
-      const config = getConfig(parsed)
+    //   const config = getConfig(parsed)
 
-      // const inspected = util.inspect(parsed, false, null, true)
-      // console.log(inspected)
+    //   // const inspected = util.inspect(parsed, false, null, true)
+    //   // console.log(inspected)
 
-      const inspected = util.inspect(config, false, null, true)
-      console.log(inspected)
-      break
-    }
+    //   const inspected = util.inspect(config, false, null, true)
+    //   console.log(inspected)
+    //   break
+    // }
     case 'svg2vector': {
       if (!inputPath) {
         console.log('No svg2vector filename given')

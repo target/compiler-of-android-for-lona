@@ -1,3 +1,4 @@
+import path from 'path'
 import { templatePathForName, BuiltInTemplateNames } from './template/builtins'
 
 export type Raw = {
@@ -60,7 +61,7 @@ export function validate(
       template: options.template,
       shouldOutputFiles: !!options.output && !dryRun,
       dryRun,
-      outputPath: options.output || cwd,
+      outputPath: options.output ? path.resolve(options.output) : cwd,
       packageName: options.packageName,
       minSdk: options.minSdk || 21,
       buildSdk: options.buildSdk || options.targetSdk || 29,

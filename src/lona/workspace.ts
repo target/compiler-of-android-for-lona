@@ -198,8 +198,6 @@ export async function convert(
     { packageName, minSdk, buildSdk, targetSdk }
   )
 
-  console.log('srcpath', srcPath)
-
   const libraryFiles = createLibraryFiles(path.join(outputPath, srcPath), {
     packageName,
     generateGallery,
