@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import util from 'util'
 import { createFs, IFS, copy } from 'buffs'
 import * as XML from '../xml'
 import * as FreeMarker from '../freemarker'
@@ -158,15 +159,24 @@ function execute(
   return target
 }
 
+export type InflateOptions = {
+  verbose?: boolean
+}
+
 export function inflate(
   source: IFS,
   sourcePath: string,
   targetPath: string,
-  initialContext: FreeMarker.Context
+  initialContext: FreeMarker.Context,
+  inflateOptions: InflateOptions = {}
 ): { files: IFS; context: FreeMarker.Context } {
+  const { verbose = false } = inflateOptions
+
   const templatePath = path.join(sourcePath, 'template.xml')
 
-  // console.warn('inflating:', templatePath)
+  if (verbose) {
+    console.warn('INFO: Inflating template at', templatePath)
+  }
 
   const template = readTemplate(source, templatePath)
 
@@ -174,27 +184,33 @@ export function inflate(
 
   const globalsPath = path.join(sourcePath, globalsName)
 
-  // console.warn('INFO: reading globals:', globalsPath)
+  if (verbose) {
+    console.warn('INFO: Reading globals at', globalsPath)
+  }
 
   const globals = readGlobals(source, globalsPath, initialContext)
 
-  // console.log('INFO: globals', util.inspect(globals, false, null, true))
+  if (verbose) {
+    console.warn('INFO: Globals:')
+    console.warn(util.inspect(globals, false, null, true))
+  }
 
   const recipePath = path.join(sourcePath, recipeName)
 
   const sharedContext = initialContext.withDefaults(globals)
 
-  // console.warn('INFO: reading recipe:', recipePath)
+  if (verbose) {
+    console.warn('INFO: Reading recipe at', recipePath)
+  }
 
   const recipe = readRecipe(source, recipePath, sharedContext)
 
-  // console.log('recipe', util.inspect(recipe, false, null, true))
-
-  // console.warn('INFO: executing recipe:', recipePath)
+  if (verbose) {
+    console.warn('INFO: Recipe:')
+    console.warn(util.inspect(recipe, false, null, true))
+  }
 
   const target = execute(source, sourcePath, targetPath, recipe, sharedContext)
 
   return { files: target, context: sharedContext }
-
-  // return createFs().fs
 }

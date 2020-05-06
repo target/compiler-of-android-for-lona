@@ -19,8 +19,6 @@ async function parseWorkspace(
     process.cwd()
   )
 
-  // console.log(validatedOptions)
-
   if (validatedOptions.type === 'error') {
     return Promise.reject(validatedOptions.value)
   }

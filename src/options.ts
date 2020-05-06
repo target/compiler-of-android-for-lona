@@ -2,6 +2,8 @@ import path from 'path'
 import { templatePathForName, BuiltInTemplateNames } from './template/builtins'
 
 export type Raw = {
+  // General
+  verbose?: boolean
   // Files
   output?: string
   dryRun?: boolean
@@ -17,6 +19,7 @@ export type Raw = {
 }
 
 export type Validated = {
+  verbose: boolean
   template: BuiltInTemplateNames
   shouldOutputFiles: boolean
   outputPath: string
@@ -58,6 +61,7 @@ export function validate(
   return {
     type: 'ok',
     value: {
+      verbose: typeof options.verbose === 'boolean' ? options.verbose : false,
       template: options.template,
       shouldOutputFiles: !!options.output && !dryRun,
       dryRun,

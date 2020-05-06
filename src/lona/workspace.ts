@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import util from 'util'
 import { Union } from 'unionfs'
 import { IFS, createFs, copy, describe } from 'buffs'
 import { Helpers } from '@lona/compiler/lib/helpers'
@@ -15,7 +16,7 @@ import * as Shadow from './shadow'
 import * as TextStyle from './textStyle'
 import { createFiles as createSvgDrawableFiles } from '../svg/drawable'
 import { templatePathForName, BuiltInTemplateNames } from '../template/builtins'
-import { inflate } from '../template/inflate'
+import { inflate, InflateOptions } from '../template/inflate'
 import {
   createTemplateContext,
   CreateTemplateContextOptions,
@@ -94,7 +95,8 @@ async function convertSvgFiles(
 export function inflateTemplate(
   templateName: BuiltInTemplateNames,
   outputPath: string,
-  options: CreateTemplateContextOptions
+  options: CreateTemplateContextOptions,
+  inflateOptions?: InflateOptions
 ): { files: IFS; srcPath: string } {
   switch (templateName) {
     case 'module':
@@ -102,7 +104,8 @@ export function inflateTemplate(
         fs,
         templatePathForName('module'),
         outputPath,
-        createTemplateContext(options)
+        createTemplateContext(options),
+        inflateOptions
       )
 
       return {
@@ -114,7 +117,8 @@ export function inflateTemplate(
         fs,
         templatePathForName('project'),
         outputPath,
-        createTemplateContext(options)
+        createTemplateContext(options),
+        inflateOptions
       )
 
       const fsAndProject = new Union()
@@ -125,7 +129,8 @@ export function inflateTemplate(
         fsAndProject,
         templatePathForName('module'),
         outputPath,
-        createTemplateContext(options)
+        createTemplateContext(options),
+        inflateOptions
       )
 
       copy(moduleFiles, projectFiles, '/', '/')
@@ -135,6 +140,7 @@ export function inflateTemplate(
 }
 
 export type ConvertOptions = {
+  verbose: boolean
   template: BuiltInTemplateNames
   outputPath: string
   packageName: string
@@ -155,6 +161,7 @@ export async function convert(
   options: ConvertOptions
 ): Promise<IFS> {
   const {
+    verbose,
     template,
     outputPath,
     packageName,
@@ -163,6 +170,11 @@ export async function convert(
     targetSdk,
     generateGallery,
   } = options
+
+  if (verbose) {
+    console.log('Converting with options:')
+    console.log(util.inspect(options, false, null, true))
+  }
 
   let convertedWorkspace: Tokens.ConvertedWorkspace
 
@@ -195,7 +207,8 @@ export async function convert(
   const { files: templateFiles, srcPath } = inflateTemplate(
     template,
     outputPath,
-    { packageName, minSdk, buildSdk, targetSdk }
+    { packageName, minSdk, buildSdk, targetSdk },
+    { verbose }
   )
 
   const libraryFiles = createLibraryFiles(path.join(outputPath, srcPath), {
