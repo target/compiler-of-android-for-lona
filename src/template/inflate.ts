@@ -8,7 +8,7 @@ import { Config, getConfig } from './config'
 import { parse as parseRecipe, Recipe } from './recipe'
 import { parse as parseGlobals, Globals } from './globals'
 
-function inflateFMT(
+export function inflateFMT(
   source: IFS,
   filePath: string,
   context: FreeMarker.Context

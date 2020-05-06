@@ -1,124 +1,122 @@
 #!/usr/bin/env node
 
 import fs from 'fs'
-import path from 'path'
-import util from 'util'
-import * as Xml from './xml/parse'
-import { parse, convert } from './svg/convert'
+import * as SVG from './svg/convert'
 import { createFile } from './android/vectorDrawable'
-// import { getConfig } from './template/config'
-import * as FreeMarker from './freemarker'
-import { inflate } from './template/inflate'
-import { describe, copy } from 'buffs'
-import { getConfig } from './lona/config'
+import { inflateFMT } from './template/inflate'
 
-import createHelpers from '@lona/compiler/lib/helpers'
 import plugin from './index'
+import { createTemplateContext } from './template/context'
 
 const [, , command, inputPath, outputPath] = process.argv
 
+const usage = `This script exposes utilities useful for developing the Lona Android plugin.
+
+Available commands:
+
+convert    workspace_path [target_path]   Convert a Lona workspace to an Android project
+svg2vector source_file [target_path]      Output a VectorDrawable to stdout or the target_path
+freemarker source_file [target_path]      Output a FreeMarker template to stdout or the target_path
+`
+
 async function main() {
   switch (command) {
-    case 'convert': {
-      if (!inputPath) {
-        console.log('No workspace path given')
-        process.exit(1)
-      }
-
-      const helpers = await createHelpers(inputPath)
-      await plugin.parseWorkspace(inputPath, helpers, {})
-      console.log('Done!')
-    }
-    case 'template': {
-      // if (!inputPath) {
-      //   console.log('No filename given')
-      //   process.exit(1)
-      // }
-
-      // const result = await inflate('example', inputPath)
-
-      // console.log(describe(result, '/'))
-
-      // if (outputPath) {
-      //   copy(result, fs, '/', outputPath)
-      // }
-
-      break
-    }
-    // case 'freemarker': {
-    //   if (!inputPath) {
-    //     console.log('No filename given')
-    //     process.exit(1)
-    //   }
-
-    //   const data = await fs.promises.readFile(inputPath, 'utf8')
-    //   console.log('--------- TEMPLATE ---------')
-    //   console.log(data)
-
-    //   const parsed = FreeMarker.parse(data)
-    //   const result = FreeMarker.evaluate(parsed.ast, {
-    //     data: {
-    //       makeIgnore: true,
-    //       sdkDir: true,
-    //       topOut: '/example',
-    //       escapeXmlAttribute: (value: string) => value,
-    //     },
-    //   })
-
-    //   const inspected = util.inspect(parsed.ast, false, null, true)
-
-    //   console.log('--------- AST ----------')
-    //   console.log(inspected)
-
-    //   console.log('--------- RESULT ----------')
-    //   console.log(result)
-    //   break
-    // }
-    // case 'template-config': {
-    //   if (!inputPath) {
-    //     console.log('No filename given')
-    //     process.exit(1)
-    //   }
-
-    //   const data = await fs.promises.readFile(inputPath, 'utf8')
-
-    //   const parsed = Xml.parse(data)
-
-    //   const config = getConfig(parsed)
-
-    //   // const inspected = util.inspect(parsed, false, null, true)
-    //   // console.log(inspected)
-
-    //   const inspected = util.inspect(config, false, null, true)
-    //   console.log(inspected)
-    //   break
-    // }
-    case 'svg2vector': {
-      if (!inputPath) {
-        console.log('No svg2vector filename given')
-        process.exit(1)
-      }
-
-      const data = await fs.promises.readFile(inputPath, 'utf8')
-      const svg = await parse(data)
-      const converted = convert(svg)
-      const xml = createFile(converted)
-
-      console.log(xml)
-
-      if (svg.metadata.unsupportedFeatures.length > 0) {
-        console.error()
-        console.error(
-          `Failed to convert SVG to VectorDrawable losslessly due to unsupported features: ${svg.metadata.unsupportedFeatures.join(
-            ', '
-          )}`
+    case 'convert':
+      return convert()
+    case 'freemarker':
+      return freemarker()
+    case 'svg2vector':
+      return svg2vector()
+    default:
+      if (command !== 'help') {
+        console.log(
+          command ? `Unsupported command: ${command}\n` : 'No command passed\n'
         )
       }
-      break
-    }
-    default:
-      console.log('no command passed')
+      console.log(usage)
   }
 }
 
 main()
+
+// Commands
+
+async function writeSingleFileOutput(
+  outputPath: string | undefined,
+  data: string
+) {
+  if (outputPath) {
+    await fs.promises.writeFile(outputPath, data)
+  } else {
+    console.log(data)
+  }
+}
+
+async function convert() {
+  if (!inputPath) {
+    console.log('No source_file given')
+    process.exit(1)
+  }
+
+  const helpers = await createHelpers(inputPath)
+  await plugin.parseWorkspace(inputPath, helpers, {
+    output: outputPath,
+  })
+}
+
+async function svg2vector() {
+  if (!inputPath) {
+    console.log('No source_file given')
+    process.exit(1)
+  }
+
+  const svgString = await fs.promises.readFile(inputPath, 'utf8')
+  const svg = await SVG.parse(svgString)
+  const vectorDrawable = SVG.convert(svg)
+  const xmlString = createFile(vectorDrawable)
+
+  writeSingleFileOutput(outputPath, xmlString)
+
+  if (svg.metadata.unsupportedFeatures.length > 0) {
+    console.error()
+    console.error(
+      `Failed to convert SVG to VectorDrawable losslessly due to unsupported features: ${svg.metadata.unsupportedFeatures.join(
+        ', '
+      )}`
+    )
+  }
+}
+
+async function freemarker() {
+  if (!inputPath) {
+    console.log('No source_file given')
+    process.exit(1)
+  }
+
+  const result = inflateFMT(
+    fs,
+    inputPath,
+    createTemplateContext({
+      packageName: 'test',
+      minSdk: 21,
+      targetSdk: 29,
+      buildSdk: 29,
+    })
+  )
+
+  writeSingleFileOutput(outputPath, result)
+}
+
+function createHelpers(workspacePath: string) {
+  try {
+    const helpers = require('@lona/compiler/lib/helpers').default
+    return helpers(workspacePath)
+  } catch (error) {
+    if (error.code === 'MODULE_NOT_FOUND') {
+      console.error('\n@lona/compiler must be installed to run this command\n')
+      process.exit(1)
+    } else {
+      throw error
+    }
+  }
+}
