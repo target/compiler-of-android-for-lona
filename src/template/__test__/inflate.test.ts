@@ -1,38 +1,49 @@
 import fs from 'fs'
-import { Union } from 'unionfs'
-import { describe as describeFs, copy, createFs } from 'buffs'
+import { describe as describeFs } from 'buffs'
 import { inflate } from '../inflate'
 import { inflateTemplate } from '../../lona/workspace'
 import { templatePathForName } from '../builtins'
+import { createTemplateContext, CreateTemplateContextOptions } from '../context'
+
+const defaultTemplateOptions: CreateTemplateContextOptions = {
+  packageName: 'com.example.designsystem',
+  minSdk: 21,
+  targetSdk: 29,
+  buildSdk: 29,
+}
 
 describe('Template / Inflate', () => {
   it('inflates module template', () => {
-    const target = inflate(fs, templatePathForName('module'), '/prefix', {
-      packageName: 'com.example.designsystem',
-    })
+    const { files } = inflate(
+      fs,
+      templatePathForName('module'),
+      '/prefix',
+      createTemplateContext(defaultTemplateOptions)
+    )
 
-    expect(describeFs(target, '/')).toMatchSnapshot()
+    expect(describeFs(files, '/')).toMatchSnapshot()
     expect(
-      target.readFileSync('/prefix/designsystem/build.gradle', 'utf8')
+      files.readFileSync('/prefix/designsystem/build.gradle', 'utf8')
     ).toMatchSnapshot()
   })
 
   it('inflates project template', () => {
-    const target = inflate(fs, templatePathForName('project'), '/prefix', {
-      packageName: 'com.example.designsystem',
-    })
+    const { files } = inflate(
+      fs,
+      templatePathForName('project'),
+      '/prefix',
+      createTemplateContext(defaultTemplateOptions)
+    )
 
-    expect(describeFs(target, '/')).toMatchSnapshot()
-    expect(
-      target.readFileSync('/prefix/build.gradle', 'utf8')
-    ).toMatchSnapshot()
+    expect(describeFs(files, '/')).toMatchSnapshot()
+    expect(files.readFileSync('/prefix/build.gradle', 'utf8')).toMatchSnapshot()
   })
 
   it('inflates project template, then module template on top', () => {
     const { files } = inflateTemplate(
       'project',
-      'com.example.designsystem',
-      '/prefix'
+      '/prefix',
+      defaultTemplateOptions
     )
 
     expect(describeFs(files, '/')).toMatchSnapshot()

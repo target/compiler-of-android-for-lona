@@ -31,35 +31,35 @@ async function main() {
 
       break
     }
-    case 'freemarker': {
-      if (!inputPath) {
-        console.log('No filename given')
-        process.exit(1)
-      }
+    // case 'freemarker': {
+    //   if (!inputPath) {
+    //     console.log('No filename given')
+    //     process.exit(1)
+    //   }
 
-      const data = await fs.promises.readFile(inputPath, 'utf8')
-      console.log('--------- TEMPLATE ---------')
-      console.log(data)
+    //   const data = await fs.promises.readFile(inputPath, 'utf8')
+    //   console.log('--------- TEMPLATE ---------')
+    //   console.log(data)
 
-      const parsed = FreeMarker.parse(data)
-      const result = FreeMarker.evaluate(parsed.ast, {
-        data: {
-          makeIgnore: true,
-          sdkDir: true,
-          topOut: '/example',
-          escapeXmlAttribute: (value: string) => value,
-        },
-      })
+    //   const parsed = FreeMarker.parse(data)
+    //   const result = FreeMarker.evaluate(parsed.ast, {
+    //     data: {
+    //       makeIgnore: true,
+    //       sdkDir: true,
+    //       topOut: '/example',
+    //       escapeXmlAttribute: (value: string) => value,
+    //     },
+    //   })
 
-      const inspected = util.inspect(parsed.ast, false, null, true)
+    //   const inspected = util.inspect(parsed.ast, false, null, true)
 
-      console.log('--------- AST ----------')
-      console.log(inspected)
+    //   console.log('--------- AST ----------')
+    //   console.log(inspected)
 
-      console.log('--------- RESULT ----------')
-      console.log(result)
-      break
-    }
+    //   console.log('--------- RESULT ----------')
+    //   console.log(result)
+    //   break
+    // }
     case 'template-config': {
       if (!inputPath) {
         console.log('No filename given')

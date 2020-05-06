@@ -1,5 +1,5 @@
 import { parse, evaluate, ProgramNode } from '../index'
-import { createContext } from '../context'
+import { Context } from '../context'
 
 describe('Freemarker', () => {
   it('parses a template', () => {
@@ -12,7 +12,7 @@ describe('Freemarker', () => {
     const template = '<#if x>yes</#if>'
     const ast = parse(template).ast as ProgramNode
 
-    expect(evaluate(ast, createContext({ x: true }))).toEqual('yes')
-    expect(evaluate(ast, createContext({ x: false }))).toEqual('')
+    expect(evaluate(ast, new Context({ x: true }))).toEqual('yes')
+    expect(evaluate(ast, new Context({ x: false }))).toEqual('')
   })
 })

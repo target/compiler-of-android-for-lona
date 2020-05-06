@@ -8,62 +8,6 @@ import { Config, getConfig } from './config'
 import { parse as parseRecipe, Recipe } from './recipe'
 import { parse as parseGlobals, Globals } from './globals'
 
-type CreateContextOptions = { packageName: string }
-
-function createFreemarkerContext(
-  { packageName }: CreateContextOptions,
-  globals: Globals = {}
-): FreeMarker.Context {
-  const projectParts = packageName.split('.')
-  const projectName = projectParts[projectParts.length - 1]
-  const projectPrefix = projectName || '.'
-
-  return FreeMarker.createContext({
-    ...globals,
-    topOut: '.',
-    projectOut: `./${projectPrefix}`,
-    srcDir: `./${projectPrefix}/src`,
-    manifestDir: `./${projectPrefix}/src/main`,
-    resDir: `./${projectPrefix}/src/main/res`,
-    repositoryList: ['google()', 'jcenter()'],
-    baseTheme: 'none',
-    makeIgnore: true,
-    createActivity: false,
-    sdkDir: process.env.ANDROID_HOME,
-    appTitle: projectName,
-    projectName: projectName,
-    simpleName: projectName,
-    buildApi: 29,
-    buildApiString: '29',
-    buildToolsVersion: '29.0.2',
-    packageName: packageName,
-    WearprojectName: '',
-    minApi: '21',
-    minApiLevel: 21,
-    targetApi: 29,
-    targetApiString: '29',
-    gradlePluginVersion: '3.6.0+',
-    javaVersion: '1.7',
-    enableProGuard: false,
-    dependencyList: undefined,
-    unitTestsSupported: false,
-    assetName: undefined,
-    mavenUrl: 'mavenCentral',
-    isLibraryProject: true,
-    copyIcons: false,
-    appCompat: false,
-    perModuleRepositories: undefined,
-    templateRoot: path.join(__dirname, '../../templates/android-studio'),
-    escapeXmlAttribute: (value: string) => value,
-    escapeXmlString: (value: string) => value,
-    escapePropertyValue: (value: string) => value,
-    hasDependency: (value: string) => false,
-    slashedPackageName: (packageName: string): string =>
-      packageName.replace(/\./g, '/'),
-    compareVersions: (a: string, b: string): boolean => false,
-  })
-}
-
 function inflateFMT(
   source: IFS,
   filePath: string,
@@ -218,8 +162,8 @@ export function inflate(
   source: IFS,
   sourcePath: string,
   targetPath: string,
-  options: CreateContextOptions
-): IFS {
+  initialContext: FreeMarker.Context
+): { files: IFS; context: FreeMarker.Context } {
   const templatePath = path.join(sourcePath, 'template.xml')
 
   // console.warn('inflating:', templatePath)
@@ -232,17 +176,13 @@ export function inflate(
 
   // console.warn('INFO: reading globals:', globalsPath)
 
-  const globals = readGlobals(
-    source,
-    globalsPath,
-    createFreemarkerContext(options)
-  )
+  const globals = readGlobals(source, globalsPath, initialContext)
 
   // console.log('INFO: globals', util.inspect(globals, false, null, true))
 
   const recipePath = path.join(sourcePath, recipeName)
 
-  const sharedContext = createFreemarkerContext(options, globals)
+  const sharedContext = initialContext.withDefaults(globals)
 
   // console.warn('INFO: reading recipe:', recipePath)
 
@@ -254,7 +194,7 @@ export function inflate(
 
   const target = execute(source, sourcePath, targetPath, recipe, sharedContext)
 
-  return target
+  return { files: target, context: sharedContext }
 
   // return createFs().fs
 }

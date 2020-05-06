@@ -16,6 +16,10 @@ import * as TextStyle from './textStyle'
 import { createFiles as createSvgDrawableFiles } from '../svg/drawable'
 import { templatePathForName, BuiltInTemplateNames } from '../template/builtins'
 import { inflate } from '../template/inflate'
+import {
+  createTemplateContext,
+  CreateTemplateContextOptions,
+} from '../template/context'
 
 function createColorsResourceFile(tokens: Token[]) {
   const colors: Color.Token[] = tokens.flatMap(({ qualifiedName, value }) =>
@@ -89,44 +93,44 @@ async function convertSvgFiles(
 
 export function inflateTemplate(
   templateName: BuiltInTemplateNames,
-  packageName: string,
-  outputPath: string
+  outputPath: string,
+  options: CreateTemplateContextOptions
 ): { files: IFS; srcPath: string } {
   switch (templateName) {
     case 'module':
-      return {
-        files: inflate(fs, templatePathForName('module'), outputPath, {
-          packageName,
-        }),
-        srcPath: 'designlibrary/src',
-      }
+      const { files, context } = inflate(
+        fs,
+        templatePathForName('module'),
+        outputPath,
+        createTemplateContext(options)
+      )
 
+      return {
+        files,
+        srcPath: context.get('srcDir'),
+      }
     case 'project':
-      const projectFiles = inflate(
+      const { files: projectFiles } = inflate(
         fs,
         templatePathForName('project'),
         outputPath,
-        {
-          packageName,
-        }
+        createTemplateContext(options)
       )
 
       const fsAndProject = new Union()
       fsAndProject.use(fs)
       fsAndProject.use(projectFiles)
 
-      const moduleFiles = inflate(
+      const { files: moduleFiles, context: moduleContext } = inflate(
         fsAndProject,
         templatePathForName('module'),
         outputPath,
-        {
-          packageName,
-        }
+        createTemplateContext(options)
       )
 
       copy(moduleFiles, projectFiles, '/', '/')
 
-      return { files: projectFiles, srcPath: 'designlibrary/src' }
+      return { files: projectFiles, srcPath: moduleContext.get('srcDir') }
   }
 }
 
@@ -134,9 +138,9 @@ export type ConvertOptions = {
   template: BuiltInTemplateNames
   outputPath: string
   packageName: string
-  minSdkVersion: number
-  generateAndroidManifest: boolean
-  generateBuildScript: boolean
+  minSdk: number
+  buildSdk: number
+  targetSdk: number
   generateGallery: boolean
 }
 
@@ -154,9 +158,9 @@ export async function convert(
     template,
     outputPath,
     packageName,
-    minSdkVersion,
-    generateAndroidManifest,
-    generateBuildScript,
+    minSdk,
+    buildSdk,
+    targetSdk,
     generateGallery,
   } = options
 
@@ -190,9 +194,11 @@ export async function convert(
 
   const { files: templateFiles, srcPath } = inflateTemplate(
     template,
-    packageName,
-    outputPath
+    outputPath,
+    { packageName, minSdk, buildSdk, targetSdk }
   )
+
+  console.log('srcpath', srcPath)
 
   const libraryFiles = createLibraryFiles(path.join(outputPath, srcPath), {
     packageName,
@@ -200,7 +206,7 @@ export async function convert(
     colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
     elevationResources: tokens ? createShadowsResourceFile(tokens) : undefined,
     textStyleResources: tokens
-      ? createTextStyleResourceFile(tokens, { minSdkVersion })
+      ? createTextStyleResourceFile(tokens, { minSdk })
       : undefined,
     drawableResources: vectorDrawables,
   }).fs

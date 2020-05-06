@@ -12,7 +12,7 @@ describe('Tokens / Text Style', () => {
           fontWeight: '400',
         },
       },
-      { minSdkVersion: 29 }
+      { minSdk: 29 }
     )
 
     const mock: XML.Element = {
@@ -57,7 +57,7 @@ describe('Tokens / Text Style', () => {
           fontWeight: '400',
         },
       },
-      { minSdkVersion: 25 }
+      { minSdk: 25 }
     )
 
     const mock: XML.Element = {

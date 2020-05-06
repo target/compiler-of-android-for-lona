@@ -7,7 +7,9 @@ export type Raw = {
   // Android
   template?: string
   packageName?: string
-  minSdkVersion?: number
+  minSdk?: number
+  buildSdk?: number
+  targetSdk?: number
   generateAndroidManifest?: boolean
   generateBuildScript?: boolean
   generateGallery?: boolean
@@ -19,7 +21,9 @@ export type Validated = {
   outputPath: string
   dryRun: boolean
   packageName: string
-  minSdkVersion: number
+  minSdk: number
+  buildSdk: number
+  targetSdk: number
   generateAndroidManifest: boolean
   generateBuildScript: boolean
   generateGallery: boolean
@@ -58,7 +62,9 @@ export function validate(
       dryRun,
       outputPath: options.output || cwd,
       packageName: options.packageName,
-      minSdkVersion: options.minSdkVersion || 21,
+      minSdk: options.minSdk || 21,
+      buildSdk: options.buildSdk || options.targetSdk || 29,
+      targetSdk: options.targetSdk || options.buildSdk || 29,
       generateAndroidManifest:
         typeof options.generateAndroidManifest === 'boolean'
           ? options.generateAndroidManifest

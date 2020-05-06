@@ -8,7 +8,7 @@ export type Token = {
 }
 
 export type Options = {
-  minSdkVersion: number
+  minSdk: number
 }
 
 export const convert = (token: Token, options: Options): XML.Element => {
@@ -31,7 +31,7 @@ export const convert = (token: Token, options: Options): XML.Element => {
     items.push(createItem('android:textSize', `${fontSize}sp`))
   }
 
-  if (options.minSdkVersion >= 26 && fontWeight) {
+  if (options.minSdk >= 26 && fontWeight) {
     items.push(createItem('android:fontWeight', `${fontWeight}`))
   }
 

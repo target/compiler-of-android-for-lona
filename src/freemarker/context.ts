@@ -1,19 +1,28 @@
-export type Context = {
-  get(key: string): any
-  has(key: string): boolean
-  set(key: string, value: any): void
-}
+export type ContextData = { [key: string]: any }
 
-export function createContext(data: { [key: string]: any }): Context {
-  return {
-    get(key: string): any {
-      return data[key]
-    },
-    has(key: string): boolean {
-      return key in data
-    },
-    set(key: string, value: any): void {
-      data[key] = value
-    },
+export class Context {
+  #data: ContextData
+
+  constructor(data: ContextData) {
+    this.#data = data
+  }
+
+  get(key: string): any {
+    return this.#data[key]
+  }
+
+  has(key: string): boolean {
+    return key in this.#data
+  }
+
+  set(key: string, value: any) {
+    this.#data[key] = value
+  }
+
+  withDefaults(data: ContextData): Context {
+    return new Context({ 
+      ...data,
+      ...this.#data
+    })
   }
 }

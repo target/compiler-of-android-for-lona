@@ -3,7 +3,7 @@ import * as Options from '../options'
 const defaultRawOptions: Options.Raw = {
   template: 'module',
   packageName: 'com.example.test',
-  minSdkVersion: 21,
+  minSdk: 21,
 }
 
 describe('Options', () => {
@@ -16,7 +16,9 @@ describe('Options', () => {
       dryRun: false,
       outputPath: 'cwd',
       packageName: 'com.example.test',
-      minSdkVersion: 21,
+      minSdk: 21,
+      buildSdk: 29,
+      targetSdk: 29,
       generateAndroidManifest: true,
       generateBuildScript: true,
       generateGallery: false,
