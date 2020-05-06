@@ -1,12 +1,12 @@
 import util from 'util'
 import escapeRegExp from 'lodash.escaperegexp'
-import ProgramNode from 'freemarker-parser/src/nodes/ProgramNode'
-import TextNode from 'freemarker-parser/src/nodes/TextNode'
-import ConditionNode from 'freemarker-parser/src/nodes/ConditionNode'
-import InterpolationNode from 'freemarker-parser/src/nodes/InterpolationNode'
-import ListNode from 'freemarker-parser/src/nodes/ListNode'
-import AbstractBodyNode from 'freemarker-parser/src/nodes/abstract/AbstractBodyNode'
-import ParamNames from 'freemarker-parser/src/enum/ParamNames'
+import ProgramNode from 'freemarker-parser/dist/nodes/ProgramNode'
+import TextNode from 'freemarker-parser/dist/nodes/TextNode'
+import ConditionNode from 'freemarker-parser/dist/nodes/ConditionNode'
+import InterpolationNode from 'freemarker-parser/dist/nodes/InterpolationNode'
+import ListNode from 'freemarker-parser/dist/nodes/ListNode'
+import AbstractBodyNode from 'freemarker-parser/dist/nodes/abstract/AbstractBodyNode'
+import ParamNames from 'freemarker-parser/dist/enum/ParamNames'
 import {
   Compound,
   Expression,
@@ -17,7 +17,7 @@ import {
   LogicalExpression,
   BuiltInExpression,
   BinaryExpression,
-} from 'freemarker-parser/src/interface/Params'
+} from 'freemarker-parser/dist/interface/Params'
 import { Context } from './context'
 
 export function evaluateCondition(

@@ -1,5 +1,5 @@
-import { Parser } from 'freemarker-parser/src'
-import { ParserReturn } from 'freemarker-parser/src/Parser'
+import { Parser } from 'freemarker-parser/dist'
+import { ParserReturn } from 'freemarker-parser/dist/Parser'
 
 export function parse(templateString: string): ParserReturn {
   const parser = new Parser()
