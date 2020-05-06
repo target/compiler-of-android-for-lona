@@ -70,7 +70,7 @@ export function validate(
       generateGallery:
         typeof options.generateGallery === 'boolean'
           ? options.generateGallery
-          : true,
+          : false,
     },
   }
 }

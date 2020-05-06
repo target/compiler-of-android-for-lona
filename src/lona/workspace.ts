@@ -8,8 +8,7 @@ import * as Tokens from '@lona/compiler/lib/plugins/tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 
 import { getConfig, Config } from './config'
-import { createLibraryFiles, createManifest } from '../android/library'
-import { createBuildScript, DEFAULT_BUILD_CONFIG } from '../android/gradle'
+import { createLibraryFiles } from '../android/library'
 import * as Resources from '../android/resources'
 import * as Color from './color'
 import * as Shadow from './shadow'
@@ -197,12 +196,6 @@ export async function convert(
 
   const libraryFiles = createLibraryFiles(path.join(outputPath, srcPath), {
     packageName,
-    buildScript: generateBuildScript
-      ? createBuildScript(DEFAULT_BUILD_CONFIG)
-      : undefined,
-    androidManifest: generateAndroidManifest
-      ? createManifest(packageName)
-      : undefined,
     generateGallery,
     colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
     elevationResources: tokens ? createShadowsResourceFile(tokens) : undefined,

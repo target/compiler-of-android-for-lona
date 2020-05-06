@@ -19,7 +19,7 @@ describe('Options', () => {
       minSdkVersion: 21,
       generateAndroidManifest: true,
       generateBuildScript: true,
-      generateGallery: true,
+      generateGallery: false,
     }
 
     expect(Options.validate(raw, 'cwd')).toEqual({

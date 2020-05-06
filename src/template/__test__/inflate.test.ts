@@ -23,7 +23,7 @@ describe('Template / Inflate', () => {
   })
 
   it('inflates project template, then module template on top', () => {
-    const files = inflateTemplate(
+    const { files } = inflateTemplate(
       'project',
       'com.example.designsystem',
       '/prefix'

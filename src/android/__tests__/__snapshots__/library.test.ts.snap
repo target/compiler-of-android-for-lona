@@ -2,33 +2,7 @@
 
 exports[`Android / Library creates a library module 1`] = `
 Object {
-  "/.gitignore": "/build
-",
-  "/build.gradle": "apply plugin: \\"com.android.library\\"
-apply plugin: \\"kotlin-android\\"
-apply plugin: \\"kotlin-android-extensions\\"
-
-android {
-    compileSdkVersion 29
-    buildToolsVersion \\"29.0.2\\"
-
-    defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 1
-        versionName \\"1.0.0\\"
-    }
-}
-
-dependencies {
-    implementation \\"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version\\"
-    implementation \\"androidx.appcompat:appcompat:1.1.0\\"
-    implementation \\"androidx.core:core-ktx:1.2.0\\"
-}",
-  "/src/main/AndroidManifest.xml": "<manifest
-    xmlns:android=\\"http://schemas.android.com/apk/res/android\\"
-    package=\\"com.lona.test\\" />",
-  "/src/main/java/com/lona/test/gallery/Gallery.kt": "package com.lona.test.gallery
+  "/main/java/com/lona/test/gallery/Gallery.kt": "package com.lona.test.gallery
 
 import com.lona.test.R
 
@@ -47,6 +21,6 @@ object Gallery {
     data class GalleryItem(val id: String, val resourceId: Int)
 }
 ",
-  "/src/main/res/drawable/test.xml": "",
+  "/main/res/drawable/test.xml": "",
 }
 `;
