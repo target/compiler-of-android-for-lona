@@ -44,7 +44,7 @@ function createFreemarkerContext(
       minApiLevel: 21,
       targetApi: 29,
       targetApiString: '29',
-      gradlePluginVersion: '1.0.+',
+      gradlePluginVersion: '3.6.0+',
       javaVersion: '1.7',
       enableProGuard: false,
       dependencyList: undefined,
@@ -184,20 +184,9 @@ function execute(
           context
         )
         if (path.basename(command.value.from) === 'build.gradle.ftl') {
-          const originalGradlePluginVersion =
-            'com.android.tools.build:gradle:1.0.+'
-          const updatedGradlePluginVersion =
-            'com.android.tools.build:gradle:3.6.0+'
           inflated = inflated.replace(
-            new RegExp(escapeRegExp(originalGradlePluginVersion), 'g'),
-            updatedGradlePluginVersion
-          )
-
-          const originalRepositories = 'jcenter()'
-          const updatedRepositories = 'google()\njcenter()'
-          inflated = inflated.replace(
-            new RegExp(escapeRegExp(originalRepositories), 'g'),
-            updatedRepositories
+            new RegExp(/( *)jcenter\(\)/, 'g'),
+            '$1google()\n$1jcenter()'
           )
         }
         target.mkdirSync(path.dirname(resolveTargetPath(command.value.to)), {

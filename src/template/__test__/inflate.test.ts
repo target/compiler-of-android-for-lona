@@ -12,6 +12,9 @@ describe('Template / Inflate', () => {
     })
 
     expect(describeFs(target, '/')).toMatchSnapshot()
+    expect(
+      target.readFileSync('/prefix/designsystem/build.gradle', 'utf8')
+    ).toMatchSnapshot()
   })
 
   it('inflates project template', () => {
@@ -20,6 +23,9 @@ describe('Template / Inflate', () => {
     })
 
     expect(describeFs(target, '/')).toMatchSnapshot()
+    expect(
+      target.readFileSync('/prefix/build.gradle', 'utf8')
+    ).toMatchSnapshot()
   })
 
   it('inflates project template, then module template on top', () => {

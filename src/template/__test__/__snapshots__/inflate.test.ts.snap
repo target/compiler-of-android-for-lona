@@ -17,6 +17,56 @@ exports[`Template / Inflate inflates module template 1`] = `
 └── settings.gradle"
 `;
 
+exports[`Template / Inflate inflates module template 2`] = `
+"
+buildscript {
+    repositories {
+        google()
+        jcenter()
+
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.6.0+'
+    }
+}
+
+
+apply plugin: 'com.android.library'
+
+
+
+repositories {
+        google()
+        jcenter()
+
+}
+
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion \\"29.0.2\\"
+
+    defaultConfig {
+    
+    
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode 1
+        versionName \\"1.0\\"
+    }
+
+
+}
+
+dependencies {
+    
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+
+}
+"
+`;
+
 exports[`Template / Inflate inflates project template 1`] = `
 "/ prefix
 ├── .gitignore
@@ -29,6 +79,33 @@ exports[`Template / Inflate inflates project template 1`] = `
 ├── gradlew.bat
 ├── local.properties
 └── settings.gradle"
+`;
+
+exports[`Template / Inflate inflates project template 2`] = `
+"// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.6.0+'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+
+    }
+}
+"
 `;
 
 exports[`Template / Inflate inflates project template, then module template on top 1`] = `
