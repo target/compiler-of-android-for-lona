@@ -11,6 +11,7 @@ describe('Options', () => {
     const raw: Options.Raw = defaultRawOptions
 
     const validated: Options.Validated = {
+      verbose: false,
       template: 'module',
       shouldOutputFiles: false,
       dryRun: false,
