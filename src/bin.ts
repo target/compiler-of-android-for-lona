@@ -60,7 +60,7 @@ async function convert() {
 
   const helpers = await createHelpers(inputPath)
   await plugin.parseWorkspace(inputPath, helpers, {
-    output: outputPath,
+    ...(outputPath && { output: outputPath }),
   })
 }
 
