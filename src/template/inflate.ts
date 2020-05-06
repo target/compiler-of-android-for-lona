@@ -8,6 +8,7 @@ import * as FreeMarker from '../freemarker'
 import { Config, getConfig } from './config'
 import { parse as parseRecipe, Recipe } from './recipe'
 import { parse as parseGlobals, Globals } from './globals'
+import escapeRegExp from 'lodash.escaperegexp'
 
 type CreateContextOptions = { packageName: string }
 
@@ -35,7 +36,7 @@ function createFreemarkerContext(
       projectName: projectName,
       simpleName: projectName,
       buildApi: 29,
-      buildApiString: '29.0.2',
+      buildApiString: '29',
       buildToolsVersion: '29.0.2',
       packageName: packageName,
       WearprojectName: '',
@@ -177,12 +178,28 @@ function execute(
         break
       }
       case 'instantiate': {
-        const inflated = inflateFMT(
+        let inflated = inflateFMT(
           source,
           resolveSourcePath(command.value.from),
           context
         )
-        // console.log('inflated', inflated, command)
+        if (path.basename(command.value.from) === 'build.gradle.ftl') {
+          const originalGradlePluginVersion =
+            'com.android.tools.build:gradle:1.0.+'
+          const updatedGradlePluginVersion =
+            'com.android.tools.build:gradle:3.6.0+'
+          inflated = inflated.replace(
+            new RegExp(escapeRegExp(originalGradlePluginVersion), 'g'),
+            updatedGradlePluginVersion
+          )
+
+          const originalRepositories = 'jcenter()'
+          const updatedRepositories = 'google()\njcenter()'
+          inflated = inflated.replace(
+            new RegExp(escapeRegExp(originalRepositories), 'g'),
+            updatedRepositories
+          )
+        }
         target.mkdirSync(path.dirname(resolveTargetPath(command.value.to)), {
           recursive: true,
         })
