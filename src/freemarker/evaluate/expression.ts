@@ -11,6 +11,7 @@ import {
   BinaryExpression,
 } from 'freemarker-parser/dist/interface/Params'
 import { Context } from '../context'
+import { evaluateBuiltInMethod } from './builtins'
 
 export function evaluateLiteral(expression: Literal, context: Context): any {
   return expression.value
@@ -90,35 +91,25 @@ export function evaluateBinaryExpression(
   context: Context
 ): any {
   const { left, right, operator } = expression
+  const evaluatedLeft = evaluateExpression(left, context)
+  const evaluatedRight = evaluateExpression(right, context)
   switch (operator) {
     case '!=':
-      return !!(
-        evaluateExpression(left, context) != evaluateExpression(right, context)
-      )
+      return !!(evaluatedLeft != evaluatedRight)
     case '==':
-      return !!(
-        evaluateExpression(left, context) == evaluateExpression(right, context)
-      )
+      return !!(evaluatedLeft == evaluatedRight)
     case 'gt':
     case '>':
-      return (
-        evaluateExpression(left, context) > evaluateExpression(right, context)
-      )
+      return evaluatedLeft > evaluatedRight
     case 'gte':
     case '>=':
-      return (
-        evaluateExpression(left, context) >= evaluateExpression(right, context)
-      )
+      return evaluatedLeft >= evaluatedRight
     case 'lt':
     case '<':
-      return (
-        evaluateExpression(left, context) < evaluateExpression(right, context)
-      )
+      return evaluatedLeft < evaluatedRight
     case 'lte':
     case '<=':
-      return (
-        evaluateExpression(left, context) <= evaluateExpression(right, context)
-      )
+      return evaluatedLeft <= evaluatedRight
     default:
       console.error('Unhandled binary expression', expression)
       return undefined
@@ -147,57 +138,10 @@ export function evaluateBuiltInExpression(
     return undefined
   }
 
-  // const evaluatedObject = evaluateExpression(left, context)
-  // const evaluatedArguments = method.arguments.map(arg =>
-  //   evaluateExpression(arg, context)
-  // )
+  const instance = evaluateExpression(left, context)
+  const args = method.arguments.map(arg => evaluateExpression(arg, context))
 
-  switch (name) {
-    case 'replace':
-      const value = evaluateExpression(left, context)
-      const [original, replacement, flags] = method.arguments.map(arg =>
-        evaluateExpression(arg, context)
-      )
-      const result = value.replace(
-        new RegExp(escapeRegExp(original), flags),
-        replacement
-      )
-      return result
-    case 'has_content': {
-      const value = evaluateExpression(left, context)
-      const typeName = {}.toString.call(value).slice(8, -1)
-      switch (typeName) {
-        case 'String':
-          return value !== ''
-        case 'Boolean':
-          return value !== false
-        case 'Number':
-          return value !== 0
-        case 'Array':
-          return value.length !== 0
-        case 'Object':
-          return Object.keys(value).length !== 0
-        case 'Null':
-          return false
-        case 'Undefined':
-          return false
-        default:
-          return !!typeName
-      }
-    }
-    case 'string': {
-      return evaluateExpression(left, context).toString()
-    }
-    case 'matches': {
-      const value = evaluateExpression(left, context)
-      const raw = (method.arguments[0] as Literal).raw
-      const regexp = new RegExp(JSON.parse(raw))
-      return regexp.test(value)
-    }
-    default:
-      console.error('Unhandled built-in expression', name)
-      return undefined
-  }
+  return evaluateBuiltInMethod(name, instance, args)
 }
 
 export function evaluateExpression(

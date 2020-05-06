@@ -33,6 +33,14 @@ describe('Freemarker / Evaluate', () => {
 
       expect(evaluate(ast, new Context({ x: ['a', 'b', 'c'] }))).toEqual('abc')
     })
+
+    it('evaluates the `matches` method', () => {
+      const template = '<#if x?matches("^\\\\d+$")>yes</#if>'
+      const ast = parse(template).ast as ProgramNode
+
+      expect(evaluate(ast, new Context({ x: '123' }))).toEqual('yes')
+      expect(evaluate(ast, new Context({ x: 'hello' }))).toEqual('')
+    })
   })
 
   describe('Expression', () => {
