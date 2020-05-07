@@ -6,14 +6,9 @@ import { IFS, copy } from 'buffs'
 import { Helpers } from '@lona/compiler/lib/helpers'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import * as Tokens from '@lona/compiler/lib/plugins/tokens'
-import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 
 import { getConfig, Config } from './config'
 import { createResourceFiles } from '../android/resources'
-import * as Resources from '../android/valueResources'
-import * as Color from './color'
-import * as Shadow from './shadow'
-import * as TextStyle from './textStyle'
 import {
   createFiles as createSvgDrawableFiles,
   formatDrawableName,
@@ -25,76 +20,8 @@ import {
   CreateTemplateContextOptions,
 } from '../template/context'
 import { createGalleryFiles } from '../android/gallery'
-
-function createColorsResourceFile(tokens: Token[]) {
-  const colors: Color.Token[] = tokens.flatMap(({ qualifiedName, value }) =>
-    value.type === 'color'
-      ? [{ qualifiedName: qualifiedName, value: value.value }]
-      : []
-  )
-
-  return Resources.createFile(
-    colors
-      .map(Color.convert)
-      .map(element => ({ type: 'element', data: element }))
-  )
-}
-
-function createShadowsResourceFile(tokens: Token[]) {
-  const shadows: Shadow.Token[] = tokens.flatMap(({ qualifiedName, value }) =>
-    value.type === 'shadow'
-      ? [{ qualifiedName: qualifiedName, value: value.value }]
-      : []
-  )
-
-  return Resources.createFile(
-    shadows
-      .map(Shadow.convert)
-      .map(element => ({ type: 'element', data: element }))
-  )
-}
-
-function createTextStyleResourceFile(
-  tokens: Token[],
-  options: TextStyle.Options
-) {
-  const textStyles: TextStyle.Token[] = tokens.flatMap(
-    ({ qualifiedName, value }) =>
-      value.type === 'textStyle'
-        ? [{ qualifiedName: qualifiedName, value: value.value }]
-        : []
-  )
-
-  return Resources.createFile(
-    textStyles
-      .map(textStyle => TextStyle.convert(textStyle, options))
-      .map(element => ({ type: 'element', data: element }))
-  )
-}
-
-async function convertSvgFiles(
-  workspaceConfig: Config,
-  workspacePath: string
-): Promise<[string, IFS][]> {
-  const svgRelativePaths = FileSearch.sync(workspacePath, '**/*.svg', {
-    ignore: workspaceConfig.ignore,
-  })
-
-  return Promise.all(
-    svgRelativePaths.map(async relativePath => {
-      const data = await fs.promises.readFile(
-        path.join(workspacePath, relativePath)
-      )
-
-      const result: [string, IFS] = [
-        relativePath,
-        await createSvgDrawableFiles(relativePath, data),
-      ]
-
-      return result
-    })
-  )
-}
+import { createValueResources } from './tokens'
+import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 
 export function inflateProjectTemplate(
   outputPath: string,
@@ -128,6 +55,50 @@ export function inflateProjectTemplate(
     srcPath: moduleContext.get('srcDir'),
     resPath: moduleContext.get('resDir'),
   }
+}
+
+async function convertTokens(workspacePath: string, helpers: Helpers) {
+  const convertedWorkspace = await Tokens.parseWorkspace(
+    workspacePath,
+    helpers,
+    {
+      output: false,
+    }
+  )
+
+  if (!convertedWorkspace) {
+    return Promise.reject('Unknown problem while converting tokens')
+  }
+
+  const tokens = convertedWorkspace.files.flatMap(file =>
+    file.contents.type === 'flatTokens' ? file.contents.value : []
+  )
+
+  return tokens
+}
+
+async function convertSvgFiles(
+  workspaceConfig: Config,
+  workspacePath: string
+): Promise<[string, IFS][]> {
+  const svgRelativePaths = FileSearch.sync(workspacePath, '**/*.svg', {
+    ignore: workspaceConfig.ignore,
+  })
+
+  return Promise.all(
+    svgRelativePaths.map(async relativePath => {
+      const data = await fs.promises.readFile(
+        path.join(workspacePath, relativePath)
+      )
+
+      const result: [string, IFS] = [
+        relativePath,
+        await createSvgDrawableFiles(relativePath, data),
+      ]
+
+      return result
+    })
+  )
 }
 
 export type ConvertOptions = {
@@ -165,57 +136,43 @@ export async function convert(
     console.log(util.inspect(options, false, null, true))
   }
 
-  let convertedWorkspace: Tokens.ConvertedWorkspace
-
-  try {
-    const converted = await Tokens.parseWorkspace(workspacePath, helpers, {
-      output: false,
-    })
-
-    if (!converted) {
-      return Promise.reject('Problem')
-    }
-
-    convertedWorkspace = converted
-  } catch (error) {
-    console.log('Failed to convert tokens')
-    return Promise.reject(error)
-  }
-
-  const tokens = convertedWorkspace.files.flatMap(file =>
-    file.contents.type === 'flatTokens' ? file.contents.value : []
-  )
-
-  const workspaceConfig = await getConfig(workspacePath)
-
-  const vectorDrawables: [string, IFS][] = await convertSvgFiles(
-    workspaceConfig,
-    workspacePath
-  )
-
   const { files: templateFiles, srcPath, resPath } = inflateProjectTemplate(
     outputPath,
     { packageName, minSdk, buildSdk, targetSdk },
     { verbose }
   )
 
+  const workspaceConfig = await getConfig(workspacePath)
+
+  let tokens: Token[]
+
+  try {
+    tokens = await convertTokens(workspacePath, helpers)
+  } catch (error) {
+    console.error('Failed to convert tokens')
+    return Promise.reject(error)
+  }
+
+  const drawableResources: [string, IFS][] = await convertSvgFiles(
+    workspaceConfig,
+    workspacePath
+  )
+
+  const valueResources = createValueResources(tokens, { minSdk })
+
   const { fs: resourceFiles } = createResourceFiles(
     path.join(outputPath, resPath),
     {
-      colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
-      elevationResources: tokens
-        ? createShadowsResourceFile(tokens)
-        : undefined,
-      textStyleResources: tokens
-        ? createTextStyleResourceFile(tokens, { minSdk })
-        : undefined,
-      drawableResources: vectorDrawables,
+      colorResources: valueResources.colors,
+      elevationResources: valueResources.elevations,
+      textStyleResources: valueResources.textStyles,
+      drawableResources,
     }
   )
 
   copy(resourceFiles, templateFiles, '/', '/')
 
-  if (vectorDrawables.length > 0 && generateGallery) {
+  if (drawableResources.length > 0 && generateGallery) {
     const classPath = path.join(
       srcPath,
       'main/java',
@@ -224,7 +181,7 @@ export async function convert(
 
     const gallery = createGalleryFiles(
       packageName,
-      vectorDrawables.map(pair => formatDrawableName(pair[0]))
+      drawableResources.map(([key]) => formatDrawableName(key))
     )
     copy(gallery, templateFiles, '/', path.join(srcPath, classPath))
   }

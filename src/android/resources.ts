@@ -1,6 +1,15 @@
 import path from 'path'
 import { createFs, IFS, copy } from 'buffs'
 
+import * as XML from '../xml/ast'
+import { createFile } from './valueResources'
+
+function createValueResourcesFile(elements: XML.Element[]): string {
+  return createFile(
+    elements.map(element => ({ type: 'element', data: element }))
+  )
+}
+
 /**
  * Generate Android resource files at the specified path.
  *
@@ -26,9 +35,9 @@ export function createResourceFiles(
     textStyleResources,
     drawableResources,
   }: {
-    colorResources?: string
-    elevationResources?: string
-    textStyleResources?: string
+    colorResources: XML.Element[]
+    elevationResources: XML.Element[]
+    textStyleResources: XML.Element[]
     drawableResources: [string, IFS][]
   }
 ): ReturnType<typeof createFs> {
@@ -41,21 +50,24 @@ export function createResourceFiles(
 
   target.mkdirSync(valuesPath, { recursive: true })
 
-  if (colorResources) {
-    target.writeFileSync(path.join(valuesPath, 'colors.xml'), colorResources)
-  }
-
-  if (elevationResources) {
+  if (colorResources.length > 0) {
     target.writeFileSync(
-      path.join(valuesPath, 'elevations.xml'),
-      elevationResources
+      path.join(valuesPath, 'colors.xml'),
+      createValueResourcesFile(colorResources)
     )
   }
 
-  if (textStyleResources) {
+  if (elevationResources.length > 0) {
+    target.writeFileSync(
+      path.join(valuesPath, 'elevations.xml'),
+      createValueResourcesFile(elevationResources)
+    )
+  }
+
+  if (textStyleResources.length > 0) {
     target.writeFileSync(
       path.join(valuesPath, 'text-styles.xml'),
-      textStyleResources
+      createValueResourcesFile(textStyleResources)
     )
   }
 
