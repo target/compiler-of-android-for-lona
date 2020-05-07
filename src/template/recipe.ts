@@ -31,58 +31,58 @@ export type Command =
 
 export type Recipe = Command[]
 
+function dependencyUrl(attributes: {
+  [key: string]: string
+}): string | undefined {
+  if (attributes.mavenUrl) {
+    return attributes.mavenUrl
+  }
+
+  if (attributes.name === 'android-support-v4' && attributes.revision) {
+    return `com.android.support:support-v4`
+  }
+
+  return undefined
+}
+
+function parseCommand(element: XML.Element): Command | undefined {
+  const attributes = getAttributes(element)
+
+  switch (element.tag) {
+    case 'copy':
+    case 'instantiate':
+    case 'merge':
+      return {
+        type: element.tag,
+        value: { from: attributes.from, to: attributes.to },
+      }
+    case 'mkdir':
+      return {
+        type: 'mkdir',
+        value: { at: attributes.at },
+      }
+    case 'dependency':
+      const url = dependencyUrl(attributes)
+
+      if (!url) {
+        console.error('Unknown <dependency> in recipe', element)
+      }
+
+      return {
+        type: 'dependency',
+        value: { url: url || '' },
+      }
+    default:
+      console.error('Unknown recipe command', element.tag)
+      return undefined
+  }
+}
+
 export function parse(root: XML.Element): Command[] {
   return getChildrenElements(root).flatMap(
     (element: XML.Element): Command[] => {
-      const attributes = getAttributes(element)
-
-      switch (element.tag) {
-        case 'copy':
-        case 'instantiate':
-        case 'merge':
-          return [
-            {
-              type: element.tag,
-              value: { from: attributes.from, to: attributes.to },
-            },
-          ]
-        case 'mkdir':
-          return [
-            {
-              type: 'mkdir',
-              value: { at: attributes.at },
-            },
-          ]
-        case 'dependency':
-          function dependencyUrl(attributes: {
-            [key: string]: string
-          }): string {
-            if (attributes.mavenUrl) {
-              return attributes.mavenUrl
-            }
-
-            if (
-              attributes.name === 'android-support-v4' &&
-              attributes.revision
-            ) {
-              return `com.android.support:support-v4`
-            }
-
-            console.error('Unknown <dependency> in recipe', element)
-
-            return ''
-          }
-
-          return [
-            {
-              type: 'dependency',
-              value: { url: dependencyUrl(attributes) },
-            },
-          ]
-        default:
-          console.error('Unknown recipe command', element.tag)
-          return []
-      }
+      const command = parseCommand(element)
+      return command ? [command] : []
     }
   )
 }

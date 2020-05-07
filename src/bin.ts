@@ -3,7 +3,7 @@
 import fs from 'fs'
 import * as SVG from './svg/convert'
 import { createFile } from './android/vectorDrawable'
-import { inflateFMT } from './template/inflate'
+import { inflateFile } from './freemarker'
 
 import plugin from './index'
 import { createTemplateContext } from './template/context'
@@ -93,7 +93,7 @@ async function freemarker() {
     process.exit(1)
   }
 
-  const result = inflateFMT(
+  const result = inflateFile(
     fs,
     inputPath,
     createTemplateContext({
