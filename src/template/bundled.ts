@@ -1,9 +1,9 @@
 import path from 'path'
 
-export type BuiltInTemplateNames = 'project' | 'module'
+export type BundledTemplateNames = 'project' | 'module'
 
 export function templatePathForName(
-  templateName: BuiltInTemplateNames
+  templateName: BundledTemplateNames
 ): string {
   switch (templateName) {
     case 'project':

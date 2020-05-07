@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import util from 'util'
 import { Union } from 'unionfs'
-import { IFS, createFs, copy, describe } from 'buffs'
+import { IFS, copy } from 'buffs'
 import { Helpers } from '@lona/compiler/lib/helpers'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import * as Tokens from '@lona/compiler/lib/plugins/tokens'
@@ -15,7 +15,7 @@ import * as Color from './color'
 import * as Shadow from './shadow'
 import * as TextStyle from './textStyle'
 import { createFiles as createSvgDrawableFiles } from '../svg/drawable'
-import { templatePathForName, BuiltInTemplateNames } from '../template/builtins'
+import { templatePathForName } from '../template/bundled'
 import { inflate, InflateOptions } from '../template/inflate'
 import {
   createTemplateContext,
@@ -93,55 +93,37 @@ async function convertSvgFiles(
 }
 
 export function inflateTemplate(
-  templateName: BuiltInTemplateNames,
   outputPath: string,
   options: CreateTemplateContextOptions,
   inflateOptions?: InflateOptions
 ): { files: IFS; srcPath: string } {
-  switch (templateName) {
-    case 'module':
-      const { files, context } = inflate(
-        fs,
-        templatePathForName('module'),
-        outputPath,
-        createTemplateContext(options),
-        inflateOptions
-      )
+  const { files: projectFiles } = inflate(
+    fs,
+    templatePathForName('project'),
+    outputPath,
+    createTemplateContext(options),
+    inflateOptions
+  )
 
-      return {
-        files,
-        srcPath: context.get('srcDir'),
-      }
-    case 'project':
-      const { files: projectFiles } = inflate(
-        fs,
-        templatePathForName('project'),
-        outputPath,
-        createTemplateContext(options),
-        inflateOptions
-      )
+  const fsAndProject = new Union()
+  fsAndProject.use(fs)
+  fsAndProject.use(projectFiles)
 
-      const fsAndProject = new Union()
-      fsAndProject.use(fs)
-      fsAndProject.use(projectFiles)
+  const { files: moduleFiles, context: moduleContext } = inflate(
+    fsAndProject,
+    templatePathForName('module'),
+    outputPath,
+    createTemplateContext(options),
+    inflateOptions
+  )
 
-      const { files: moduleFiles, context: moduleContext } = inflate(
-        fsAndProject,
-        templatePathForName('module'),
-        outputPath,
-        createTemplateContext(options),
-        inflateOptions
-      )
+  copy(moduleFiles, projectFiles, '/', '/')
 
-      copy(moduleFiles, projectFiles, '/', '/')
-
-      return { files: projectFiles, srcPath: moduleContext.get('srcDir') }
-  }
+  return { files: projectFiles, srcPath: moduleContext.get('srcDir') }
 }
 
 export type ConvertOptions = {
   verbose: boolean
-  template: BuiltInTemplateNames
   outputPath: string
   packageName: string
   minSdk: number
@@ -162,7 +144,6 @@ export async function convert(
 ): Promise<IFS> {
   const {
     verbose,
-    template,
     outputPath,
     packageName,
     minSdk,
@@ -205,7 +186,6 @@ export async function convert(
   )
 
   const { files: templateFiles, srcPath } = inflateTemplate(
-    template,
     outputPath,
     { packageName, minSdk, buildSdk, targetSdk },
     { verbose }

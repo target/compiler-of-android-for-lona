@@ -1,5 +1,4 @@
 import path from 'path'
-import { templatePathForName, BuiltInTemplateNames } from './template/builtins'
 
 export type Raw = {
   // General
@@ -8,7 +7,6 @@ export type Raw = {
   output?: string
   dryRun?: boolean
   // Android
-  template?: string
   packageName?: string
   minSdk?: number
   buildSdk?: number
@@ -20,7 +18,6 @@ export type Raw = {
 
 export type Validated = {
   verbose: boolean
-  template: BuiltInTemplateNames
   shouldOutputFiles: boolean
   outputPath: string
   dryRun: boolean
@@ -37,17 +34,6 @@ export function validate(
   options: Raw,
   cwd: string
 ): { type: 'error'; value: string } | { type: 'ok'; value: Validated } {
-  if (
-    !options.template ||
-    (options.template !== 'project' && options.template !== 'module')
-  ) {
-    return {
-      type: 'error',
-      value:
-        'The --template [name] option is required. Use "project" or "module"',
-    }
-  }
-
   if (!options.packageName) {
     return {
       type: 'error',
@@ -62,7 +48,6 @@ export function validate(
     type: 'ok',
     value: {
       verbose: typeof options.verbose === 'boolean' ? options.verbose : false,
-      template: options.template,
       shouldOutputFiles: !!options.output && !dryRun,
       dryRun,
       outputPath: options.output ? path.resolve(options.output) : cwd,

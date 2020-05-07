@@ -1,6 +1,5 @@
 {
   "android": {
-    "template": "project",
     "output": "../build",
     "packageName": "com.example.designlibrary",
     "minSdk": 21,
