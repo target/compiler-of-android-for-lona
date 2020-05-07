@@ -1,6 +1,6 @@
 import { ShadowValue } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 import * as XML from '../xml/ast'
-import { createDimen } from '../android/resources'
+import { createDimen } from '../android/valueResources'
 
 export type Token = {
   qualifiedName: string[]

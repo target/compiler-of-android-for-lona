@@ -1,88 +1,64 @@
-import * as XML from '../xml/ast'
-import print from '../xml/print'
-
-const parseCSSColor: (color: string) => number[] = require('csscolorparser')
-  .parseCSSColor
-
-export function cssToHexColor(cssColor: string): string {
-  const toHex = (value: number): string => {
-    const converted = value.toString(16)
-    if (converted.length === 1) {
-      return `0${converted}`
-    } else {
-      return converted
-    }
-  }
-
-  const [r, g, b, a] = parseCSSColor(cssColor)
-  const components = [r, g, b, ...(a !== 1 ? [Math.ceil(a * 255)] : [])]
-
-  return (
-    '#' +
-    components
-      .map(toHex)
-      .join('')
-      .toUpperCase()
-  )
-}
-
-export const createColor = (name: string, value: string): XML.Element => {
-  return {
-    tag: 'color',
-    attributes: [{ name: 'name', value: name }],
-    content: [{ type: 'charData', data: value }],
-  }
-}
-
-export const createDimen = (name: string, value: string): XML.Element => {
-  return {
-    tag: 'dimen',
-    attributes: [{ name: 'name', value: name }],
-    content: [{ type: 'charData', data: value }],
-  }
-}
-
-export const createItem = (name: string, value: string): XML.Element => {
-  return {
-    tag: 'item',
-    attributes: [{ name: 'name', value: name }],
-    content: [{ type: 'charData', data: value }],
-  }
-}
-
-export const createStyle = (
-  name: string,
-  items: XML.Element[]
-): XML.Element => {
-  return {
-    tag: 'style',
-    attributes: [{ name: 'name', value: name }],
-    content: items.map(item => ({ type: 'element', data: item })),
-  }
-}
+import path from 'path'
+import { createFs, IFS, copy } from 'buffs'
 
 /**
- * Create a resource XML file using the following format:
+ * Generate Android resource files at the specified path.
  *
- * <?xml version="1.0" encoding="utf-8"?>
- * <resources>
- *   ...
- * </resources>
+ * The following files may be generated:
+ *
+ * res
+ * ├── drawable
+ * │   └── <various drawables>
+ * ├── drawable-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}
+ * │   └── <various drawables>
+ * └── values
+ *     └── <various values>.xml
+ *
+ * @param resPath
+ * @param library
+ * @returns An in-memory filesystem containing the generated files
  */
-export const createFile = (resources: XML.Content[]): string => {
-  const document: XML.Document = {
-    prolog: {
-      xmlDecl: {
-        version: '1.0',
-        encoding: 'utf-8',
-      },
-    },
-    element: {
-      tag: 'resources',
-      attributes: [],
-      content: resources,
-    },
+export function createResourceFiles(
+  resPath: string,
+  {
+    colorResources,
+    elevationResources,
+    textStyleResources,
+    drawableResources,
+  }: {
+    colorResources?: string
+    elevationResources?: string
+    textStyleResources?: string
+    drawableResources: [string, IFS][]
+  }
+): ReturnType<typeof createFs> {
+  const files = createFs()
+  const { fs: target } = files
+
+  const valuesPath = path.join(resPath, 'values')
+
+  if (colorResources) {
+    target.writeFileSync(path.join(valuesPath, 'colors.xml'), colorResources)
   }
 
-  return print(document)
+  if (elevationResources) {
+    target.writeFileSync(
+      path.join(valuesPath, 'elevations.xml'),
+      elevationResources
+    )
+  }
+
+  if (textStyleResources) {
+    target.writeFileSync(
+      path.join(valuesPath, 'text-styles.xml'),
+      textStyleResources
+    )
+  }
+
+  // Drawable resources are already in the appropriate main/drawable* directory
+  drawableResources.forEach(([key, source]) => {
+    copy(source, target, '/', resPath)
+  })
+
+  return files
 }

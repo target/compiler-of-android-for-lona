@@ -1,7 +1,7 @@
 import fs from 'fs'
 import { describe as describeFs } from 'buffs'
 import { inflate } from '../inflate'
-import { inflateTemplate } from '../../lona/workspace'
+import { inflateProjectTemplate } from '../../lona/workspace'
 import { templatePathForName } from '../bundled'
 import { createTemplateContext, CreateTemplateContextOptions } from '../context'
 
@@ -40,7 +40,7 @@ describe('Template / Inflate', () => {
   })
 
   it('inflates project template, then module template on top', () => {
-    const { files } = inflateTemplate('/prefix', defaultTemplateOptions)
+    const { files } = inflateProjectTemplate('/prefix', defaultTemplateOptions)
 
     expect(describeFs(files, '/')).toMatchSnapshot()
     expect(files.readFileSync('/prefix/settings.gradle', 'utf8')).toEqual(

@@ -1,6 +1,10 @@
 import { TextStyleValue } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 import * as XML from '../xml/ast'
-import { createStyle, createItem, cssToHexColor } from '../android/resources'
+import {
+  createStyle,
+  createItem,
+  cssToHexColor,
+} from '../android/valueResources'
 
 export type Token = {
   qualifiedName: string[]

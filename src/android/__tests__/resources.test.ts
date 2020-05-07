@@ -1,11 +1,14 @@
-import { cssToHexColor } from '../resources'
+import { createResourceFiles } from '../resources'
+import { createFs } from 'buffs'
 
 describe('Android / Resources', () => {
-  test('creates a hex color with alpha', () => {
-    expect(cssToHexColor('rgba(0,127,255,0.5)')).toBe('#007FFF80')
-  })
+  test('creates library resources', () => {
+    const { volume } = createResourceFiles('/main/res', {
+      drawableResources: [
+        ['test.svg', createFs({ 'drawable/test.xml': '' }).fs],
+      ],
+    })
 
-  test('creates a hex color without alpha', () => {
-    expect(cssToHexColor('teal')).toBe('#008080')
+    expect(volume.toJSON()).toMatchSnapshot()
   })
 })

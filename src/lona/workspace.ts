@@ -9,18 +9,22 @@ import * as Tokens from '@lona/compiler/lib/plugins/tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 
 import { getConfig, Config } from './config'
-import { createLibraryFiles } from '../android/library'
-import * as Resources from '../android/resources'
+import { createResourceFiles } from '../android/resources'
+import * as Resources from '../android/valueResources'
 import * as Color from './color'
 import * as Shadow from './shadow'
 import * as TextStyle from './textStyle'
-import { createFiles as createSvgDrawableFiles } from '../svg/drawable'
+import {
+  createFiles as createSvgDrawableFiles,
+  formatDrawableName,
+} from '../svg/drawable'
 import { templatePathForName } from '../template/bundled'
 import { inflate, InflateOptions } from '../template/inflate'
 import {
   createTemplateContext,
   CreateTemplateContextOptions,
 } from '../template/context'
+import { createGalleryFiles } from '../android/gallery'
 
 function createColorsResourceFile(tokens: Token[]) {
   const colors: Color.Token[] = tokens.flatMap(({ qualifiedName, value }) =>
@@ -92,11 +96,11 @@ async function convertSvgFiles(
   )
 }
 
-export function inflateTemplate(
+export function inflateProjectTemplate(
   outputPath: string,
   options: CreateTemplateContextOptions,
   inflateOptions?: InflateOptions
-): { files: IFS; srcPath: string } {
+): { files: IFS; srcPath: string; resPath: string } {
   const { files: projectFiles } = inflate(
     fs,
     templatePathForName('project'),
@@ -119,7 +123,11 @@ export function inflateTemplate(
 
   copy(moduleFiles, projectFiles, '/', '/')
 
-  return { files: projectFiles, srcPath: moduleContext.get('srcDir') }
+  return {
+    files: projectFiles,
+    srcPath: moduleContext.get('srcDir'),
+    resPath: moduleContext.get('resDir'),
+  }
 }
 
 export type ConvertOptions = {
@@ -185,24 +193,41 @@ export async function convert(
     workspacePath
   )
 
-  const { files: templateFiles, srcPath } = inflateTemplate(
+  const { files: templateFiles, srcPath, resPath } = inflateProjectTemplate(
     outputPath,
     { packageName, minSdk, buildSdk, targetSdk },
     { verbose }
   )
 
-  const libraryFiles = createLibraryFiles(path.join(outputPath, srcPath), {
-    packageName,
-    generateGallery,
-    colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
-    elevationResources: tokens ? createShadowsResourceFile(tokens) : undefined,
-    textStyleResources: tokens
-      ? createTextStyleResourceFile(tokens, { minSdk })
-      : undefined,
-    drawableResources: vectorDrawables,
-  }).fs
+  const { fs: resourceFiles } = createResourceFiles(
+    path.join(outputPath, resPath),
+    {
+      colorResources: tokens ? createColorsResourceFile(tokens) : undefined,
+      elevationResources: tokens
+        ? createShadowsResourceFile(tokens)
+        : undefined,
+      textStyleResources: tokens
+        ? createTextStyleResourceFile(tokens, { minSdk })
+        : undefined,
+      drawableResources: vectorDrawables,
+    }
+  )
 
-  copy(libraryFiles, templateFiles, '/', '/')
+  copy(resourceFiles, templateFiles, '/', '/')
+
+  if (vectorDrawables.length > 0 && generateGallery) {
+    const classPath = path.join(
+      srcPath,
+      'main/java',
+      packageName.replace(/[.]/g, '/')
+    )
+
+    const gallery = createGalleryFiles(
+      packageName,
+      vectorDrawables.map(pair => formatDrawableName(pair[0]))
+    )
+    copy(gallery, templateFiles, '/', path.join(srcPath, classPath))
+  }
 
   return templateFiles
 }

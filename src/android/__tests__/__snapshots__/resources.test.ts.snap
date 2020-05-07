@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Android / Resources creates library resources 1`] = `
+Object {
+  "/main/res/drawable/test.xml": "",
+}
+`;
