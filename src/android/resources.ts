@@ -35,7 +35,11 @@ export function createResourceFiles(
   const files = createFs()
   const { fs: target } = files
 
+  target.mkdirSync(resPath, { recursive: true })
+
   const valuesPath = path.join(resPath, 'values')
+
+  target.mkdirSync(valuesPath, { recursive: true })
 
   if (colorResources) {
     target.writeFileSync(path.join(valuesPath, 'colors.xml'), colorResources)
