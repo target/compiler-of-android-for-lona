@@ -1,4 +1,5 @@
 import path from 'path'
+import { DEFAULT_NAME_TEMPLATE } from './android/valueResources'
 
 export type Raw = {
   // General
@@ -12,6 +13,7 @@ export type Raw = {
   buildSdk?: number
   targetSdk?: number
   generateGallery?: boolean
+  valueResourceNameTemplate?: string
 }
 
 export type Validated = {
@@ -24,6 +26,7 @@ export type Validated = {
   buildSdk: number
   targetSdk: number
   generateGallery: boolean
+  valueResourceNameTemplate: string
 }
 
 export function validate(
@@ -55,6 +58,10 @@ export function validate(
         typeof options.generateGallery === 'boolean'
           ? options.generateGallery
           : false,
+      valueResourceNameTemplate:
+        typeof options.valueResourceNameTemplate === 'string'
+          ? options.valueResourceNameTemplate
+          : DEFAULT_NAME_TEMPLATE,
     },
   }
 }

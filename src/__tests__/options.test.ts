@@ -1,4 +1,5 @@
 import * as Options from '../options'
+import { DEFAULT_NAME_TEMPLATE } from '../android/valueResources'
 
 const defaultRawOptions: Options.Raw = {
   packageName: 'com.example.test',
@@ -19,6 +20,7 @@ describe('Options', () => {
       buildSdk: 29,
       targetSdk: 29,
       generateGallery: false,
+      valueResourceNameTemplate: DEFAULT_NAME_TEMPLATE,
     }
 
     expect(Options.validate(raw, 'cwd')).toEqual({

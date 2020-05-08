@@ -68,6 +68,18 @@ export function matches(instance: any, args: any[]) {
   return regexp.test(instance)
 }
 
+/**
+ * Reference:
+ * https://freemarker.apache.org/docs/ref_builtins_sequence.html#ref_builtin_join
+ */
+export function join(instance: any, args: any[]) {
+  const [separator, emptyValue = '', listEnding = ''] = args
+
+  const list = Array.isArray(instance) ? instance.filter(x => x != null) : []
+
+  return list.length === 0 ? emptyValue : list.join(separator) + listEnding
+}
+
 export function evaluateBuiltInMethod(
   methodName: string,
   instance: any,
@@ -82,6 +94,8 @@ export function evaluateBuiltInMethod(
       return string(instance, args)
     case 'matches':
       return matches(instance, args)
+    case 'join':
+      return join(instance, args)
     default:
       console.error('Unhandled built-in method:', methodName)
       return undefined

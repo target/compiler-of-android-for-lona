@@ -4,6 +4,8 @@ import {
   createStyle,
   createItem,
   cssToHexColor,
+  formatQualifiedName,
+  Options as ValueResourceOptions,
 } from '../android/valueResources'
 
 export type Token = {
@@ -15,7 +17,11 @@ export type Options = {
   minSdk: number
 }
 
-export const convert = (token: Token, options: Options): XML.Element => {
+export const convert = (
+  token: Token,
+  options: Options,
+  valueResourceOptions: ValueResourceOptions
+): XML.Element => {
   const {
     fontFamily,
     fontSize,
@@ -53,5 +59,8 @@ export const convert = (token: Token, options: Options): XML.Element => {
     items.push(createItem('android:letterSpacing', `${letterSpacing}`))
   }
 
-  return createStyle(token.qualifiedName.join('_'), items)
+  return createStyle(
+    formatQualifiedName(token.qualifiedName, valueResourceOptions),
+    items
+  )
 }

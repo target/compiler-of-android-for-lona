@@ -7,6 +7,16 @@ export * from './parse'
 export * from './evaluate'
 export * from './context'
 
+export function inflate(templateString: string, context: Context): string {
+  const template = parse(templateString)
+
+  if (template.ast.errors) {
+    console.log('ERROR: Failed to parse', templateString)
+  }
+
+  return evaluate(template.ast, context)
+}
+
 export function inflateFile(
   source: IFS,
   filePath: string,

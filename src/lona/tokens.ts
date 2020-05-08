@@ -37,13 +37,20 @@ export type TokenResources = {
 
 export function createValueResources(
   tokens: Token[],
-  options: { minSdk: number }
+  options: { minSdk: number; nameTemplate: string }
 ): TokenResources {
+  const { nameTemplate } = options
+  const valueResourceOptions = { nameTemplate }
+
   return {
-    elevations: getShadowsTokens(tokens).map(Shadow.convert),
-    colors: getColorTokens(tokens).map(Color.convert),
+    elevations: getShadowsTokens(tokens).map(token =>
+      Shadow.convert(token, valueResourceOptions)
+    ),
+    colors: getColorTokens(tokens).map(token =>
+      Color.convert(token, valueResourceOptions)
+    ),
     textStyles: getTextStyleTokens(tokens).map(textStyle =>
-      TextStyle.convert(textStyle, options)
+      TextStyle.convert(textStyle, options, valueResourceOptions)
     ),
   }
 }

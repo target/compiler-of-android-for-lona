@@ -1,5 +1,16 @@
 import * as XML from '../xml/ast'
 import print from '../xml/print'
+import { inflate, Context } from '../freemarker'
+
+export type Options = {
+  nameTemplate: string
+}
+
+export const DEFAULT_NAME_TEMPLATE = '${qualifiedName?join("_")}'
+
+export function formatQualifiedName(qualifiedName: string[], options: Options) {
+  return inflate(options.nameTemplate, new Context({ qualifiedName }))
+}
 
 const parseCSSColor: (color: string) => number[] = require('csscolorparser')
   .parseCSSColor

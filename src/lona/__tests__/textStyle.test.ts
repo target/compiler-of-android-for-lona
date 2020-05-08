@@ -1,5 +1,6 @@
 import * as XML from '../../xml/ast'
 import { convert } from '../textStyle'
+import { DEFAULT_NAME_TEMPLATE } from '../../android/valueResources'
 
 describe('Tokens / Text Style', () => {
   test('converts a text style', () => {
@@ -12,7 +13,10 @@ describe('Tokens / Text Style', () => {
           fontWeight: '400',
         },
       },
-      { minSdk: 29 }
+      { minSdk: 29 },
+      {
+        nameTemplate: DEFAULT_NAME_TEMPLATE,
+      }
     )
 
     const mock: XML.Element = {
@@ -57,7 +61,10 @@ describe('Tokens / Text Style', () => {
           fontWeight: '400',
         },
       },
-      { minSdk: 25 }
+      { minSdk: 25 },
+      {
+        nameTemplate: DEFAULT_NAME_TEMPLATE,
+      }
     )
 
     const mock: XML.Element = {

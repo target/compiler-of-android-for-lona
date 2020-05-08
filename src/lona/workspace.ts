@@ -21,6 +21,7 @@ import {
 import { createGalleryFiles } from '../android/gallery'
 import { createValueResources } from './tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
+import { Validated } from '../options'
 
 export function inflateProjectTemplate(
   outputPath: string,
@@ -100,16 +101,6 @@ async function convertSvgFiles(
   )
 }
 
-export type ConvertOptions = {
-  verbose: boolean
-  outputPath: string
-  packageName: string
-  minSdk: number
-  buildSdk: number
-  targetSdk: number
-  generateGallery: boolean
-}
-
 /**
  * Convert a Lona workspace to an Android library module.
  *
@@ -118,7 +109,7 @@ export type ConvertOptions = {
 export async function convert(
   workspacePath: string,
   helpers: Helpers,
-  options: ConvertOptions
+  options: Omit<Validated, 'shouldOutputFiles' | 'dryRun'>
 ): Promise<IFS> {
   const {
     verbose,
@@ -128,6 +119,7 @@ export async function convert(
     buildSdk,
     targetSdk,
     generateGallery,
+    valueResourceNameTemplate,
   } = options
 
   if (verbose) {
@@ -155,7 +147,10 @@ export async function convert(
     helpers.config.ignore
   )
 
-  const valueResources = createValueResources(tokens, { minSdk })
+  const valueResources = createValueResources(tokens, {
+    minSdk,
+    nameTemplate: valueResourceNameTemplate,
+  })
 
   const { fs: resourceFiles } = createResourceFiles(
     path.join(outputPath, resPath),
