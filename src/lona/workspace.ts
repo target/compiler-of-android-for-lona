@@ -7,7 +7,6 @@ import { Helpers } from '@lona/compiler/lib/helpers'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import * as Tokens from '@lona/compiler/lib/plugins/tokens'
 
-import { getConfig, Config } from './config'
 import { createResourceFiles } from '../android/resources'
 import {
   createFiles as createSvgDrawableFiles,
@@ -78,11 +77,11 @@ async function convertTokens(workspacePath: string, helpers: Helpers) {
 }
 
 async function convertSvgFiles(
-  workspaceConfig: Config,
-  workspacePath: string
+  workspacePath: string,
+  ignore: string[]
 ): Promise<[string, IFS][]> {
   const svgRelativePaths = FileSearch.sync(workspacePath, '**/*.svg', {
-    ignore: workspaceConfig.ignore,
+    ignore,
   })
 
   return Promise.all(
@@ -142,8 +141,6 @@ export async function convert(
     { verbose }
   )
 
-  const workspaceConfig = await getConfig(workspacePath)
-
   let tokens: Token[]
 
   try {
@@ -154,8 +151,8 @@ export async function convert(
   }
 
   const drawableResources: [string, IFS][] = await convertSvgFiles(
-    workspaceConfig,
-    workspacePath
+    workspacePath,
+    helpers.config.ignore
   )
 
   const valueResources = createValueResources(tokens, { minSdk })

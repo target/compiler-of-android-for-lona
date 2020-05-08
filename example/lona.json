@@ -1,8 +1,10 @@
 {
-  "android": {
-    "output": "../build",
-    "packageName": "com.example.designlibrary",
-    "minSdk": 21,
-    "targetSdk": 29
+  "format": {
+    "android": {
+      "output": "../build",
+      "packageName": "com.example.designlibrary",
+      "minSdk": 21,
+      "targetSdk": 29
+    }
   }
 }

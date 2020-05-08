@@ -1,23 +1,17 @@
 import fs from 'fs'
 import { Plugin } from '@lona/compiler/lib/plugins'
 import { Helpers } from '@lona/compiler/lib/helpers'
-import { describe, describeComparison, copy } from 'buffs'
+import { describeComparison, copy } from 'buffs'
 
 import * as Options from './options'
 import { convert } from './lona/workspace'
-import { getConfig } from './lona/config'
 
 async function parseWorkspace(
   workspacePath: string,
   helpers: Helpers,
   rawOptions: Options.Raw
 ): Promise<void> {
-  const workspaceConfig = await getConfig(workspacePath)
-
-  const validatedOptions = Options.validate(
-    { ...workspaceConfig.android, ...rawOptions },
-    process.cwd()
-  )
+  const validatedOptions = Options.validate(rawOptions, process.cwd())
 
   if (validatedOptions.type === 'error') {
     return Promise.reject(validatedOptions.value)
@@ -31,8 +25,6 @@ async function parseWorkspace(
     copy(source, fs, outputPath)
   } else {
     console.error(`\nThe following files will be generated at ${outputPath}:\n`)
-
-    // const description = describe(source, '/')
 
     const description = describeComparison(source, fs, outputPath, {
       colorize: true,
