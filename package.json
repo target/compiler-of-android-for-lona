@@ -11,7 +11,7 @@
   "scripts": {
     "build": "rm -rf ./lib && tsc --declaration",
     "build:watch": "rm -rf ./lib && tsc --declaration --watch",
-    "build:example": "ts-node ./src/bin.ts convert ./example",
+    "build:example": "ts-node ./src/bin.ts convert ./example ./build",
     "test": "jest",
     "test:watch": "jest --watch",
     "svg2vector": "ts-node ./src/bin.ts svg2vector"
