@@ -18,8 +18,6 @@ describe('Options', () => {
       minSdk: 21,
       buildSdk: 29,
       targetSdk: 29,
-      generateAndroidManifest: true,
-      generateBuildScript: true,
       generateGallery: false,
     }
 
