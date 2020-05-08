@@ -24,16 +24,18 @@ async function parseWorkspace(
   if (shouldOutputFiles) {
     copy(source, fs, outputPath)
   } else {
-    console.error(`\nThe following files will be generated at ${outputPath}:\n`)
+    helpers.reporter.info(
+      `\nThe following files will be generated at ${outputPath}:\n`
+    )
 
     const description = describeComparison(source, fs, outputPath, {
       colorize: true,
     })
 
-    console.error(description)
+    helpers.reporter.info(description)
 
     if (!outputPath) {
-      console.error(
+      helpers.reporter.info(
         '\nUse the --ouput [path] option to specify the output directory.\n'
       )
     }

@@ -138,7 +138,7 @@ export async function convert(
   try {
     tokens = await convertTokens(workspacePath, helpers)
   } catch (error) {
-    console.error('Failed to convert tokens')
+    helpers.reporter.error('Failed to convert tokens')
     return Promise.reject(error)
   }
 
