@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Convert converts the example workspace 1`] = `
+"build
+├── .gitignore
+├── androidTest / com / test / designlibrary / ApplicationTest.java
+├── build.gradle
+├── designlibrary
+│   ├── .gitignore
+│   ├── build.gradle
+│   ├── libs
+│   └── src
+│       ├── com / test / designlibrary
+│       └── main
+│           ├── AndroidManifest.xml
+│           └── res
+│               ├── drawable / assets_check_circle.xml
+│               ├── drawable-hdpi / assets_gradient_fill.png
+│               ├── drawable-mdpi / assets_gradient_fill.png
+│               ├── drawable-xhdpi / assets_gradient_fill.png
+│               ├── drawable-xxhdpi / assets_gradient_fill.png
+│               ├── drawable-xxxhdpi / assets_gradient_fill.png
+│               └── values
+│                   ├── colors.xml
+│                   ├── elevations.xml
+│                   ├── strings.xml
+│                   └── text-styles.xml
+├── gradle / wrapper
+│   ├── gradle-wrapper.jar
+│   └── gradle-wrapper.properties
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── local.properties
+└── settings.gradle"
+`;
