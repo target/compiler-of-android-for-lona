@@ -18,8 +18,10 @@ export function getChildrenElementsMap(
   )
 }
 
-export function getAttributes(element: XML.Element): { [key: string]: string } {
-  return element.attributes.reduce(
+export function makeAttributeMap(
+  attributes: XML.Attribute[]
+): { [key: string]: string } {
+  return attributes.reduce(
     (result: { [key: string]: string }, item: XML.Attribute) => {
       result[item.name] = item.value
       return result
@@ -28,8 +30,13 @@ export function getAttributes(element: XML.Element): { [key: string]: string } {
   )
 }
 
+export function getAttributes(element: XML.Element): { [key: string]: string } {
+  return makeAttributeMap(element.attributes)
+}
+
 export type TraversalControl = {
   stop: () => void
+  ancestors: XML.Element[]
 }
 
 export function traverseElements(
@@ -38,21 +45,56 @@ export function traverseElements(
 ) {
   let stopped = false
 
-  const control = {
+  const control: TraversalControl = {
     stop: () => {
       stopped = true
     },
+    ancestors: [],
   }
 
   function inner(element: XML.Element) {
     if (stopped) return
 
+    control.ancestors.push(element)
+
     f(element, control)
+
+    control.ancestors.pop()
 
     getChildrenElements(element).forEach(inner)
   }
 
   inner(element)
+}
+
+export function flatMapContent(
+  root: XML.Element,
+  f: (content: XML.Content) => XML.Content[]
+): XML.Element {
+  return {
+    ...root,
+    content: root.content
+      .flatMap(f)
+      .map(child =>
+        child.type === 'element'
+          ? { type: child.type, data: flatMapContent(child.data, f) }
+          : child
+      ),
+  }
+}
+
+export function filterContent(
+  root: XML.Element,
+  predicate: (content: XML.Content) => boolean
+) {
+  return flatMapContent(root, content => (predicate(content) ? [content] : []))
+}
+
+export function removeWhitespace(root: XML.Element) {
+  return filterContent(
+    root,
+    content => content.type !== 'charData' || content.data.trim() !== ''
+  )
 }
 
 export function findElement(
