@@ -1,5 +1,6 @@
 import path from 'path'
 import { Context, ContextData } from '../freemarker'
+import escape from 'lodash.escape'
 
 export type CreateTemplateContextOptions = {
   packageName: string
@@ -57,8 +58,8 @@ export function createTemplateContext({
     templateRoot: path.join(__dirname, '../../templates/android-studio'),
     ...overrides,
     // TODO: Implement all helper methods
-    escapeXmlAttribute: (value: string) => value,
-    escapeXmlString: (value: string) => value,
+    escapeXmlAttribute: (value: string) => escape(value),
+    escapeXmlString: (value: string) => escape(value),
     escapePropertyValue: (value: string) => value,
     hasDependency: (value: string) => false,
     slashedPackageName: (packageName: string): string =>
