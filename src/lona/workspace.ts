@@ -8,10 +8,7 @@ import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import * as Tokens from '@lona/compiler/lib/plugins/tokens'
 
 import { createResourceFiles } from '../android/resources'
-import {
-  createFiles as createSvgDrawableFiles,
-  formatDrawableName,
-} from '../svg/drawable'
+import { createFiles as createSvgDrawableFiles } from '../svg/drawable'
 import { templatePathForName } from '../template/bundled'
 import { inflate, InflateOptions } from '../template/inflate'
 import {
@@ -22,6 +19,7 @@ import { createGalleryFiles } from '../android/gallery'
 import { createValueResources } from './tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 import { Validated } from '../options'
+import { formatDrawableName } from '../android/drawableResources'
 
 export function inflateProjectTemplate(
   outputPath: string,
@@ -79,6 +77,7 @@ async function convertTokens(workspacePath: string, helpers: Helpers) {
 
 async function convertSvgFiles(
   workspacePath: string,
+  nameTemplate: string,
   ignore: string[]
 ): Promise<[string, IFS][]> {
   const svgRelativePaths = FileSearch.sync(workspacePath, '**/*.svg', {
@@ -93,7 +92,7 @@ async function convertSvgFiles(
 
       const result: [string, IFS] = [
         relativePath,
-        await createSvgDrawableFiles(relativePath, data),
+        await createSvgDrawableFiles(relativePath, data, { nameTemplate }),
       ]
 
       return result
@@ -120,6 +119,7 @@ export async function convert(
     targetSdk,
     generateGallery,
     valueResourceNameTemplate,
+    drawableResourceNameTemplate,
   } = options
 
   if (verbose) {
@@ -144,12 +144,13 @@ export async function convert(
 
   const drawableResources: [string, IFS][] = await convertSvgFiles(
     workspacePath,
+    valueResourceNameTemplate,
     helpers.config.ignore
   )
 
   const valueResources = createValueResources(tokens, {
     minSdk,
-    nameTemplate: valueResourceNameTemplate,
+    nameTemplate: drawableResourceNameTemplate,
   })
 
   const { fs: resourceFiles } = createResourceFiles(
@@ -173,7 +174,11 @@ export async function convert(
 
     const gallery = createGalleryFiles(
       packageName,
-      drawableResources.map(([key]) => formatDrawableName(key))
+      drawableResources.map(([key]) =>
+        formatDrawableName(key, undefined, {
+          nameTemplate: drawableResourceNameTemplate,
+        })
+      )
     )
     copy(gallery, templateFiles, '/', path.join(srcPath, classPath))
   }

@@ -1,10 +1,10 @@
 import {
   cssToHexColor,
   formatQualifiedName,
-  DEFAULT_NAME_TEMPLATE,
+  DEFAULT_VALUE_NAME_TEMPLATE,
 } from '../valueResources'
 
-describe('Android / Resources', () => {
+describe('Android / ValueResources', () => {
   test('creates a hex color with alpha', () => {
     expect(cssToHexColor('rgba(0,127,255,0.5)')).toBe('#007FFF80')
   })
@@ -16,13 +16,13 @@ describe('Android / Resources', () => {
   test('formats token names', () => {
     expect(
       formatQualifiedName(['a', 'b', 'c'], {
-        nameTemplate: DEFAULT_NAME_TEMPLATE,
+        nameTemplate: DEFAULT_VALUE_NAME_TEMPLATE,
       })
     ).toEqual('a_b_c')
 
     expect(
       formatQualifiedName(['a', 'b', 'c'], {
-        nameTemplate: 'prefix_' + DEFAULT_NAME_TEMPLATE,
+        nameTemplate: 'prefix_' + DEFAULT_VALUE_NAME_TEMPLATE,
       })
     ).toEqual('prefix_a_b_c')
   })

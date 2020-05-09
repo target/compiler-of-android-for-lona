@@ -1,6 +1,6 @@
 import * as XML from '../../xml/ast'
 import { convert } from '../color'
-import { DEFAULT_NAME_TEMPLATE } from '../../android/valueResources'
+import { DEFAULT_VALUE_NAME_TEMPLATE } from '../../android/valueResources'
 
 describe('Tokens / Color', () => {
   test('converts a hex color', () => {
@@ -12,7 +12,7 @@ describe('Tokens / Color', () => {
         },
       },
       {
-        nameTemplate: DEFAULT_NAME_TEMPLATE,
+        nameTemplate: DEFAULT_VALUE_NAME_TEMPLATE,
       }
     )
 

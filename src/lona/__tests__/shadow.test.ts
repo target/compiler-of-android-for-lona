@@ -1,4 +1,4 @@
-import { DEFAULT_NAME_TEMPLATE } from '../../android/valueResources'
+import { DEFAULT_VALUE_NAME_TEMPLATE } from '../../android/valueResources'
 import * as XML from '../../xml/ast'
 import { convert } from '../shadow'
 
@@ -18,7 +18,7 @@ describe('Tokens / Shadow', () => {
         },
       },
       {
-        nameTemplate: DEFAULT_NAME_TEMPLATE,
+        nameTemplate: DEFAULT_VALUE_NAME_TEMPLATE,
       }
     )
 

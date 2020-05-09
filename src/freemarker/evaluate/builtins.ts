@@ -59,6 +59,30 @@ export function string(instance: any, args: any[]) {
 }
 
 /**
+ * Reference
+ * https://freemarker.apache.org/docs/ref_builtins_string.html#ref_builtin_remove_beginning
+ */
+export function removeBeginning(instance: any, args: any[]) {
+  const prefix: string = args[0]
+  const string: string = instance
+  return prefix.length > 0 && string.startsWith(prefix)
+    ? string.slice(prefix.length)
+    : string
+}
+
+/**
+ * Reference
+ * https://freemarker.apache.org/docs/ref_builtins_string.html#ref_builtin_remove_ending
+ */
+export function removeEnding(instance: any, args: any[]) {
+  const suffix: string = args[0]
+  const string: string = instance
+  return suffix.length > 0 && string.endsWith(suffix)
+    ? string.slice(0, -suffix.length)
+    : string
+}
+
+/**
  * Reference:
  * https://freemarker.apache.org/docs/ref_builtins_string.html#ref_builtin_matches
  */
@@ -80,6 +104,18 @@ export function join(instance: any, args: any[]) {
   return list.length === 0 ? emptyValue : list.join(separator) + listEnding
 }
 
+/**
+ * Note: currently the "r" flag is ignored
+ *
+ * Reference:
+ * https://freemarker.apache.org/docs/ref_builtins_string.html#ref_builtin_split
+ */
+export function split(instance: any, args: any[]) {
+  const [separator, flags] = args
+
+  return instance.split(separator)
+}
+
 export function evaluateBuiltInMethod(
   methodName: string,
   instance: any,
@@ -92,10 +128,16 @@ export function evaluateBuiltInMethod(
       return hasContent(instance, args)
     case 'string':
       return string(instance, args)
+    case 'removeBeginning':
+      return removeBeginning(instance, args)
+    case 'removeEnding':
+      return removeEnding(instance, args)
     case 'matches':
       return matches(instance, args)
     case 'join':
       return join(instance, args)
+    case 'split':
+      return split(instance, args)
     default:
       console.error('Unhandled built-in method:', methodName)
       return undefined

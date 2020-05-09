@@ -1,6 +1,6 @@
 import * as XML from '../../xml/ast'
 import { convert } from '../textStyle'
-import { DEFAULT_NAME_TEMPLATE } from '../../android/valueResources'
+import { DEFAULT_VALUE_NAME_TEMPLATE } from '../../android/valueResources'
 
 describe('Tokens / Text Style', () => {
   test('converts a text style', () => {
@@ -15,7 +15,7 @@ describe('Tokens / Text Style', () => {
       },
       { minSdk: 29 },
       {
-        nameTemplate: DEFAULT_NAME_TEMPLATE,
+        nameTemplate: DEFAULT_VALUE_NAME_TEMPLATE,
       }
     )
 
@@ -63,7 +63,7 @@ describe('Tokens / Text Style', () => {
       },
       { minSdk: 25 },
       {
-        nameTemplate: DEFAULT_NAME_TEMPLATE,
+        nameTemplate: DEFAULT_VALUE_NAME_TEMPLATE,
       }
     )
 

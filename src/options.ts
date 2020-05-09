@@ -1,5 +1,6 @@
 import path from 'path'
-import { DEFAULT_NAME_TEMPLATE } from './android/valueResources'
+import { DEFAULT_VALUE_NAME_TEMPLATE } from './android/valueResources'
+import { DEFAULT_DRAWABLE_NAME_TEMPLATE } from './android/drawableResources'
 
 export type Raw = {
   // General
@@ -14,6 +15,7 @@ export type Raw = {
   targetSdk?: number
   generateGallery?: boolean
   valueResourceNameTemplate?: string
+  drawableResourceNameTemplate?: string
 }
 
 export type Validated = {
@@ -27,6 +29,7 @@ export type Validated = {
   targetSdk: number
   generateGallery: boolean
   valueResourceNameTemplate: string
+  drawableResourceNameTemplate: string
 }
 
 export function validate(
@@ -61,7 +64,11 @@ export function validate(
       valueResourceNameTemplate:
         typeof options.valueResourceNameTemplate === 'string'
           ? options.valueResourceNameTemplate
-          : DEFAULT_NAME_TEMPLATE,
+          : DEFAULT_VALUE_NAME_TEMPLATE,
+      drawableResourceNameTemplate:
+        typeof options.drawableResourceNameTemplate === 'string'
+          ? options.drawableResourceNameTemplate
+          : DEFAULT_DRAWABLE_NAME_TEMPLATE,
     },
   }
 }

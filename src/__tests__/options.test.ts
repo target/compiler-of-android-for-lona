@@ -1,5 +1,6 @@
 import * as Options from '../options'
-import { DEFAULT_NAME_TEMPLATE } from '../android/valueResources'
+import { DEFAULT_VALUE_NAME_TEMPLATE } from '../android/valueResources'
+import { DEFAULT_DRAWABLE_NAME_TEMPLATE } from '../android/drawableResources'
 
 const defaultRawOptions: Options.Raw = {
   packageName: 'com.example.test',
@@ -20,7 +21,8 @@ describe('Options', () => {
       buildSdk: 29,
       targetSdk: 29,
       generateGallery: false,
-      valueResourceNameTemplate: DEFAULT_NAME_TEMPLATE,
+      valueResourceNameTemplate: DEFAULT_VALUE_NAME_TEMPLATE,
+      drawableResourceNameTemplate: DEFAULT_DRAWABLE_NAME_TEMPLATE,
     }
 
     expect(Options.validate(raw, 'cwd')).toEqual({

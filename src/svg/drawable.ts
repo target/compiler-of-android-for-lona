@@ -5,17 +5,7 @@ import * as VectorDrawable from '../android/vectorDrawable'
 import { createFs, IFS } from 'buffs'
 import { rasterize } from './rasterize'
 import { ALL_PIXEL_DENSITIES } from '../android/pixelDensity'
-
-/**
- * Flatten a file path into a single snake_case filename
- */
-export const formatDrawableName = (
-  relativePath: string,
-  extname: string = ''
-): string => {
-  const fileName = relativePath.replace(/[\/\-]/g, '_').toLowerCase()
-  return path.basename(fileName, '.svg') + (extname ? `.${extname}` : '')
-}
+import { formatDrawableName, Options } from '../android/drawableResources'
 
 /**
  * Really long strings in XML files will crash the Android build and app.
@@ -51,7 +41,8 @@ function containsReallyLongString(svg: SVG): boolean {
  */
 export async function createFiles(
   relativePath: string,
-  data: Buffer
+  data: Buffer,
+  options: Options
 ): Promise<IFS> {
   const { fs } = createFs()
 
@@ -61,7 +52,7 @@ export async function createFiles(
     svg.metadata.unsupportedFeatures.length === 0 &&
     !containsReallyLongString(svg)
   ) {
-    const name = formatDrawableName(relativePath, 'xml')
+    const name = formatDrawableName(relativePath, 'xml', options)
     const directoryName = '/drawable'
 
     const vectorDrawable = VectorDrawable.createFile(convert(svg))
@@ -69,7 +60,7 @@ export async function createFiles(
     await fs.promises.mkdir(directoryName)
     await fs.promises.writeFile(path.join(directoryName, name), vectorDrawable)
   } else {
-    const name = formatDrawableName(relativePath, 'png')
+    const name = formatDrawableName(relativePath, 'png', options)
 
     await Promise.all(
       ALL_PIXEL_DENSITIES.map(async density => {

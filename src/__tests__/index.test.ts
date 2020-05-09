@@ -3,7 +3,8 @@ import { describe as describeFs } from 'buffs'
 import createHelpers from '@lona/compiler/lib/helpers'
 import plugin from '..'
 import { convert } from '../lona/workspace'
-import { DEFAULT_NAME_TEMPLATE } from '../android/valueResources'
+import { DEFAULT_VALUE_NAME_TEMPLATE } from '../android/valueResources'
+import { DEFAULT_DRAWABLE_NAME_TEMPLATE } from '../android/drawableResources'
 
 const silentReporter = {
   log: () => {},
@@ -26,7 +27,8 @@ describe('Convert', () => {
       buildSdk: 29,
       targetSdk: 29,
       generateGallery: false,
-      valueResourceNameTemplate: DEFAULT_NAME_TEMPLATE,
+      valueResourceNameTemplate: DEFAULT_VALUE_NAME_TEMPLATE,
+      drawableResourceNameTemplate: DEFAULT_DRAWABLE_NAME_TEMPLATE,
     })
 
     expect(describeFs(result, outputPath)).toMatchSnapshot()

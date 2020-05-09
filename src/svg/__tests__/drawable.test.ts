@@ -1,4 +1,7 @@
 import { createFiles } from '../drawable'
+import { DEFAULT_DRAWABLE_NAME_TEMPLATE } from '../../android/drawableResources'
+
+const nameTemplate = DEFAULT_DRAWABLE_NAME_TEMPLATE
 
 describe('SVG / Drawable', () => {
   test('converts an SVG file to a VectorDrawable when possible', async () => {
@@ -6,7 +9,9 @@ describe('SVG / Drawable', () => {
   <path d="M0,0 L10,10" ></path>
 </svg>`
 
-    const fs = await createFiles('assets/icons/test.svg', Buffer.from(svg))
+    const fs = await createFiles('assets/icons/test.svg', Buffer.from(svg), {
+      nameTemplate,
+    })
 
     expect(fs.existsSync('/drawable/assets_icons_test.xml')).toEqual(true)
 
@@ -19,7 +24,9 @@ describe('SVG / Drawable', () => {
   <path d="M0,0 L10,10"></path>
 </svg>`
 
-    const fs = await createFiles('assets/icons/test.svg', Buffer.from(svg))
+    const fs = await createFiles('assets/icons/test.svg', Buffer.from(svg), {
+      nameTemplate,
+    })
 
     expect(fs.existsSync('/drawable/assets_icons_test.xml')).toEqual(false)
 
