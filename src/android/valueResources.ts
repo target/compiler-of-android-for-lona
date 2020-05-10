@@ -112,8 +112,6 @@ export const createFile = (resources: XML.Content[]): string => {
  * @param filepath Path to file
  */
 export function isValueResourcePath(filepath: string): boolean {
-  if (path.extname(filepath) !== '.xml') return false
-
   const parts = filepath.split(path.sep)
   const resIndex = parts.findIndex(part => part === 'res')
   return (

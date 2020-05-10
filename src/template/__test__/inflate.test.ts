@@ -59,6 +59,18 @@ describe('Template / Inflate', () => {
       defaultTemplateOptions
     )
 
+    const mergedStrings = `<resources>
+  <string name="app_name">designsystem</string>
+  <string name="title_empty_activity">Empty Activity</string>
+  <string name="hello_world">Hello world!</string>
+</resources>`
+
     expect(describeFs(files, '/')).toMatchSnapshot()
+    expect(
+      files.readFileSync(
+        '/prefix/designsystem/src/main/res/values/strings.xml',
+        'utf8'
+      )
+    ).toEqual(mergedStrings)
   })
 })
