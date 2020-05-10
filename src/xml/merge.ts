@@ -1,5 +1,9 @@
 import * as XML from './ast'
-import { TraversalControl, getChildrenElements } from './traverse'
+import {
+  TraversalControl,
+  getChildrenElements,
+  getAttributes,
+} from './traverse'
 import groupBy from 'lodash.groupby'
 
 export type AttributeMerger = (
@@ -10,7 +14,7 @@ export type AttributeMerger = (
 export function mergeAttributes(
   source: XML.Attribute[],
   target: XML.Attribute[],
-  merger: AttributeMerger
+  attributeMerger: AttributeMerger
 ): XML.Attribute[] {
   const uniqueNames = Array.from(
     new Set([
@@ -20,7 +24,7 @@ export function mergeAttributes(
   )
 
   return uniqueNames.reduce((result: XML.Attribute[], name) => {
-    const merged = merger(
+    const merged = attributeMerger(
       source.find(attr => attr.name === name),
       target.find(attr => attr.name === name)
     )
@@ -41,13 +45,35 @@ export const MERGE_ATTRIBUTES_CHOOSE_TARGET: AttributeMerger = (
   target
 ) => target || source
 
+function mergeElementsBasic(
+  source: XML.Element,
+  target: XML.Element,
+  attributeMerger: AttributeMerger
+): XML.Element {
+  return {
+    tag: source.tag,
+    attributes: mergeAttributes(
+      source.attributes,
+      target.attributes,
+      attributeMerger
+    ),
+    content: [...source.content, ...target.content],
+  }
+}
+
+/**
+ * Merge all elements with the same tag.
+ *
+ * @param content
+ * @param attributeMerger
+ */
 export function mergeContentByTagName(
   content: XML.Content[],
   attributeMerger: AttributeMerger
 ): XML.Content[] {
   const elementMap = groupBy(
     content.flatMap(item => (item.type === 'element' ? [item.data] : [])),
-    'tag'
+    element => element.tag
   )
 
   const replaced: { [key: string]: boolean } = {}
@@ -66,21 +92,48 @@ export function mergeContentByTagName(
     }
 
     const mergedElement: XML.Element = elementMap[item.data.tag].reduce(
-      (result, next) => {
-        return {
-          tag: item.data.tag,
-          attributes: mergeAttributes(
-            result.attributes,
-            next.attributes,
-            attributeMerger
-          ),
-          content: [...result.content, ...next.content],
-        }
-      },
+      (result, next) => mergeElementsBasic(result, next, attributeMerger),
       baseElement
     )
 
     return [{ type: 'element', data: mergedElement }]
+  })
+}
+
+/**
+ * Keep only the first element for each (tag, attributeName) pair
+ *
+ * @param content
+ * @param attributeName
+ */
+export function mergeContentByUniqueAttribute(
+  content: XML.Content[],
+  attributeName: string
+): XML.Content[] {
+  const elements = content.flatMap(item =>
+    item.type === 'element' ? [item.data] : []
+  )
+
+  function firstElement(
+    tag: string,
+    attributeValue: string
+  ): XML.Element | undefined {
+    return elements.find(element =>
+      element.tag === tag &&
+      getAttributes(element)[attributeName] === attributeValue
+        ? element
+        : undefined
+    )
+  }
+
+  return content.flatMap((item): XML.Content[] => {
+    if (item.type !== 'element') return [item]
+
+    // Keep only the first element for a the specified tag and attribute name
+    return item.data ===
+      firstElement(item.data.tag, getAttributes(item.data)[attributeName])
+      ? [item]
+      : []
   })
 }
 
@@ -90,7 +143,7 @@ export function mergeElementsByTagName(
   attributeMerger: AttributeMerger
 ): XML.Element {
   if (source.tag !== target.tag) {
-    console.error('mergeElements called with mismatching XML elements')
+    console.error('mergeElementsByTagName called with mismatching XML elements')
     return source
   }
 
@@ -104,6 +157,33 @@ export function mergeElementsByTagName(
     content: mergeContentByTagName(
       [...source.content, ...target.content],
       attributeMerger
+    ),
+  }
+}
+
+export function mergeElementsByUniqueAttribute(
+  source: XML.Element,
+  target: XML.Element,
+  attributeMerger: AttributeMerger,
+  attributeName: string
+): XML.Element {
+  if (source.tag !== target.tag) {
+    console.error(
+      'mergeElementsByUniqueAttribute called with mismatching XML elements'
+    )
+    return source
+  }
+
+  return {
+    tag: source.tag,
+    attributes: mergeAttributes(
+      source.attributes,
+      target.attributes,
+      attributeMerger
+    ),
+    content: mergeContentByUniqueAttribute(
+      [...source.content, ...target.content],
+      attributeName
     ),
   }
 }

@@ -22,12 +22,15 @@ export type MakeDirectory = {
 
 export type Dependency = { url: string }
 
+export type Open = { file: string }
+
 export type Command =
   | { type: 'instantiate'; value: Instantiate }
   | { type: 'copy'; value: Copy }
   | { type: 'merge'; value: Merge }
   | { type: 'mkdir'; value: MakeDirectory }
   | { type: 'dependency'; value: Dependency }
+  | { type: 'open'; value: Open }
 
 export type Recipe = Command[]
 
@@ -71,6 +74,11 @@ function parseCommand(element: XML.Element): Command | undefined {
       return {
         type: 'dependency',
         value: { url: url || '' },
+      }
+    case 'open':
+      return {
+        type: 'open',
+        value: { file: attributes.file },
       }
     default:
       console.error('Unknown recipe command', element.tag)

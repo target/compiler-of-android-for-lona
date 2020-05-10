@@ -1,6 +1,14 @@
+import path from 'path'
 import * as XML from '../xml/ast'
 import print from '../xml/print'
 import { inflate, Context } from '../freemarker'
+import {
+  removeWhitespace,
+  parse,
+  mergeElementsByUniqueAttribute,
+  MERGE_ATTRIBUTES_CHOOSE_SOURCE,
+  printElement,
+} from '../xml'
 
 export const DEFAULT_VALUE_NAME_TEMPLATE = '${qualifiedName?join("_")}'
 
@@ -96,4 +104,38 @@ export const createFile = (resources: XML.Content[]): string => {
   }
 
   return print(document)
+}
+
+/**
+ * Returns true if the given path is a value resource file
+ *
+ * @param filepath Path to file
+ */
+export function isValueResourcePath(filepath: string): boolean {
+  if (path.extname(filepath) !== '.xml') return false
+
+  const parts = filepath.split(path.sep)
+  const resIndex = parts.findIndex(part => part === 'res')
+  return (
+    resIndex >= 0 &&
+    parts.length > resIndex &&
+    parts[resIndex + 1].startsWith('values')
+  )
+}
+
+export function mergeValueResourceFiles(
+  sourceXmlString: string,
+  targetXmlString: string
+): string {
+  const source = removeWhitespace(parse(sourceXmlString))
+  const target = removeWhitespace(parse(targetXmlString))
+
+  const merged = mergeElementsByUniqueAttribute(
+    source,
+    target,
+    MERGE_ATTRIBUTES_CHOOSE_SOURCE,
+    'name'
+  )
+
+  return printElement(merged)
 }

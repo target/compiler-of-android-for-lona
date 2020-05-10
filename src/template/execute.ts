@@ -3,6 +3,11 @@ import path from 'path'
 import { createFs, IFS, copy } from 'buffs'
 import { Context, inflateFile } from '../freemarker'
 import { Recipe, Command } from './recipe'
+import { isManifestPath, mergeManifests } from '../android/manifest'
+import {
+  isValueResourcePath,
+  mergeValueResourceFiles,
+} from '../android/valueResources'
 
 const resolveSourcePath = (sourcePath: string, filePath: string): string => {
   if (filePath.startsWith('/')) {
@@ -39,6 +44,13 @@ export function resolvePaths(
           to: resolveTargetPath(targetPath, command.value.to),
         },
       }
+    case 'open':
+      return {
+        type: command.type,
+        value: {
+          file: resolveTargetPath(targetPath, command.value.file),
+        },
+      }
   }
 }
 
@@ -67,17 +79,25 @@ export function executeCommand(
       return
     // TODO: AST-aware merge?
     case 'merge': {
-      const inflated = inflateFile(source, command.value.from, context)
+      const { from, to } = command.value
 
-      const initialText = source.existsSync(command.value.to)
-        ? source.readFileSync(command.value.to, 'utf8')
-        : ''
+      if (isManifestPath(from)) {
+        target.writeFileSync(to, mergeManifests(from, to))
+      } else if (isValueResourcePath(from)) {
+        target.writeFileSync(to, mergeValueResourceFiles(from, to))
+      } else {
+        const inflated = inflateFile(source, from, context)
 
-      const mergedText = [initialText, inflated]
-        .filter(x => x.length > 0)
-        .join('\n')
+        const initialText = source.existsSync(to)
+          ? source.readFileSync(to, 'utf8')
+          : ''
 
-      target.writeFileSync(command.value.to, mergedText)
+        const mergedText = [initialText, inflated]
+          .filter(x => x.length > 0)
+          .join('\n')
+
+        target.writeFileSync(to, mergedText)
+      }
 
       return
     }
@@ -97,6 +117,10 @@ export function executeCommand(
 
       return
     }
+    // This command presumably opens the file in an Android Studio window,
+    // which we don't need to do
+    case 'open':
+      return
   }
 }
 

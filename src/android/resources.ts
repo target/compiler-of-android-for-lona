@@ -1,6 +1,5 @@
+import { copy, createFs, IFS } from 'buffs'
 import path from 'path'
-import { createFs, IFS, copy } from 'buffs'
-
 import * as XML from '../xml/ast'
 import { createFile } from './valueResources'
 
@@ -77,4 +76,14 @@ export function createResourceFiles(
   })
 
   return files
+}
+
+/**
+ * Returns true if the given path is in the res directory
+ *
+ * @param filepath Path to file
+ */
+export function isResourcePath(filepath: string): boolean {
+  const parts = filepath.split(path.sep)
+  return parts.includes('res')
 }
