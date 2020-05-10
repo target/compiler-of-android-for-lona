@@ -60,6 +60,15 @@ export function executeCommand(
   command: Command,
   context: Context
 ): void {
+  function ensureTargetDirectory(to: string) {
+    const dirname = path.dirname(to)
+    try {
+      target.mkdirSync(dirname, { recursive: true })
+    } catch {
+      console.warn(`Failed to create ${dirname} while executing recipe`)
+    }
+  }
+
   switch (command.type) {
     case 'dependency':
       const dependencyList = context.get('dependencyList') || []
@@ -77,42 +86,48 @@ export function executeCommand(
       } catch {}
 
       return
-    // TODO: AST-aware merge?
     case 'merge': {
       const { from, to } = command.value
 
-      if (isManifestPath(from)) {
-        target.writeFileSync(to, mergeManifests(from, to))
-      } else if (isValueResourcePath(from)) {
-        target.writeFileSync(to, mergeValueResourceFiles(from, to))
+      ensureTargetDirectory(to)
+
+      const inflated = inflateFile(source, from, context)
+
+      if (source.existsSync(to)) {
+        const initialText = source.readFileSync(to, 'utf8')
+
+        if (isManifestPath(from)) {
+          // console.log('manifest', from, to, initialText, inflated)
+          target.writeFileSync(to, mergeManifests(initialText, inflated))
+        } else if (isValueResourcePath(from)) {
+          target.writeFileSync(
+            to,
+            mergeValueResourceFiles(initialText, inflated)
+          )
+        } else {
+          const mergedText = [initialText, inflated]
+            .filter(x => x.length > 0)
+            .join('\n')
+          target.writeFileSync(to, mergedText)
+        }
       } else {
-        const inflated = inflateFile(source, from, context)
-
-        const initialText = source.existsSync(to)
-          ? source.readFileSync(to, 'utf8')
-          : ''
-
-        const mergedText = [initialText, inflated]
-          .filter(x => x.length > 0)
-          .join('\n')
-
-        target.writeFileSync(to, mergedText)
+        target.writeFileSync(to, inflated)
       }
 
       return
     }
     case 'instantiate': {
-      const inflated = inflateFile(source, command.value.from, context)
+      ensureTargetDirectory(command.value.to)
 
-      target.mkdirSync(path.dirname(command.value.to), {
-        recursive: true,
-      })
+      const inflated = inflateFile(source, command.value.from, context)
 
       target.writeFileSync(command.value.to, inflated, 'utf8')
 
       return
     }
     case 'copy': {
+      ensureTargetDirectory(command.value.to)
+
       copy(fs, target, command.value.from, command.value.to)
 
       return

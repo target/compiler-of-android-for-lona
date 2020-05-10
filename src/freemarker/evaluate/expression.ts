@@ -22,7 +22,7 @@ export function evaluateIdentifier(
   context: Context
 ): any {
   if (!context.has(expression.name)) {
-    console.error('Undefined identifier in .ftl:', expression.name)
+    console.warn('Undefined identifier in .ftl:', expression.name)
   }
 
   return context.get(expression.name)

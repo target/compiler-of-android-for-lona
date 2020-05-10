@@ -40,11 +40,25 @@ describe('Template / Inflate', () => {
   })
 
   it('inflates project template, then module template on top', () => {
-    const { files } = inflateProjectTemplate('/prefix', defaultTemplateOptions)
+    const { files } = inflateProjectTemplate(
+      '/prefix',
+      false,
+      defaultTemplateOptions
+    )
 
     expect(describeFs(files, '/')).toMatchSnapshot()
     expect(files.readFileSync('/prefix/settings.gradle', 'utf8')).toEqual(
       "include ':designsystem'\n"
     )
+  })
+
+  it('inflates project template, then module template, then gallery template', () => {
+    const { files } = inflateProjectTemplate(
+      '/prefix',
+      true,
+      defaultTemplateOptions
+    )
+
+    expect(describeFs(files, '/')).toMatchSnapshot()
   })
 })

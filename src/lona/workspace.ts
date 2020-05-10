@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import util from 'util'
 import { Union } from 'unionfs'
-import { IFS, copy } from 'buffs'
+import { IFS, copy, describe } from 'buffs'
 import { Helpers } from '@lona/compiler/lib/helpers'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import * as Tokens from '@lona/compiler/lib/plugins/tokens'
@@ -23,6 +23,7 @@ import { formatDrawableName } from '../android/drawableResources'
 
 export function inflateProjectTemplate(
   outputPath: string,
+  generateGallery: boolean,
   options: CreateTemplateContextOptions,
   inflateOptions?: InflateOptions
 ): { files: IFS; srcPath: string; resPath: string } {
@@ -47,6 +48,28 @@ export function inflateProjectTemplate(
   )
 
   copy(moduleFiles, projectFiles, '/', '/')
+
+  if (generateGallery) {
+    const { files: galleryFiles } = inflate(
+      fsAndProject,
+      templatePathForName('gallery'),
+      outputPath,
+      createTemplateContext({
+        ...options,
+        overrides: {
+          isNewProject: false,
+          layoutName: 'activity_empty',
+          activityClass: 'EmptyActivity',
+          activityTitle: 'Empty Activity',
+          isLauncher: false,
+          relativePackage: undefined,
+        },
+      }),
+      inflateOptions
+    )
+
+    copy(galleryFiles, projectFiles, '/', '/')
+  }
 
   return {
     files: projectFiles,
@@ -129,6 +152,7 @@ export async function convert(
 
   const { files: templateFiles, srcPath, resPath } = inflateProjectTemplate(
     outputPath,
+    generateGallery,
     { packageName, minSdk, buildSdk, targetSdk },
     { verbose }
   )

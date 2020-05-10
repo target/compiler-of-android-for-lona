@@ -153,3 +153,30 @@ exports[`Template / Inflate inflates project template, then module template on t
 ├── local.properties
 └── settings.gradle"
 `;
+
+exports[`Template / Inflate inflates project template, then module template, then gallery template 1`] = `
+"/ prefix
+├── .gitignore
+├── androidTest / com / example / designsystem / ApplicationTest.java
+├── build.gradle
+├── designsystem
+│   ├── .gitignore
+│   ├── build.gradle
+│   ├── libs
+│   └── src
+│       ├── com / example / designsystem / EmptyActivity.java
+│       └── main
+│           ├── AndroidManifest.xml
+│           └── res
+│               ├── drawable
+│               ├── layout / activity_empty.xml
+│               └── values / strings.xml
+├── gradle / wrapper
+│   ├── gradle-wrapper.jar
+│   └── gradle-wrapper.properties
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── local.properties
+└── settings.gradle"
+`;

@@ -1,6 +1,7 @@
 import path from 'path'
 import { Context, ContextData } from '../freemarker'
 import escape from 'lodash.escape'
+import snakeCase from 'lodash.snakecase'
 
 export type CreateTemplateContextOptions = {
   packageName: string
@@ -65,5 +66,7 @@ export function createTemplateContext({
     slashedPackageName: (packageName: string): string =>
       packageName.replace(/\./g, '/'),
     compareVersions: (a: string, b: string): boolean => false,
+    activityToLayout: (activityClass: string): string =>
+      snakeCase(activityClass),
   })
 }

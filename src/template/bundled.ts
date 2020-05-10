@@ -1,6 +1,8 @@
 import path from 'path'
 
-export type BundledTemplateNames = 'project' | 'module'
+export type BundledTemplateNames = 'project' | 'module' | 'gallery'
+
+const templatesPath = path.join(__dirname, '../../templates')
 
 export function templatePathForName(
   templateName: BundledTemplateNames
@@ -8,13 +10,15 @@ export function templatePathForName(
   switch (templateName) {
     case 'project':
       return path.join(
-        __dirname,
-        '../../templates/android-studio/gradle-projects/NewAndroidProject'
+        templatesPath,
+        'android-studio/gradle-projects/NewAndroidProject'
       )
     case 'module':
       return path.join(
-        __dirname,
-        '../../templates/android-studio/gradle-projects/NewAndroidModule'
+        templatesPath,
+        'android-studio/gradle-projects/NewAndroidModule'
       )
+    case 'gallery':
+      return path.join(templatesPath, 'android-studio/activities/EmptyActivity')
   }
 }
