@@ -1,22 +1,49 @@
 export type ContextData = { [key: string]: any }
 
+type ListScope = {
+  index: number
+  length: number
+  data: ContextData
+}
+
 export class Context {
   #data: ContextData
+  #scopes: ListScope[] = []
 
   constructor(data: ContextData) {
     this.#data = data
   }
 
+  findScope(key: string): ListScope | undefined {
+    for (const scope of this.#scopes.slice().reverse()) {
+      if (key in scope) {
+        return scope
+      }
+    }
+
+    return undefined
+  }
+
   get(key: string): any {
-    return this.#data[key]
+    const data = this.findScope(key) || this.#data
+
+    return data[key]
   }
 
   has(key: string): boolean {
-    return key in this.#data
+    const data = this.findScope(key) || this.#data
+
+    return key in data
   }
 
   set(key: string, value: any) {
-    this.#data[key] = value
+    const scope = this.findScope(key)
+    
+    if (scope) {
+      scope.data[key] = value
+    } else {
+      this.#data[key] = value 
+    }
   }
 
   withDefaults(data: ContextData): Context {
@@ -25,4 +52,23 @@ export class Context {
       ...this.#data
     })
   }
+
+  // Lists 
+
+  pushListScope(length: number) {
+    this.#scopes.push({ data: {}, index: 0, length })
+  }
+
+  getTopListScope(): ListScope {
+    return this.#scopes[this.#scopes.length - 1]
+  }
+
+  popListScope() {
+    this.#scopes.pop()
+  }
+
+  setListIndex(index: number) {
+    this.#scopes[this.#scopes.length - 1].index = index
+  }
+
 }

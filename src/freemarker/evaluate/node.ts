@@ -2,6 +2,7 @@ import TextNode from 'freemarker-parser/dist/nodes/TextNode'
 import ConditionNode from 'freemarker-parser/dist/nodes/ConditionNode'
 import InterpolationNode from 'freemarker-parser/dist/nodes/InterpolationNode'
 import ListNode from 'freemarker-parser/dist/nodes/ListNode'
+import SepNode from 'freemarker-parser/dist/nodes/SepNode'
 import AbstractBodyNode from 'freemarker-parser/dist/nodes/abstract/AbstractBodyNode'
 import ParamNames from 'freemarker-parser/dist/enum/ParamNames'
 import { Compound, Identifier } from 'freemarker-parser/dist/interface/Params'
@@ -28,6 +29,11 @@ export function evaluateInterpolation(
   return node.params ? evaluateExpression(node.params, context) : ''
 }
 
+export function evaluateSep(node: SepNode, context: Context): string {
+  const scope = context.getTopListScope()
+  return scope.index < scope.length - 1 ? evaluateNodes(node.body, context) : ''
+}
+
 export function evaluateList(node: ListNode, context: Context): string {
   if (node.params?.type !== ParamNames.Compound) {
     console.error('Bad list node', node)
@@ -48,9 +54,6 @@ export function evaluateList(node: ListNode, context: Context): string {
     return ''
   }
 
-  // Save parent scope variable, if one exists
-  const savedParentScopeValue = context.get(identifier)
-
   const listValue = evaluateExpression(identifiers[0], context)
 
   let result = ''
@@ -60,13 +63,15 @@ export function evaluateList(node: ListNode, context: Context): string {
     return result
   }
 
-  listValue.forEach(element => {
+  context.pushListScope(listValue.length)
+
+  listValue.forEach((element, index) => {
+    context.setListIndex(index)
     context.set(identifier, element)
     result += evaluateNodes(node.body, context)
   })
 
-  // Restore parent scope variable
-  context.set(identifier, savedParentScopeValue)
+  context.popListScope()
 
   return result
 }
@@ -92,6 +97,12 @@ export function evaluateNode(
       const node = unclassified as ListNode
       return evaluateList(node, context)
     }
+    case 'Sep': {
+      const node = unclassified as SepNode
+      return evaluateSep(node, context)
+    }
+    case 'Comment':
+      return ''
     default:
       console.error(
         `Node not handled: ${

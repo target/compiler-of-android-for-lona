@@ -7,13 +7,12 @@ exports[`Template / Inflate inflates module template 1`] = `
 │   ├── .gitignore
 │   ├── build.gradle
 │   ├── libs
-│   └── src
-│       ├── com / example / designsystem
-│       └── main
-│           ├── AndroidManifest.xml
-│           └── res
-│               ├── drawable
-│               └── values / strings.xml
+│   └── src / main
+│       ├── AndroidManifest.xml
+│       ├── java / com / example / designsystem
+│       └── res
+│           ├── drawable
+│           └── values / strings.xml
 └── settings.gradle"
 `;
 
@@ -137,13 +136,12 @@ exports[`Template / Inflate inflates project template, then module template on t
 │   ├── .gitignore
 │   ├── build.gradle
 │   ├── libs
-│   └── src
-│       ├── com / example / designsystem
-│       └── main
-│           ├── AndroidManifest.xml
-│           └── res
-│               ├── drawable
-│               └── values / strings.xml
+│   └── src / main
+│       ├── AndroidManifest.xml
+│       ├── java / com / example / designsystem
+│       └── res
+│           ├── drawable
+│           └── values / strings.xml
 ├── gradle / wrapper
 │   ├── gradle-wrapper.jar
 │   └── gradle-wrapper.properties
@@ -163,14 +161,25 @@ exports[`Template / Inflate inflates project template, then module template, the
 │   ├── .gitignore
 │   ├── build.gradle
 │   ├── libs
-│   └── src
-│       ├── com / example / designsystem / EmptyActivity.java
-│       └── main
-│           ├── AndroidManifest.xml
-│           └── res
-│               ├── drawable
-│               ├── layout / activity_empty.xml
-│               └── values / strings.xml
+│   └── src / main
+│       ├── AndroidManifest.xml
+│       ├── java / com / example / designsystem
+│       │   ├── Gallery.kt
+│       │   ├── GalleryActivity.kt
+│       │   ├── IconListFragment.kt
+│       │   └── IconListRecyclerViewAdapter.kt
+│       └── res
+│           ├── drawable
+│           ├── layout
+│           │   ├── activity_gallery.xml
+│           │   ├── content_gallery.xml
+│           │   ├── fragment_icon_list.xml
+│           │   └── fragment_icon_row.xml
+│           ├── menu / menu_gallery.xml
+│           ├── values
+│           │   ├── strings.xml
+│           │   └── styles.xml
+│           └── xml / searchable.xml
 ├── gradle / wrapper
 │   ├── gradle-wrapper.jar
 │   └── gradle-wrapper.properties

@@ -12,6 +12,8 @@
     "build": "rm -rf ./lib && tsc --declaration",
     "build:watch": "rm -rf ./lib && tsc --declaration --watch",
     "build:example": "ts-node ./src/bin.ts convert ./example ./build",
+    "gradle:example": "./build/gradlew --project-dir build assembleRelease",
+    "example": "yarn build:example && yarn gradle:example",
     "test": "jest",
     "test:watch": "jest --watch",
     "svg2vector": "ts-node ./src/bin.ts svg2vector"

@@ -19,6 +19,6 @@ export function templatePathForName(
         'android-studio/gradle-projects/NewAndroidModule'
       )
     case 'gallery':
-      return path.join(templatesPath, 'android-studio/activities/EmptyActivity')
+      return path.join(templatesPath, 'GalleryActivity')
   }
 }

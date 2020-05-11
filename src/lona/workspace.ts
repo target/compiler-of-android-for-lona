@@ -1,29 +1,32 @@
+import { Helpers } from '@lona/compiler/lib/helpers'
+import * as Tokens from '@lona/compiler/lib/plugins/tokens'
+import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
+import * as FileSearch from '@lona/compiler/lib/utils/file-search'
+import { copy, IFS } from 'buffs'
 import fs from 'fs'
 import path from 'path'
-import util from 'util'
 import { Union } from 'unionfs'
-import { IFS, copy, describe } from 'buffs'
-import { Helpers } from '@lona/compiler/lib/helpers'
-import * as FileSearch from '@lona/compiler/lib/utils/file-search'
-import * as Tokens from '@lona/compiler/lib/plugins/tokens'
-
+import util from 'util'
+import {
+  addDependenciesAndPluginsToModuleBuildScript,
+  addKotlinDependencyToRootBuildScript,
+} from '../android/buildScript'
+import { formatDrawableName } from '../android/drawableResources'
 import { createResourceFiles } from '../android/resources'
+import { Validated } from '../options'
 import { createFiles as createSvgDrawableFiles } from '../svg/drawable'
 import { templatePathForName } from '../template/bundled'
-import { inflate, InflateOptions } from '../template/inflate'
 import {
   createTemplateContext,
   CreateTemplateContextOptions,
 } from '../template/context'
-import { createGalleryFiles } from '../android/gallery'
+import { inflate, InflateOptions } from '../template/inflate'
 import { createValueResources } from './tokens'
-import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
-import { Validated } from '../options'
-import { formatDrawableName } from '../android/drawableResources'
 
 export function inflateProjectTemplate(
   outputPath: string,
   generateGallery: boolean,
+  drawableResourceNames: string[],
   options: CreateTemplateContextOptions,
   inflateOptions?: InflateOptions
 ): { files: IFS; srcPath: string; resPath: string } {
@@ -50,7 +53,7 @@ export function inflateProjectTemplate(
   copy(moduleFiles, projectFiles, '/', '/')
 
   if (generateGallery) {
-    const { files: galleryFiles } = inflate(
+    const { files: galleryFiles, context: galleryContext } = inflate(
       fsAndProject,
       templatePathForName('gallery'),
       outputPath,
@@ -63,9 +66,21 @@ export function inflateProjectTemplate(
           activityTitle: 'Empty Activity',
           isLauncher: false,
           relativePackage: undefined,
+          drawableAssetList: drawableResourceNames,
         },
       }),
       inflateOptions
+    )
+
+    addKotlinDependencyToRootBuildScript(
+      projectFiles,
+      galleryContext,
+      outputPath
+    )
+    addDependenciesAndPluginsToModuleBuildScript(
+      projectFiles,
+      galleryContext,
+      outputPath
     )
 
     copy(galleryFiles, projectFiles, '/', '/')
@@ -150,13 +165,6 @@ export async function convert(
     console.log(util.inspect(options, false, null, true))
   }
 
-  const { files: templateFiles, srcPath, resPath } = inflateProjectTemplate(
-    outputPath,
-    generateGallery,
-    { packageName, minSdk, buildSdk, targetSdk },
-    { verbose }
-  )
-
   let tokens: Token[]
 
   try {
@@ -170,6 +178,20 @@ export async function convert(
     workspacePath,
     valueResourceNameTemplate,
     helpers.config.ignore
+  )
+
+  const drawableResourceNames = drawableResources.map(([key]) =>
+    formatDrawableName(key, undefined, {
+      nameTemplate: drawableResourceNameTemplate,
+    })
+  )
+
+  const { files: templateFiles, resPath } = inflateProjectTemplate(
+    outputPath,
+    generateGallery,
+    drawableResourceNames,
+    { packageName, minSdk, buildSdk, targetSdk },
+    { verbose }
   )
 
   const valueResources = createValueResources(tokens, {
@@ -188,24 +210,6 @@ export async function convert(
   )
 
   copy(resourceFiles, templateFiles, '/', '/')
-
-  if (drawableResources.length > 0 && generateGallery) {
-    const classPath = path.join(
-      srcPath,
-      'main/java',
-      packageName.replace(/[.]/g, '/')
-    )
-
-    const gallery = createGalleryFiles(
-      packageName,
-      drawableResources.map(([key]) =>
-        formatDrawableName(key, undefined, {
-          nameTemplate: drawableResourceNameTemplate,
-        })
-      )
-    )
-    copy(gallery, templateFiles, '/', path.join(srcPath, classPath))
-  }
 
   return templateFiles
 }

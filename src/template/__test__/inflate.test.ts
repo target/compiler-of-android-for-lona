@@ -43,6 +43,7 @@ describe('Template / Inflate', () => {
     const { files } = inflateProjectTemplate(
       '/prefix',
       false,
+      [],
       defaultTemplateOptions
     )
 
@@ -56,13 +57,13 @@ describe('Template / Inflate', () => {
     const { files } = inflateProjectTemplate(
       '/prefix',
       true,
+      ['example_asset'],
       defaultTemplateOptions
     )
 
     const mergedStrings = `<resources>
   <string name="app_name">designsystem</string>
-  <string name="title_empty_activity">Empty Activity</string>
-  <string name="hello_world">Hello world!</string>
+  <string name="title_activity_gallery">Generated Asset Gallery</string>
 </resources>`
 
     expect(describeFs(files, '/')).toMatchSnapshot()

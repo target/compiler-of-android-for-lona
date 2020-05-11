@@ -74,7 +74,7 @@ export function executeCommand(
       const dependencyList = context.get('dependencyList') || []
 
       if (!dependencyList.includes(command.value)) {
-        context.set('dependencyList', [...dependencyList, command.value])
+        context.set('dependencyList', [...dependencyList, command.value.url])
       }
 
       return

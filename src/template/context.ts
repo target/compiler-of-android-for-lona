@@ -25,7 +25,7 @@ export function createTemplateContext({
   return new Context({
     topOut: '.',
     projectOut: `./${projectPrefix}`,
-    srcDir: `./${projectPrefix}/src`,
+    srcDir: `./${projectPrefix}/src/main/java`,
     manifestDir: `./${projectPrefix}/src/main`,
     resDir: `./${projectPrefix}/src/main/res`,
     repositoryList: ['google()', 'jcenter()'],

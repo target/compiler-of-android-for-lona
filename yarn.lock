@@ -1946,7 +1946,7 @@ fragment-cache@^0.2.1:
 
 freemarker-parser@dabbott/freemarker-parser#dist:
   version "1.1.6"
-  resolved "https://codeload.github.com/dabbott/freemarker-parser/tar.gz/a97ba27e5b37cae721ae14be9eb653d7289fd3dd"
+  resolved "https://codeload.github.com/dabbott/freemarker-parser/tar.gz/6129c844b8862c51bcc44585edcbb592594b264c"
 
 fs-constants@^1.0.0:
   version "1.0.0"

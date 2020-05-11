@@ -3,7 +3,8 @@
     "android": {
       "packageName": "com.example.designlibrary",
       "minSdk": 21,
-      "targetSdk": 29
+      "targetSdk": 29,
+      "generateGallery": true
     }
   }
 }
