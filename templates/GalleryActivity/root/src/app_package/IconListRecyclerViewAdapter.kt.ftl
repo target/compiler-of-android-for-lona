@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.designlibrary.IconListFragment.OnListFragmentInteractionListener
+import ${packageName}.IconListFragment.OnListFragmentInteractionListener
 import kotlinx.android.synthetic.main.fragment_icon_row.view.*
 
 /**
