@@ -1,5 +1,5 @@
 import { Helpers } from '@lona/compiler/lib/helpers'
-import * as Tokens from '@lona/compiler/lib/plugins/tokens'
+import Tokens from '@lona/compiler/lib/plugins/tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import { copy, IFS } from 'buffs'
@@ -94,7 +94,7 @@ export function inflateProjectTemplate(
 }
 
 async function convertTokens(workspacePath: string, helpers: Helpers) {
-  const convertedWorkspace = await Tokens.parseWorkspace(
+  const convertedWorkspace = await Tokens.convertWorkspace(
     workspacePath,
     helpers,
     {

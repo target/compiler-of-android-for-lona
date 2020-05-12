@@ -472,10 +472,10 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
-"@lona/compiler@^0.1.11":
-  version "0.1.11"
-  resolved "https://registry.yarnpkg.com/@lona/compiler/-/compiler-0.1.11.tgz#ed97f6c74ccaee2a28fbd288f58769968150f0fc"
-  integrity sha512-jHf1A9miNw0wtAINfIHullX/6de9Mwl4PVeXrWi0klGCKu3QAQzraakQrtPzgqBk5GNjVM5ZrY9m177am+QNvQ==
+"@lona/compiler@^0.1.12":
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/@lona/compiler/-/compiler-0.1.12.tgz#4d847d2402823f127b659693b52806d526794844"
+  integrity sha512-Kdyao9qliQEwrtRDnnLJxyCUg5FtQrdbw5pa4gqnJiKSoM6Crbh1KU08igOBNsfJGVE99ND75bHRvmLA/obNsQ==
   dependencies:
     "@lona/serialization" "^0.3.10"
     color "^3.1.2"

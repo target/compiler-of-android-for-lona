@@ -44,7 +44,7 @@ describe('Convert', () => {
       silentReporter
     )
 
-    await plugin.parseWorkspace(workspacePath, helpers, {
+    await plugin.convertWorkspace(workspacePath, helpers, {
       ...helpers.config.format.android,
       output,
       dryRun: true,

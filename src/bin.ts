@@ -63,7 +63,7 @@ async function convert() {
   const formatConfig = (helpers.config.format || {}) as { android?: any }
   const pluginConfig = formatConfig.android || {}
 
-  await plugin.parseWorkspace(inputPath, helpers, {
+  await plugin.convertWorkspace(inputPath, helpers, {
     ...pluginConfig,
     ...(outputPath && { output: outputPath }),
   })
