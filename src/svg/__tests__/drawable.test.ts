@@ -15,7 +15,9 @@ describe('SVG / Drawable', () => {
 
     expect(fs.existsSync('/drawable/assets_icons_test.xml')).toEqual(true)
 
-    expect(fs.existsSync('/drawable-hdpi/assets_icons_test.png')).toEqual(false)
+    expect(fs.existsSync('/drawable-hdpi/assets_icons_test.webp')).toEqual(
+      false
+    )
   })
 
   test('falls back to converting an SVG file to a set of PNGs', async () => {
@@ -30,13 +32,15 @@ describe('SVG / Drawable', () => {
 
     expect(fs.existsSync('/drawable/assets_icons_test.xml')).toEqual(false)
 
-    expect(fs.existsSync('/drawable-mdpi/assets_icons_test.png')).toEqual(true)
-    expect(fs.existsSync('/drawable-hdpi/assets_icons_test.png')).toEqual(true)
-    expect(fs.existsSync('/drawable-xhdpi/assets_icons_test.png')).toEqual(true)
-    expect(fs.existsSync('/drawable-xxhdpi/assets_icons_test.png')).toEqual(
+    expect(fs.existsSync('/drawable-mdpi/assets_icons_test.webp')).toEqual(true)
+    expect(fs.existsSync('/drawable-hdpi/assets_icons_test.webp')).toEqual(true)
+    expect(fs.existsSync('/drawable-xhdpi/assets_icons_test.webp')).toEqual(
       true
     )
-    expect(fs.existsSync('/drawable-xxxhdpi/assets_icons_test.png')).toEqual(
+    expect(fs.existsSync('/drawable-xxhdpi/assets_icons_test.webp')).toEqual(
+      true
+    )
+    expect(fs.existsSync('/drawable-xxxhdpi/assets_icons_test.webp')).toEqual(
       true
     )
   })

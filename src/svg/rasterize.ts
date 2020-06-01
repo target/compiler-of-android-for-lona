@@ -6,7 +6,7 @@ export async function rasterize(
 ): Promise<Buffer> {
   const outputBuffer = await sharp(svgData, { density: 2400 })
     .resize(width, height)
-    .png()
+    .webp()
     .toBuffer()
 
   return outputBuffer

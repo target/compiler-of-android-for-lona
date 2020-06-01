@@ -14,11 +14,11 @@ exports[`Convert converts the example workspace 1`] = `
 │       ├── java / com / test / designlibrary
 │       └── res
 │           ├── drawable / assets_check_circle.xml
-│           ├── drawable-hdpi / assets_gradient_fill.png
-│           ├── drawable-mdpi / assets_gradient_fill.png
-│           ├── drawable-xhdpi / assets_gradient_fill.png
-│           ├── drawable-xxhdpi / assets_gradient_fill.png
-│           ├── drawable-xxxhdpi / assets_gradient_fill.png
+│           ├── drawable-hdpi / assets_gradient_fill.webp
+│           ├── drawable-mdpi / assets_gradient_fill.webp
+│           ├── drawable-xhdpi / assets_gradient_fill.webp
+│           ├── drawable-xxhdpi / assets_gradient_fill.webp
+│           ├── drawable-xxxhdpi / assets_gradient_fill.webp
 │           └── values
 │               ├── colors.xml
 │               ├── elevations.xml

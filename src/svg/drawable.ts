@@ -24,7 +24,7 @@ function containsReallyLongString(svg: SVG): boolean {
 }
 
 /**
- * Convert an SVG file into either a VectorDrawable or a set of PNGs.
+ * Convert an SVG file into either a VectorDrawable or a set of webp images.
  *
  * The file path will be flattened, e.g. /assets/icons/example.svg will become either:
  *
@@ -32,8 +32,8 @@ function containsReallyLongString(svg: SVG): boolean {
  *
  *   OR
  *
- *   /drawable-mdpi/assets_icons_example.png
- *   /drawable-hdpi/assets_icons_example.png
+ *   /drawable-mdpi/assets_icons_example.webp
+ *   /drawable-hdpi/assets_icons_example.webp
  *   ...
  *
  * @param relativePath The SVG file's path, relative to the workspace root.
@@ -60,20 +60,20 @@ export async function createFiles(
     await fs.promises.mkdir(directoryName)
     await fs.promises.writeFile(path.join(directoryName, name), vectorDrawable)
   } else {
-    const name = formatDrawableName(relativePath, 'png', options)
+    const name = formatDrawableName(relativePath, 'webp', options)
 
     await Promise.all(
       ALL_PIXEL_DENSITIES.map(async density => {
         const directoryName = `/drawable-${density.name}`
 
         const { width, height } = svg.params.viewBox ?? { width: 0, height: 0 }
-        const png = await rasterize(data, {
+        const image = await rasterize(data, {
           width: width * density.scale,
           height: height * density.scale,
         })
 
         await fs.promises.mkdir(directoryName)
-        await fs.promises.writeFile(path.join(directoryName, name), png)
+        await fs.promises.writeFile(path.join(directoryName, name), image)
       })
     )
   }
