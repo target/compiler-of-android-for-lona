@@ -74,105 +74,86 @@ class NamespaceVisitor {
   }
 }
 
-export function visit(
-  visitor: NamespaceVisitor,
-  self: LogicAST.AST.SyntaxNode
-) {
-  visitor.traversalConfig.needsRevisitAfterTraversingChildren = true
+function enterNode(visitor: NamespaceVisitor, node: LogicAST.AST.SyntaxNode) {
+  switch (node.type) {
+    case 'record':
+    case 'enumeration': {
+      const {
+        name: { name, id },
+      } = node.data
 
-  if (visitor.traversalConfig._isRevisit) {
-    switch (self.type) {
-      case 'variable': {
-        const {
-          name: { name, id },
-        } = self.data
+      visitor.declareType(name, id)
+      visitor.pushPathComponent(name)
 
-        visitor.declareValue(name, id)
-
-        break
-      }
-      case 'function': {
-        const {
-          name: { name, id },
-        } = self.data
-
-        visitor.declareValue(name, id)
-
-        break
-      }
-      case 'record': {
-        const {
-          name: { name, id },
-        } = self.data
-
-        visitor.popPathComponent()
-
-        // Built-ins should be constructed using literals
-        if (builtInTypeConstructorNames.has(name)) return
-
-        // Create constructor function
-        visitor.declareValue(name, id)
-
-        break
-      }
-      case 'enumeration': {
-        const {
-          name: { name, id },
-          cases,
-        } = (self as EnumerationDeclaration).data
-
-        visitor.declareType(name, id)
-
-        visitor.pushPathComponent(name)
-
-        // Add initializers for each case into the namespace
-        cases.forEach(enumCase => {
-          switch (enumCase.type) {
-            case 'placeholder':
-              break
-            case 'enumerationCase':
-              visitor.declareValue(
-                enumCase.data.name.name,
-                enumCase.data.name.id
-              )
-          }
-        })
-
-        visitor.popPathComponent()
-
-        break
-      }
-      case 'namespace': {
-        const {
-          name: { name, id },
-        } = self.data
-
-        visitor.popPathComponent()
-
-        break
-      }
+      break
     }
-  } else {
-    switch (self.type) {
-      case 'record': {
-        const {
-          name: { name, id },
-        } = self.data
+    case 'namespace': {
+      const {
+        name: { name, id },
+      } = node.data
 
-        visitor.declareType(name, id)
-        visitor.pushPathComponent(name)
+      visitor.pushPathComponent(name)
 
-        break
-      }
-      case 'namespace': {
-        const {
-          name: { name, id },
-        } = self.data
+      break
+    }
+  }
+}
 
-        visitor.pushPathComponent(name)
+function leaveNode(visitor: NamespaceVisitor, node: LogicAST.AST.SyntaxNode) {
+  switch (node.type) {
+    case 'variable':
+    case 'function': {
+      const {
+        name: { name, id },
+      } = node.data
 
-        break
-      }
+      visitor.declareValue(name, id)
+
+      break
+    }
+    case 'record': {
+      const {
+        name: { name, id },
+      } = node.data
+
+      visitor.popPathComponent()
+
+      // Built-ins should be constructed using literals
+      if (builtInTypeConstructorNames.has(name)) return
+
+      // Create constructor function
+      visitor.declareValue(name, id)
+
+      break
+    }
+    case 'enumeration': {
+      const {
+        name: { name, id },
+        cases,
+      } = (node as EnumerationDeclaration).data
+
+      // Add initializers for each case into the namespace
+      cases.forEach(enumCase => {
+        switch (enumCase.type) {
+          case 'placeholder':
+            break
+          case 'enumerationCase':
+            visitor.declareValue(enumCase.data.name.name, enumCase.data.name.id)
+        }
+      })
+
+      visitor.popPathComponent()
+
+      break
+    }
+    case 'namespace': {
+      const {
+        name: { name, id },
+      } = node.data
+
+      visitor.popPathComponent()
+
+      break
     }
   }
 }
@@ -188,7 +169,14 @@ export function createNamespace(
   return reduce(
     topLevelNode,
     (previousValue, currentNode, config) => {
-      visit(visitor, currentNode)
+      visitor.traversalConfig.needsRevisitAfterTraversingChildren = true
+
+      if (config._isRevisit) {
+        leaveNode(visitor, currentNode)
+      } else {
+        enterNode(visitor, currentNode)
+      }
+
       return namespace
     },
     namespace,
