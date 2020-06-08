@@ -64,12 +64,14 @@ export class ScopeContext {
    * IdentifierExpression identifiers and MemberExpression memberNames will refer to
    * the pattern they're defined by (e.g. the record name or function argument)
    */
-  identifierToPattern: { [key: string]: UUID } = {}
+  identifierExpressionToPattern: { [key: string]: UUID } = {}
+  memberExpressionToPattern: { [key: string]: UUID } = {}
   typeIdentifierToPattern: { [key: string]: UUID } = {}
 
   // Undefined identifiers for better error messages
-  undefinedIdentifiers = new Set<UUID>()
+  undefinedIdentifierExpressions = new Set<UUID>()
   undefinedMemberExpressions = new Set<UUID>()
+  undefinedTypeIdentifiers = new Set<UUID>()
 
   // These keep track of the current scope
   valueNames = new ScopeStack<string, UUID>()
@@ -265,23 +267,25 @@ function leaveNode(
 ) {
   switch (node.type) {
     case 'identifierExpression': {
-      const { identifier } = node.data
+      const { id, identifier } = node.data
 
       if (identifier.isPlaceholder) return
 
       const found = context.findValueIdentifierReference(identifier.string)
 
       if (found) {
-        context.identifierToPattern[identifier.id] = found
+        context.identifierExpressionToPattern[id] = found
       } else {
         reporter.warn(`No identifier: ${identifier.string}`, context.valueNames)
-        context.undefinedIdentifiers.add(identifier.id)
+        context.undefinedIdentifierExpressions.add(id)
       }
 
       return
     }
 
     case 'memberExpression': {
+      const { id } = node.data
+
       const identifiers = flattenedMemberExpression(node)
 
       if (identifiers) {
@@ -290,10 +294,10 @@ function leaveNode(
         const patternId = context.namespace.values[keyPath]
 
         if (patternId) {
-          context.identifierToPattern[node.data.memberName.id] = patternId
+          context.memberExpressionToPattern[id] = patternId
         } else {
           reporter.warn(`No identifier path: ${keyPath}`)
-          context.undefinedMemberExpressions.add(node.data.memberName.id)
+          context.undefinedMemberExpressions.add(id)
         }
       }
 
@@ -301,20 +305,20 @@ function leaveNode(
     }
 
     case 'typeIdentifier': {
-      const { identifier } = node.data
+      const { id, identifier } = node.data
 
       if (identifier.isPlaceholder) return
 
       const found = context.findTypeIdentifierReference(identifier.string)
 
       if (found) {
-        context.typeIdentifierToPattern[identifier.id] = found
+        context.typeIdentifierToPattern[id] = found
       } else {
         reporter.warn(
           `No type identifier: ${identifier.string}`,
           context.valueNames
         )
-        context.undefinedIdentifiers.add(identifier.id)
+        context.undefinedTypeIdentifiers.add(id)
       }
 
       return

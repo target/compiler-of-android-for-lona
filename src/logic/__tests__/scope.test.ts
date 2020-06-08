@@ -46,7 +46,7 @@ let y: Number = x`
     )
 
     expect(
-      scope.identifierToPattern[identifierExpression.data.identifier.id]
+      scope.identifierExpressionToPattern[identifierExpression.data.id]
     ).toEqual(variable.data.name.id)
 
     expect(Object.keys(scope.valueNames.flattened())).toEqual(['x', 'y'])
@@ -85,9 +85,9 @@ let y: Number = Foo.x`
       memberExpression.data.id
     )
 
-    expect(
-      scope.identifierToPattern[memberExpression.data.memberName.id]
-    ).toEqual(variable.data.name.id)
+    expect(scope.memberExpressionToPattern[memberExpression.data.id]).toEqual(
+      variable.data.name.id
+    )
 
     expect(Object.keys(scope.valueNames.flattened())).toEqual(['y'])
   })
@@ -138,18 +138,18 @@ let y: Number = Foo.x`
       memberExpression.data.id
     )
 
-    expect(
-      scope.typeIdentifierToPattern[typeIdentifier.data.identifier.id]
-    ).toEqual(enumeration.data.name.id)
+    expect(scope.typeIdentifierToPattern[typeIdentifier.data.id]).toEqual(
+      enumeration.data.name.id
+    )
 
     // TODO: Fix EnumerationCase being a union with placeholder
     if (enumerationCase.type !== 'enumerationCase') {
       throw new Error('Bad enumeration case')
     }
 
-    expect(
-      scope.identifierToPattern[memberExpression.data.memberName.id]
-    ).toEqual(enumerationCase.data.name.id)
+    expect(scope.memberExpressionToPattern[memberExpression.data.id]).toEqual(
+      enumerationCase.data.name.id
+    )
 
     expect(Object.keys(scope.valueNames.flattened())).toEqual(['y'])
     expect(Object.keys(scope.typeNames.flattened())).toEqual(['Foo'])
@@ -162,8 +162,9 @@ let y: Number = Foo.x`
 
     let scope = createScopeContext(rootNode, namespace)
 
-    expect(scope.undefinedIdentifiers.size).toEqual(0)
+    expect(scope.undefinedIdentifierExpressions.size).toEqual(0)
     expect(scope.undefinedMemberExpressions.size).toEqual(0)
+    expect(scope.undefinedTypeIdentifiers.size).toEqual(0)
   })
 
   it('loads Color.logic', () => {
@@ -173,8 +174,29 @@ let y: Number = Foo.x`
 
     let scope = createScopeContext(rootNode, namespace)
 
-    expect(scope.undefinedIdentifiers.size).toEqual(7)
+    expect(scope.undefinedIdentifierExpressions.size).toEqual(0)
     expect(scope.undefinedMemberExpressions.size).toEqual(0)
+    expect(scope.undefinedTypeIdentifiers.size).toEqual(7)
+
+    let typeIdentifiers = [...scope.undefinedTypeIdentifiers.values()]
+      .map(
+        id =>
+          findNode(
+            rootNode,
+            node => node.data.id === id
+          ) as AST.TypeIdentifierTypeAnnotation
+      )
+      .map(node => node.data.identifier.string)
+
+    expect(typeIdentifiers).toEqual([
+      'Number',
+      'Number',
+      'Number',
+      'Number',
+      'Number',
+      'Number',
+      'Number',
+    ])
   })
 
   it('loads TextStyle.logic', () => {
@@ -184,7 +206,27 @@ let y: Number = Foo.x`
 
     let scope = createScopeContext(rootNode, namespace)
 
-    expect(scope.undefinedIdentifiers.size).toEqual(0)
+    expect(scope.undefinedIdentifierExpressions.size).toEqual(0)
     expect(scope.undefinedMemberExpressions.size).toEqual(6)
+    expect(scope.undefinedTypeIdentifiers.size).toEqual(0)
+
+    let memberExpressions = [...scope.undefinedMemberExpressions.values()]
+      .map(
+        id =>
+          findNode(
+            rootNode,
+            node => node.data.id === id
+          ) as AST.MemberExpression
+      )
+      .map(node => node.data.memberName.string)
+
+    expect(memberExpressions).toEqual([
+      'none',
+      'none',
+      'none',
+      'none',
+      'none',
+      'none',
+    ])
   })
 })
