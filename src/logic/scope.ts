@@ -102,6 +102,28 @@ export class ScopeContext {
     this.patternToTypeName[pattern.id] = pattern.name
     this.typeNames.set(pattern.id, pattern.name)
   }
+
+  findValueIdentifierReference(name: string): UUID | undefined {
+    const valueInScope = this.valueNames.get(name)
+    const valueInNamespace = this.namespace.values[name]
+    const valueInParentNamespace = this.namespace.values[
+      [...this.currentNamespacePath, name].join('.')
+    ]
+
+    return valueInScope || valueInNamespace || valueInParentNamespace
+  }
+
+  findTypeIdentifierReference(identifier: AST.Identifier): UUID | undefined {
+    if (identifier.isPlaceholder) return
+
+    const typeInScope = this.typeNames.get(identifier.string)
+    const typeInNamespace = this.namespace.types[identifier.string]
+    const typeInParentNamespace = this.namespace.types[
+      [...this.currentNamespacePath, identifier.string].join('.')
+    ]
+
+    return typeInScope || typeInNamespace || typeInParentNamespace
+  }
 }
 
 function enterNode(
@@ -126,7 +148,7 @@ function enterNode(
       })
 
       config.ignoreChildren = true
-      config.needsRevisitAfterTraversingChildren = false
+      // config.needsRevisitAfterTraversingChildren = false
 
       return
     case 'functionType':
@@ -136,21 +158,6 @@ function enterNode(
       return
     case 'memberExpression': {
       config.ignoreChildren = true
-
-      const identifiers = flattenedMemberExpression(node)
-
-      if (identifiers) {
-        const keyPath = identifiers.map(x => x.string).join('.')
-
-        const patternId = context.namespace.values[keyPath]
-
-        if (patternId) {
-          context.identifierToPattern[node.data.id] = patternId
-        } else {
-          console.warn(`No identifier path: ${keyPath}`)
-          context.undefinedMemberExpressions.add(node.data.id)
-        }
-      }
 
       return
     }
@@ -182,13 +189,11 @@ function enterNode(
       return
     }
     case 'record': {
-      const {
-        name: { name },
-        declarations,
-        genericParameters,
-      } = node.data
+      const { name, declarations, genericParameters } = node.data
 
-      context.pushNamespace(name)
+      context.addTypeToScope(name)
+
+      context.pushNamespace(name.name)
 
       genericParameters.forEach(parameter => {
         switch (parameter.type) {
@@ -222,12 +227,11 @@ function enterNode(
       return
     }
     case 'enumeration': {
-      const {
-        name: { name },
-        genericParameters,
-      } = node.data
+      const { name, genericParameters } = node.data
 
-      context.pushNamespace(name)
+      context.addTypeToScope(name)
+
+      context.pushNamespace(name.name)
 
       genericParameters.forEach(parameter => {
         switch (parameter.type) {
@@ -252,41 +256,13 @@ function enterNode(
 }
 
 function leaveNode(node: AST.SyntaxNode, context: ScopeContext) {
-  function findValueIdentifierReference(
-    identifier: AST.Identifier
-  ): UUID | undefined {
-    if (identifier.isPlaceholder) return
-
-    const valueInScope = context.valueNames.get(identifier.string)
-    const valueInNamespace = context.namespace.values[identifier.string]
-    const valueInParentNamespace =
-      context.namespace.values[
-        [...context.currentNamespacePath, identifier.string].join('.')
-      ]
-
-    return valueInScope || valueInNamespace || valueInParentNamespace
-  }
-
-  function findTypeIdentifierReference(
-    identifier: AST.Identifier
-  ): UUID | undefined {
-    if (identifier.isPlaceholder) return
-
-    const typeInScope = context.typeNames.get(identifier.string)
-    const typeInNamespace = context.namespace.types[identifier.string]
-    const typeInParentNamespace =
-      context.namespace.types[
-        [...context.currentNamespacePath, identifier.string].join('.')
-      ]
-
-    return typeInScope || typeInNamespace || typeInParentNamespace
-  }
-
   switch (node.type) {
     case 'identifierExpression': {
       const { identifier } = node.data
 
-      const found = findValueIdentifierReference(identifier)
+      if (identifier.isPlaceholder) return
+
+      const found = context.findValueIdentifierReference(identifier.string)
 
       if (found) {
         context.identifierToPattern[identifier.id] = found
@@ -299,18 +275,19 @@ function leaveNode(node: AST.SyntaxNode, context: ScopeContext) {
     }
 
     case 'memberExpression': {
-      const { memberName: identifier } = node.data
+      const identifiers = flattenedMemberExpression(node)
 
-      const found = findValueIdentifierReference(identifier)
+      if (identifiers) {
+        const keyPath = identifiers.map(x => x.string).join('.')
 
-      if (found) {
-        context.identifierToPattern[identifier.id] = found
-      } else {
-        console.warn(
-          `No member identifier: ${identifier.string}`,
-          context.valueNames
-        )
-        context.undefinedIdentifiers.add(identifier.id)
+        const patternId = context.namespace.values[keyPath]
+
+        if (patternId) {
+          context.identifierToPattern[node.data.id] = patternId
+        } else {
+          console.warn(`No identifier path: ${keyPath}`)
+          context.undefinedMemberExpressions.add(node.data.id)
+        }
       }
 
       return
@@ -319,7 +296,7 @@ function leaveNode(node: AST.SyntaxNode, context: ScopeContext) {
     case 'typeIdentifier': {
       const { identifier } = node.data
 
-      const found = findTypeIdentifierReference(identifier)
+      const found = context.findTypeIdentifierReference(identifier)
 
       if (found) {
         context.identifierToPattern[identifier.id] = found
