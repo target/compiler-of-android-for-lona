@@ -2,6 +2,8 @@ import * as Serialization from '@lona/serialization'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import { copy, IFS } from 'buffs'
 import path from 'path'
+import { createNamespace, Namespace, merge } from './namespace'
+import { createScopeContext, ScopeContext } from './scope'
 
 export function componentFiles(workspacePath: string): string[] {
   return FileSearch.sync(workspacePath, '**/*.cmp').map(file =>
@@ -74,5 +76,24 @@ export function program(fs: IFS, workspacePath: string): any {
     })),
   ]
 
-  console.log(files)
+  const processed: (LogicFile & { namespace: Namespace })[] = files.map(
+    logicFile => ({
+      ...logicFile,
+      namespace: createNamespace(logicFile.rootNode),
+    })
+  )
+
+  const globalNamespace: Namespace = merge(
+    processed.map(logicFile => logicFile.namespace)
+  )
+
+  // const withScope: (LogicFile & {
+  //   namespace: Namespace
+  //   scope: ScopeContext
+  // })[] = processed.map(logicFile => ({
+  //   ...logicFile,
+  //   scope: createScopeContext(logicFile.rootNode, logicFile.namespace),
+  // }))
+
+  // console.log(withScope)
 }

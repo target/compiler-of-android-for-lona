@@ -22,6 +22,7 @@ import {
 } from '../template/context'
 import { inflate, InflateOptions } from '../template/inflate'
 import { createValueResources } from './tokens'
+import { componentFiles, documentFiles, program } from '../logic/files'
 
 export function inflateProjectTemplate(
   outputPath: string,
@@ -173,6 +174,8 @@ export async function convert(
     helpers.reporter.error('Failed to convert tokens')
     return Promise.reject(error)
   }
+
+  program(fs, workspacePath)
 
   const drawableResources: [string, IFS][] = await convertSvgFiles(
     workspacePath,

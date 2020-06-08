@@ -5,12 +5,13 @@ import {
 } from '@lona/compiler/lib/helpers/logic-traversal'
 import { EnumerationDeclaration } from '@lona/serialization/build/types/logic-ast/declarations/enumeration'
 import * as LogicAST from '@lona/compiler/lib/helpers/logic-ast'
+import { NodePath } from './nodePath'
 
-type uuid = string
+export type UUID = string
 
-type Namespace = {
-  values: { [key: string]: uuid }
-  types: { [key: string]: uuid }
+export type Namespace = {
+  values: { [key: string]: UUID }
+  types: { [key: string]: UUID }
 }
 
 export const builtInTypeConstructorNames: Set<String> = new Set([
@@ -21,6 +22,28 @@ export const builtInTypeConstructorNames: Set<String> = new Set([
   'Color',
 ])
 
+export function merge(namespaces: Namespace[]): Namespace {
+  return namespaces.reduce((result, namespace) => {
+    Object.entries(namespace.values).forEach(([key, value]) => {
+      if (key in result.values) {
+        throw new Error(`Namespace error: value ${key} declared more than once`)
+      }
+
+      result.values[key] = value
+    })
+
+    Object.entries(namespace.types).forEach(([key, type]) => {
+      if (key in result.types) {
+        throw new Error(`Namespace error: type ${key} declared more than once`)
+      }
+
+      result.types[key] = type
+    })
+
+    return result
+  }, createNamespace())
+}
+
 export function copy(namespace: Namespace): Namespace {
   return {
     values: { ...namespace.values },
@@ -28,7 +51,7 @@ export function copy(namespace: Namespace): Namespace {
   }
 }
 
-export function declareValue(namespace: Namespace, path: string, id: uuid) {
+export function declareValue(namespace: Namespace, path: string, id: UUID) {
   if (namespace.values[path]) {
     throw new Error(`Value already declared: ${path}`)
   }
@@ -36,7 +59,7 @@ export function declareValue(namespace: Namespace, path: string, id: uuid) {
   namespace.values[path] = id
 }
 
-export function declareType(namespace: Namespace, path: string, id: uuid) {
+export function declareType(namespace: Namespace, path: string, id: UUID) {
   if (namespace.types[path]) {
     throw new Error(`Type already declared: ${path}`)
   }
@@ -46,31 +69,35 @@ export function declareType(namespace: Namespace, path: string, id: uuid) {
 
 class NamespaceVisitor {
   namespace: Namespace
-  currentPath: string[] = []
-  traversalConfig: TraversalConfig
+  currentPath: NodePath
 
   constructor(namespace: Namespace) {
+    this.currentPath = new NodePath()
     this.namespace = namespace
-    this.traversalConfig = {
-      ...emptyConfig(),
-      order: 'PreOrder' as TraversalConfig['order'],
-    }
   }
 
   pushPathComponent(name: string) {
-    this.currentPath = [...this.currentPath, name]
+    this.currentPath.pushComponent(name)
   }
 
   popPathComponent() {
-    this.currentPath = this.currentPath.slice(0, -1)
+    this.currentPath.popComponent()
   }
 
-  declareValue(name: string, value: uuid) {
-    declareValue(this.namespace, [...this.currentPath, name].join('.'), value)
+  declareValue(name: string, value: UUID) {
+    declareValue(
+      this.namespace,
+      [...this.currentPath.components, name].join('.'),
+      value
+    )
   }
 
-  declareType(name: string, type: uuid) {
-    declareType(this.namespace, [...this.currentPath, name].join('.'), type)
+  declareType(name: string, type: UUID) {
+    declareType(
+      this.namespace,
+      [...this.currentPath.components, name].join('.'),
+      type
+    )
   }
 }
 
@@ -162,14 +189,23 @@ function leaveNode(visitor: NamespaceVisitor, node: LogicAST.AST.SyntaxNode) {
  * Build the global namespace by visiting each node.
  */
 export function createNamespace(
-  topLevelNode: LogicAST.AST.SyntaxNode
+  topLevelNode?: LogicAST.AST.SyntaxNode
 ): Namespace {
   let namespace: Namespace = { types: {}, values: {} }
+
+  if (!topLevelNode) return namespace
+
+  let traversalConfig = {
+    ...emptyConfig(),
+    order: 'PreOrder' as TraversalConfig['order'],
+  }
+
   let visitor = new NamespaceVisitor(namespace)
+
   return reduce(
     topLevelNode,
     (previousValue, currentNode, config) => {
-      visitor.traversalConfig.needsRevisitAfterTraversingChildren = true
+      traversalConfig.needsRevisitAfterTraversingChildren = true
 
       if (config._isRevisit) {
         leaveNode(visitor, currentNode)
@@ -180,6 +216,6 @@ export function createNamespace(
       return namespace
     },
     namespace,
-    visitor.traversalConfig
+    traversalConfig
   )
 }
