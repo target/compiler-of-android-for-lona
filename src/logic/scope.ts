@@ -11,46 +11,7 @@ import { UUID, Namespace } from './namespace'
 import { NodePath } from './nodePath'
 import { Reporter } from '@lona/compiler/lib/helpers/reporter'
 import { silentReporter } from '../reporter'
-
-class ScopeStack<K extends string, V> {
-  public scopes: { [key: string]: V }[] = [{}]
-
-  public get(k: K): V | void {
-    return this.scopes.map(x => x[k]).filter(x => !!x)[0]
-  }
-
-  public set(k: K, v: V) {
-    this.scopes[0][k] = v
-  }
-
-  public push() {
-    this.scopes = [{}, ...this.scopes]
-  }
-
-  public pop(): { [key: string]: V } {
-    const [hd, ...rest] = this.scopes
-    this.scopes = rest
-    return hd
-  }
-
-  public flattened(): { [key: string]: V } {
-    let result: { [key: string]: V } = {}
-
-    this.scopes.reverse().forEach(x =>
-      Object.keys(x).forEach(k => {
-        result[k] = x[k]
-      })
-    )
-
-    return result
-  }
-
-  public copy() {
-    const stack = new ScopeStack<K, V>()
-    stack.scopes = this.scopes.map(x => ({ ...x }))
-    return stack
-  }
-}
+import ScopeStack from './scopeStack'
 
 export class ScopeContext {
   namespace: Namespace
@@ -60,10 +21,7 @@ export class ScopeContext {
     this.namespace = namespace
   }
 
-  /**
-   * IdentifierExpression identifiers and MemberExpression memberNames will refer to
-   * the pattern they're defined by (e.g. the record name or function argument)
-   */
+  // Refernces to the pattern they're defined by (e.g. the record name or function argument)
   identifierExpressionToPattern: { [key: string]: UUID } = {}
   memberExpressionToPattern: { [key: string]: UUID } = {}
   typeIdentifierToPattern: { [key: string]: UUID } = {}
