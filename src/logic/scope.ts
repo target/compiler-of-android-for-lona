@@ -9,6 +9,8 @@ import {
 } from '@lona/compiler/lib/helpers/logic-ast'
 import { UUID, Namespace } from './namespace'
 import { NodePath } from './nodePath'
+import { Reporter } from '@lona/compiler/lib/helpers/reporter'
+import { silentReporter } from '../reporter'
 
 class ScopeStack<K extends string, V> {
   public scopes: { [key: string]: V }[] = [{}]
@@ -58,13 +60,18 @@ export class ScopeContext {
     this.namespace = namespace
   }
 
-  // Values in these are never removed, even if a variable is out of scope
+  /**
+   * IdentifierExpression identifiers and MemberExpression memberNames will refer to
+   * the pattern they're defined by (e.g. the record name or function argument)
+   */
   identifierToPattern: { [key: string]: UUID } = {}
   typeIdentifierToPattern: { [key: string]: UUID } = {}
+
+  // Undefined identifiers for better error messages
   undefinedIdentifiers = new Set<UUID>()
   undefinedMemberExpressions = new Set<UUID>()
 
-  // This keeps track of the current scope
+  // These keep track of the current scope
   valueNames = new ScopeStack<string, UUID>()
   typeNames = new ScopeStack<string, UUID>()
 
@@ -129,7 +136,8 @@ function enterNode(
     result: ScopeContext,
     currentNode: AST.SyntaxNode,
     config: TraversalConfig
-  ) => ScopeContext
+  ) => ScopeContext,
+  reporter: Reporter
 ) {
   switch (node.type) {
     // TODO: The way node types are currently defined in TS, we lose type info for placeholders... probably an issue.
@@ -250,7 +258,11 @@ function enterNode(
   }
 }
 
-function leaveNode(node: AST.SyntaxNode, context: ScopeContext) {
+function leaveNode(
+  node: AST.SyntaxNode,
+  context: ScopeContext,
+  reporter: Reporter
+) {
   switch (node.type) {
     case 'identifierExpression': {
       const { identifier } = node.data
@@ -262,7 +274,7 @@ function leaveNode(node: AST.SyntaxNode, context: ScopeContext) {
       if (found) {
         context.identifierToPattern[identifier.id] = found
       } else {
-        console.warn(`No identifier: ${identifier.string}`, context.valueNames)
+        reporter.warn(`No identifier: ${identifier.string}`, context.valueNames)
         context.undefinedIdentifiers.add(identifier.id)
       }
 
@@ -278,10 +290,10 @@ function leaveNode(node: AST.SyntaxNode, context: ScopeContext) {
         const patternId = context.namespace.values[keyPath]
 
         if (patternId) {
-          context.identifierToPattern[node.data.id] = patternId
+          context.identifierToPattern[node.data.memberName.id] = patternId
         } else {
-          console.warn(`No identifier path: ${keyPath}`)
-          context.undefinedMemberExpressions.add(node.data.id)
+          reporter.warn(`No identifier path: ${keyPath}`)
+          context.undefinedMemberExpressions.add(node.data.memberName.id)
         }
       }
 
@@ -298,7 +310,7 @@ function leaveNode(node: AST.SyntaxNode, context: ScopeContext) {
       if (found) {
         context.typeIdentifierToPattern[identifier.id] = found
       } else {
-        console.warn(
+        reporter.warn(
           `No type identifier: ${identifier.string}`,
           context.valueNames
         )
@@ -337,7 +349,8 @@ function leaveNode(node: AST.SyntaxNode, context: ScopeContext) {
 export function createScopeContext(
   node: AST.SyntaxNode,
   namespace: Namespace,
-  targetId: UUID | undefined = undefined
+  targetId: UUID | undefined = undefined,
+  reporter: Reporter = silentReporter
 ): ScopeContext {
   const context = new ScopeContext(namespace)
 
@@ -359,9 +372,9 @@ export function createScopeContext(
     config.needsRevisitAfterTraversingChildren = true
 
     if (config._isRevisit) {
-      leaveNode(currentNode, context)
+      leaveNode(currentNode, context, reporter)
     } else {
-      enterNode(currentNode, context, traversalConfig, walk)
+      enterNode(currentNode, context, traversalConfig, walk, reporter)
     }
 
     return context

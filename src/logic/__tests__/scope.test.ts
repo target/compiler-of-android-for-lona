@@ -85,9 +85,9 @@ let y: Number = Foo.x`
       memberExpression.data.id
     )
 
-    expect(scope.identifierToPattern[memberExpression.data.id]).toEqual(
-      variable.data.name.id
-    )
+    expect(
+      scope.identifierToPattern[memberExpression.data.memberName.id]
+    ).toEqual(variable.data.name.id)
 
     expect(Object.keys(scope.valueNames.flattened())).toEqual(['y'])
   })
@@ -147,11 +147,44 @@ let y: Number = Foo.x`
       throw new Error('Bad enumeration case')
     }
 
-    expect(scope.identifierToPattern[memberExpression.data.id]).toEqual(
-      enumerationCase.data.name.id
-    )
+    expect(
+      scope.identifierToPattern[memberExpression.data.memberName.id]
+    ).toEqual(enumerationCase.data.name.id)
 
     expect(Object.keys(scope.valueNames.flattened())).toEqual(['y'])
     expect(Object.keys(scope.typeNames.flattened())).toEqual(['Foo'])
+  })
+
+  it('loads Prelude.logic', () => {
+    let rootNode = Serialization.decodeLogic(readLibrary('Prelude'))
+
+    let namespace = createNamespace(rootNode)
+
+    let scope = createScopeContext(rootNode, namespace)
+
+    expect(scope.undefinedIdentifiers.size).toEqual(0)
+    expect(scope.undefinedMemberExpressions.size).toEqual(0)
+  })
+
+  it('loads Color.logic', () => {
+    let rootNode = Serialization.decodeLogic(readLibrary('Color'))
+
+    let namespace = createNamespace(rootNode)
+
+    let scope = createScopeContext(rootNode, namespace)
+
+    expect(scope.undefinedIdentifiers.size).toEqual(7)
+    expect(scope.undefinedMemberExpressions.size).toEqual(0)
+  })
+
+  it('loads TextStyle.logic', () => {
+    let rootNode = Serialization.decodeLogic(readLibrary('TextStyle'))
+
+    let namespace = createNamespace(rootNode)
+
+    let scope = createScopeContext(rootNode, namespace)
+
+    expect(scope.undefinedIdentifiers.size).toEqual(0)
+    expect(scope.undefinedMemberExpressions.size).toEqual(6)
   })
 })
