@@ -1,8 +1,3 @@
-import {
-  TraversalConfig,
-  emptyConfig,
-  reduce,
-} from '@lona/compiler/lib/helpers/logic-traversal'
 import { AST } from '@lona/compiler/lib/helpers/logic-ast'
 import * as Serialization from '@lona/serialization'
 import fs from 'fs'
@@ -54,7 +49,7 @@ let y: Number = x`
       scope.identifierToPattern[identifierExpression.data.identifier.id]
     ).toEqual(variable.data.name.id)
 
-    expect(Object.values(scope.valueNames.flattened())).toEqual(['x', 'y'])
+    expect(Object.keys(scope.valueNames.flattened())).toEqual(['x', 'y'])
   })
 
   it('finds member expression references', () => {
@@ -94,7 +89,7 @@ let y: Number = Foo.x`
       variable.data.name.id
     )
 
-    expect(Object.values(scope.valueNames.flattened())).toEqual(['y'])
+    expect(Object.keys(scope.valueNames.flattened())).toEqual(['y'])
   })
 
   it('finds type identifier references', () => {
@@ -144,7 +139,7 @@ let y: Number = Foo.x`
     )
 
     expect(
-      scope.identifierToPattern[typeIdentifier.data.identifier.id]
+      scope.typeIdentifierToPattern[typeIdentifier.data.identifier.id]
     ).toEqual(enumeration.data.name.id)
 
     // TODO: Fix EnumerationCase being a union with placeholder
@@ -156,7 +151,7 @@ let y: Number = Foo.x`
       enumerationCase.data.name.id
     )
 
-    expect(Object.values(scope.valueNames.flattened())).toEqual(['y'])
-    expect(Object.values(scope.typeNames.flattened())).toEqual(['Foo'])
+    expect(Object.keys(scope.valueNames.flattened())).toEqual(['y'])
+    expect(Object.keys(scope.typeNames.flattened())).toEqual(['Foo'])
   })
 })

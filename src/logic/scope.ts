@@ -7,7 +7,8 @@ import {
   AST,
   flattenedMemberExpression,
 } from '@lona/compiler/lib/helpers/logic-ast'
-import { UUID, Namespace, createNamespace } from './namespace'
+import { UUID, Namespace } from './namespace'
+import { NodePath } from './nodePath'
 
 class ScopeStack<K extends string, V> {
   public scopes: { [key: string]: V }[] = [{}]
@@ -51,17 +52,15 @@ class ScopeStack<K extends string, V> {
 
 export class ScopeContext {
   namespace: Namespace
+  currentPath: NodePath = new NodePath()
 
   constructor(namespace: Namespace) {
     this.namespace = namespace
   }
 
-  currentNamespacePath: string[] = []
-
   // Values in these are never removed, even if a variable is out of scope
-  patternToName: { [key: string]: string } = {}
-  patternToTypeName: { [key: string]: string } = {}
   identifierToPattern: { [key: string]: UUID } = {}
+  typeIdentifierToPattern: { [key: string]: UUID } = {}
   undefinedIdentifiers = new Set<UUID>()
   undefinedMemberExpressions = new Set<UUID>()
 
@@ -85,41 +84,37 @@ export class ScopeContext {
 
   pushNamespace(name: string) {
     this.pushScope()
-    this.currentNamespacePath.push(name)
+    this.currentPath.pushComponent(name)
   }
 
   popNamespace() {
     this.popScope()
-    this.currentNamespacePath.pop()
+    this.currentPath.popComponent()
   }
 
-  addToScope(pattern: AST.Pattern) {
-    this.patternToName[pattern.id] = pattern.name
-    this.valueNames.set(pattern.id, pattern.name)
+  addValueToScope(pattern: AST.Pattern) {
+    this.valueNames.set(pattern.name, pattern.id)
   }
 
   addTypeToScope(pattern: AST.Pattern) {
-    this.patternToTypeName[pattern.id] = pattern.name
-    this.typeNames.set(pattern.id, pattern.name)
+    this.typeNames.set(pattern.name, pattern.id)
   }
 
   findValueIdentifierReference(name: string): UUID | undefined {
     const valueInScope = this.valueNames.get(name)
     const valueInNamespace = this.namespace.values[name]
     const valueInParentNamespace = this.namespace.values[
-      [...this.currentNamespacePath, name].join('.')
+      [...this.currentPath.components, name].join('.')
     ]
 
     return valueInScope || valueInNamespace || valueInParentNamespace
   }
 
-  findTypeIdentifierReference(identifier: AST.Identifier): UUID | undefined {
-    if (identifier.isPlaceholder) return
-
-    const typeInScope = this.typeNames.get(identifier.string)
-    const typeInNamespace = this.namespace.types[identifier.string]
+  findTypeIdentifierReference(name: string): UUID | undefined {
+    const typeInScope = this.typeNames.get(name)
+    const typeInNamespace = this.namespace.types[name]
     const typeInParentNamespace = this.namespace.types[
-      [...this.currentNamespacePath, identifier.string].join('.')
+      [...this.currentPath.components, name].join('.')
     ]
 
     return typeInScope || typeInNamespace || typeInParentNamespace
@@ -164,14 +159,14 @@ function enterNode(
     case 'function': {
       const { name, parameters, genericParameters } = node.data
 
-      context.addToScope(name)
+      context.addValueToScope(name)
 
       context.pushScope()
 
       parameters.forEach(parameter => {
         switch (parameter.type) {
           case 'parameter':
-            context.addToScope(parameter.data.localName)
+            context.addValueToScope(parameter.data.localName)
           case 'placeholder':
             break
         }
@@ -214,7 +209,7 @@ function enterNode(
 
             reduce(initializer, walk, context, config)
 
-            context.addToScope(variableName)
+            context.addValueToScope(variableName)
           }
           default:
             break
@@ -296,10 +291,12 @@ function leaveNode(node: AST.SyntaxNode, context: ScopeContext) {
     case 'typeIdentifier': {
       const { identifier } = node.data
 
-      const found = context.findTypeIdentifierReference(identifier)
+      if (identifier.isPlaceholder) return
+
+      const found = context.findTypeIdentifierReference(identifier.string)
 
       if (found) {
-        context.identifierToPattern[identifier.id] = found
+        context.typeIdentifierToPattern[identifier.id] = found
       } else {
         console.warn(
           `No type identifier: ${identifier.string}`,
@@ -314,7 +311,7 @@ function leaveNode(node: AST.SyntaxNode, context: ScopeContext) {
     case 'variable': {
       const { name } = node.data
 
-      context.addToScope(name)
+      context.addValueToScope(name)
 
       return
     }
