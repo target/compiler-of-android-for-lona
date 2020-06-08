@@ -155,6 +155,48 @@ let y: Number = Foo.x`
     expect(Object.keys(scope.typeNames.flattened())).toEqual(['Foo'])
   })
 
+  it('finds function argument references', () => {
+    const file = `
+func bar(hello: Number) -> Number {
+  let x: Number = hello
+}
+`
+    let rootNode = Serialization.decodeLogic(file)
+
+    let namespace = createNamespace(rootNode)
+
+    const parameter = findNode(rootNode, node => {
+      return (
+        node.type === 'parameter' &&
+        // TODO: Fix type issue
+        (node.data as any).localName.name === 'hello'
+      )
+    }) as AST.FunctionParameter
+
+    const identifierExpression = findNode(rootNode, node => {
+      return (
+        node.type === 'identifierExpression' &&
+        node.data.identifier.string === 'hello'
+      )
+    }) as AST.IdentifierExpression
+
+    expect(parameter).not.toBeUndefined()
+
+    expect(identifierExpression).not.toBeUndefined()
+
+    let scope = createScopeContext(
+      rootNode,
+      namespace,
+      identifierExpression.data.id
+    )
+
+    expect(
+      scope.identifierExpressionToPattern[identifierExpression.data.id]
+    ).toEqual((parameter.data as any).localName.id)
+
+    expect(Object.keys(scope.valueNames.flattened())).toEqual(['bar'])
+  })
+
   it('loads Prelude.logic', () => {
     let rootNode = Serialization.decodeLogic(readLibrary('Prelude'))
 

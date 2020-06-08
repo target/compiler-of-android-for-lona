@@ -15,9 +15,9 @@ struct Color {
   let value: String = ""
 }
 `
-    let logic = Serialization.decodeLogic(file)
+    let rootNode = Serialization.decodeLogic(file)
 
-    let namespace = createNamespace(logic)
+    let namespace = createNamespace(rootNode)
 
     expect(Object.keys(namespace.types)).toEqual(['Color'])
     expect(Object.keys(namespace.values)).toEqual(['Color.value'])
@@ -31,9 +31,9 @@ enum TextAlign {
   case right()
 }
 `
-    let logic = Serialization.decodeLogic(file)
+    let rootNode = Serialization.decodeLogic(file)
 
-    let namespace = createNamespace(logic)
+    let namespace = createNamespace(rootNode)
 
     expect(Object.keys(namespace.types)).toEqual(['TextAlign'])
     expect(Object.keys(namespace.values)).toEqual([
@@ -43,10 +43,25 @@ enum TextAlign {
     ])
   })
 
-  it('loads Color.logic', () => {
-    let logic = Serialization.decodeLogic(readLibrary('Color'))
+  it('adds functions to the namespace', () => {
+    const file = `extension Foo {
+  func bar(hello: Number) -> Number {}
+}
 
-    let namespace = createNamespace(logic)
+func baz() -> Number {}
+`
+    let rootNode = Serialization.decodeLogic(file)
+
+    let namespace = createNamespace(rootNode)
+
+    expect(Object.keys(namespace.types)).toEqual([])
+    expect(Object.keys(namespace.values)).toEqual(['Foo.bar', 'baz'])
+  })
+
+  it('loads Color.logic', () => {
+    let rootNode = Serialization.decodeLogic(readLibrary('Color'))
+
+    let namespace = createNamespace(rootNode)
 
     expect(Object.keys(namespace.types)).toEqual(['Color'])
     expect(Object.keys(namespace.values)).toEqual([
@@ -60,9 +75,9 @@ enum TextAlign {
   })
 
   it('loads TextStyle.logic', () => {
-    let logic = Serialization.decodeLogic(readLibrary('TextStyle'))
+    let rootNode = Serialization.decodeLogic(readLibrary('TextStyle'))
 
-    let namespace = createNamespace(logic)
+    let namespace = createNamespace(rootNode)
 
     expect(Object.keys(namespace.types)).toEqual(['FontWeight', 'TextStyle'])
     expect(Object.keys(namespace.values)).toEqual([
