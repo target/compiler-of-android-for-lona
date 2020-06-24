@@ -4,7 +4,7 @@ import {
   reduce,
 } from '@lona/compiler/lib/helpers/logic-traversal'
 import { EnumerationDeclaration } from '@lona/serialization/build/types/logic-ast/declarations/enumeration'
-import * as LogicAST from '@lona/compiler/lib/helpers/logic-ast'
+import { LogicAST as AST } from '@lona/serialization'
 import { NodePath } from './nodePath'
 
 export type UUID = string
@@ -101,7 +101,7 @@ class NamespaceVisitor {
   }
 }
 
-function enterNode(visitor: NamespaceVisitor, node: LogicAST.AST.SyntaxNode) {
+function enterNode(visitor: NamespaceVisitor, node: AST.SyntaxNode) {
   switch (node.type) {
     case 'record':
     case 'enumeration': {
@@ -126,7 +126,7 @@ function enterNode(visitor: NamespaceVisitor, node: LogicAST.AST.SyntaxNode) {
   }
 }
 
-function leaveNode(visitor: NamespaceVisitor, node: LogicAST.AST.SyntaxNode) {
+function leaveNode(visitor: NamespaceVisitor, node: AST.SyntaxNode) {
   switch (node.type) {
     case 'variable':
     case 'function': {
@@ -188,9 +188,7 @@ function leaveNode(visitor: NamespaceVisitor, node: LogicAST.AST.SyntaxNode) {
 /**
  * Build the global namespace by visiting each node.
  */
-export function createNamespace(
-  topLevelNode?: LogicAST.AST.SyntaxNode
-): Namespace {
+export function createNamespace(topLevelNode?: AST.SyntaxNode): Namespace {
   let namespace: Namespace = { types: {}, values: {} }
 
   if (!topLevelNode) return namespace
