@@ -3,7 +3,7 @@ import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import { copy, IFS } from 'buffs'
 import path from 'path'
 import { createNamespace, Namespace, merge } from './namespace'
-import { createScopeContext, ScopeContext } from './scope'
+import { createScopeContext, Scope } from './scope'
 
 export function componentFiles(workspacePath: string): string[] {
   return FileSearch.sync(workspacePath, '**/*.cmp').map(file =>

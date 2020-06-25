@@ -12,8 +12,9 @@ import { NodePath } from './nodePath'
 import { Reporter } from '@lona/compiler/lib/helpers/reporter'
 import { silentReporter } from '../reporter'
 import ScopeStack from './scopeStack'
+import { Traversal, forEach } from './syntaxNode'
 
-export class ScopeContext {
+export class Scope {
   namespace: Namespace
   currentPath: NodePath = new NodePath()
 
@@ -95,15 +96,61 @@ export class ScopeContext {
   }
 }
 
+export class ScopeVisitor {
+  namespace: Namespace
+  scope: Scope
+  reporter: Reporter
+  currentPath = new NodePath()
+
+  constructor(namespace: Namespace, scope: Scope, reporter: Reporter) {
+    this.namespace = namespace
+    this.scope = scope
+    this.reporter = reporter
+  }
+
+  traverse(rootNode: AST.SyntaxNode, targetId: UUID | undefined = undefined) {
+    let walk = (node: AST.SyntaxNode, config: TraversalConfig): Scope => {
+      if (node.data.id == targetId) {
+        config.stopTraversal = true
+        return this.scope
+      }
+
+      config.needsRevisitAfterTraversingChildren = true
+
+      if (config._isRevisit) {
+        leaveNode(node, this.scope, this.reporter)
+      } else {
+        enterNode(
+          node,
+          this.scope,
+          config,
+          (
+            _result: Scope,
+            currentNode: AST.SyntaxNode,
+            config: TraversalConfig
+          ) => walk(currentNode, config),
+          this.reporter
+        )
+      }
+
+      return this.scope
+    }
+
+    return forEach(rootNode, Traversal.preorder, walk)
+  }
+}
+
+type ScopeWalker = (
+  result: Scope,
+  currentNode: AST.SyntaxNode,
+  config: TraversalConfig
+) => Scope
+
 function enterNode(
   node: AST.SyntaxNode,
-  context: ScopeContext,
+  context: Scope,
   config: TraversalConfig,
-  walk: (
-    result: ScopeContext,
-    currentNode: AST.SyntaxNode,
-    config: TraversalConfig
-  ) => ScopeContext,
+  walk: ScopeWalker,
   reporter: Reporter
 ) {
   switch (node.type) {
@@ -114,7 +161,16 @@ function enterNode(
       const { genericArguments } = node.data
 
       genericArguments.forEach(arg => {
-        reduce(arg, walk, context, config)
+        reduce(
+          arg,
+          (
+            result: Scope,
+            currentNode: AST.SyntaxNode,
+            config: TraversalConfig
+          ) => walk(result, currentNode, config),
+          context,
+          config
+        )
       })
 
       config.ignoreChildren = true
@@ -182,7 +238,16 @@ function enterNode(
 
             if (!initializer) break
 
-            reduce(initializer, walk, context, config)
+            reduce(
+              initializer,
+              (
+                result: Scope,
+                currentNode: AST.SyntaxNode,
+                config: TraversalConfig
+              ) => walk(result, currentNode, config),
+              context,
+              config
+            )
 
             context.addValueToScope(variableName)
           }
@@ -225,11 +290,7 @@ function enterNode(
   }
 }
 
-function leaveNode(
-  node: AST.SyntaxNode,
-  context: ScopeContext,
-  reporter: Reporter
-) {
+function leaveNode(node: AST.SyntaxNode, context: Scope, reporter: Reporter) {
   switch (node.type) {
     case 'identifierExpression': {
       const { id, identifier } = node.data
@@ -318,13 +379,28 @@ function leaveNode(
   }
 }
 
+// export function createScopeContext(
+//   rootNode: AST.SyntaxNode,
+//   namespace: Namespace,
+//   targetId: UUID | undefined = undefined,
+//   reporter: Reporter = silentReporter
+// ): Scope {
+//   const scope = new Scope(namespace)
+
+//   let visitor = new ScopeVisitor(namespace, scope, reporter)
+
+//   visitor.traverse(rootNode, targetId)
+
+//   return scope
+// }
+
 export function createScopeContext(
   node: AST.SyntaxNode,
   namespace: Namespace,
   targetId: UUID | undefined = undefined,
   reporter: Reporter = silentReporter
-): ScopeContext {
-  const context = new ScopeContext(namespace)
+): Scope {
+  const context = new Scope(namespace)
 
   let traversalConfig = {
     ...emptyConfig(),
@@ -332,13 +408,13 @@ export function createScopeContext(
   }
 
   function walk(
-    result: ScopeContext,
+    _result: Scope,
     currentNode: AST.SyntaxNode,
     config: TraversalConfig
   ) {
     if (node.data.id == targetId) {
       config.stopTraversal = true
-      return result
+      return context
     }
 
     config.needsRevisitAfterTraversingChildren = true

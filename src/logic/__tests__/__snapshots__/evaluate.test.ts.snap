@@ -27,35 +27,6 @@ Object {
 }
 `;
 
-exports[`Logic / Evaluate evaluates DimensionSize 2`] = `
-Object {
-  "memory": Object {
-    "data": Array [
-      Object {
-        "memory": Object {
-          "type": "number",
-          "value": 100,
-        },
-        "type": Object {
-          "name": "Number",
-          "parameters": Array [],
-          "type": "constant",
-        },
-      },
-    ],
-    "type": "enum",
-    "value": "fixed",
-  },
-  "type": Object {
-    "name": "DimensionSize",
-    "parameters": Array [],
-    "type": "constant",
-  },
-}
-`;
-
-exports[`Logic / Evaluate evaluates View function 1`] = `undefined`;
-
 exports[`Logic / Evaluate evaluates custom function 1`] = `
 Object {
   "memory": Object {

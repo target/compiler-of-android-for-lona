@@ -14,7 +14,7 @@ export function findNode(
 
   reduce(
     rootNode,
-    (result, node, config) => {
+    (_result, node, config) => {
       if (!found && predicate(node)) {
         config.stopTraversal = true
         found = node
@@ -25,4 +25,29 @@ export function findNode(
   )
 
   return found
+}
+
+export function forEach(
+  rootNode: AST.SyntaxNode,
+  config: TraversalConfig,
+  f: (node: AST.SyntaxNode, config: TraversalConfig) => void
+) {
+  reduce(
+    rootNode,
+    (_result, node, config) => {
+      f(node, config)
+      return undefined
+    },
+    undefined,
+    config
+  )
+}
+
+export const Traversal = {
+  get preorder(): TraversalConfig {
+    return {
+      ...emptyConfig(),
+      order: 'PreOrder' as TraversalConfig['order'],
+    }
+  },
 }

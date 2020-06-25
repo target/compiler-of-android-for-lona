@@ -84,14 +84,14 @@ type Thunk = {
 export class EvaluationContext {
   private values: { [uuid: string]: Value } = {}
   private thunks: { [uuid: string]: Thunk } = {}
-  private scopeContext: LogicScope.ScopeContext
+  private scopeContext: LogicScope.Scope
   private reporter: Reporter
 
   /** The root Logic node used to build the evaluation context  */
   public rootNode: AST.SyntaxNode
 
   constructor(
-    scopeContext: LogicScope.ScopeContext,
+    scopeContext: LogicScope.Scope,
     rootNode: AST.SyntaxNode,
     reporter: Reporter
   ) {
@@ -179,7 +179,7 @@ export class EvaluationContext {
 }
 
 const makeEmpty = (
-  scopeContext: LogicScope.ScopeContext,
+  scopeContext: LogicScope.Scope,
   rootNode: AST.SyntaxNode,
   reporter: Reporter
 ) => new EvaluationContext(scopeContext, rootNode, reporter)
@@ -187,7 +187,7 @@ const makeEmpty = (
 export const evaluate = (
   node: AST.SyntaxNode,
   rootNode: AST.SyntaxNode,
-  scopeContext: LogicScope.ScopeContext,
+  scopeContext: LogicScope.Scope,
   unificationContext: LogicUnify.UnificationContext,
   substitution: ShallowMap<LogicUnify.Unification, LogicUnify.Unification>,
   reporter: Reporter,

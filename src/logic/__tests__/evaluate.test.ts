@@ -4,7 +4,7 @@ import { silentReporter } from '../../reporter'
 import { EvaluationContext } from '../evaluate'
 import { generate } from '../evaluationContext'
 import { UUID } from '../namespace'
-import { findNode } from '../node'
+import { findNode } from '../syntaxNode'
 
 function getInitializerId(
   rootNode: AST.SyntaxNode,

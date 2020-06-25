@@ -3,9 +3,10 @@ import {
   emptyConfig,
   reduce,
 } from '@lona/compiler/lib/helpers/logic-traversal'
-import { EnumerationDeclaration } from '@lona/serialization/build/types/logic-ast/declarations/enumeration'
 import { LogicAST as AST } from '@lona/serialization'
 import { NodePath } from './nodePath'
+import { createDeclarationNode } from './nodes/declarations'
+import { forEach, Traversal } from './syntaxNode'
 
 export type UUID = string
 
@@ -22,6 +23,9 @@ export const builtInTypeConstructorNames: Set<String> = new Set([
   'Color',
 ])
 
+/**
+ * Merge namespaces, throwing an error in the case of collisions
+ */
 export function merge(namespaces: Namespace[]): Namespace {
   return namespaces.reduce((result, namespace) => {
     Object.entries(namespace.values).forEach(([key, value]) => {
@@ -51,28 +55,11 @@ export function copy(namespace: Namespace): Namespace {
   }
 }
 
-export function declareValue(namespace: Namespace, path: string, id: UUID) {
-  if (namespace.values[path]) {
-    throw new Error(`Value already declared: ${path}`)
-  }
-
-  namespace.values[path] = id
-}
-
-export function declareType(namespace: Namespace, path: string, id: UUID) {
-  if (namespace.types[path]) {
-    throw new Error(`Type already declared: ${path}`)
-  }
-
-  namespace.types[path] = id
-}
-
-class NamespaceVisitor {
+export class NamespaceVisitor {
   namespace: Namespace
-  currentPath: NodePath
+  currentPath = new NodePath()
 
   constructor(namespace: Namespace) {
-    this.currentPath = new NodePath()
     this.namespace = namespace
   }
 
@@ -85,103 +72,35 @@ class NamespaceVisitor {
   }
 
   declareValue(name: string, value: UUID) {
-    declareValue(
-      this.namespace,
-      [...this.currentPath.components, name].join('.'),
-      value
-    )
+    const path = this.currentPath.pathString(name)
+
+    if (this.namespace.values[path]) {
+      throw new Error(`Value already declared: ${path}`)
+    }
+
+    this.namespace.values[path] = value
   }
 
   declareType(name: string, type: UUID) {
-    declareType(
-      this.namespace,
-      [...this.currentPath.components, name].join('.'),
-      type
-    )
+    const path = this.currentPath.pathString(name)
+
+    if (this.namespace.types[path]) {
+      throw new Error(`Type already declared: ${path}`)
+    }
+
+    this.namespace.types[path] = type
   }
-}
 
-function enterNode(visitor: NamespaceVisitor, node: AST.SyntaxNode) {
-  switch (node.type) {
-    case 'record':
-    case 'enumeration': {
-      const {
-        name: { name, id },
-      } = node.data
+  traverse(rootNode: AST.SyntaxNode) {
+    return forEach(rootNode, Traversal.preorder, (currentNode, config) => {
+      config.needsRevisitAfterTraversingChildren = true
 
-      visitor.declareType(name, id)
-      visitor.pushPathComponent(name)
-
-      break
-    }
-    case 'namespace': {
-      const {
-        name: { name, id },
-      } = node.data
-
-      visitor.pushPathComponent(name)
-
-      break
-    }
-  }
-}
-
-function leaveNode(visitor: NamespaceVisitor, node: AST.SyntaxNode) {
-  switch (node.type) {
-    case 'variable':
-    case 'function': {
-      const {
-        name: { name, id },
-      } = node.data
-
-      visitor.declareValue(name, id)
-
-      break
-    }
-    case 'record': {
-      const {
-        name: { name, id },
-      } = node.data
-
-      visitor.popPathComponent()
-
-      // Built-ins should be constructed using literals
-      if (builtInTypeConstructorNames.has(name)) return
-
-      // Create constructor function
-      visitor.declareValue(name, id)
-
-      break
-    }
-    case 'enumeration': {
-      const {
-        name: { name, id },
-        cases,
-      } = (node as EnumerationDeclaration).data
-
-      // Add initializers for each case into the namespace
-      cases.forEach(enumCase => {
-        switch (enumCase.type) {
-          case 'placeholder':
-            break
-          case 'enumerationCase':
-            visitor.declareValue(enumCase.data.name.name, enumCase.data.name.id)
-        }
-      })
-
-      visitor.popPathComponent()
-
-      break
-    }
-    case 'namespace': {
-      const {
-        name: { name, id },
-      } = node.data
-
-      visitor.popPathComponent()
-
-      break
-    }
+      if (config._isRevisit) {
+        createDeclarationNode(currentNode)?.namespaceLeave(this)
+      } else {
+        createDeclarationNode(currentNode)?.namespaceEnter(this)
+      }
+    })
   }
 }
 
@@ -191,29 +110,11 @@ function leaveNode(visitor: NamespaceVisitor, node: AST.SyntaxNode) {
 export function createNamespace(topLevelNode?: AST.SyntaxNode): Namespace {
   let namespace: Namespace = { types: {}, values: {} }
 
-  if (!topLevelNode) return namespace
+  if (topLevelNode) {
+    let visitor = new NamespaceVisitor(namespace)
 
-  let traversalConfig = {
-    ...emptyConfig(),
-    order: 'PreOrder' as TraversalConfig['order'],
+    visitor.traverse(topLevelNode)
   }
 
-  let visitor = new NamespaceVisitor(namespace)
-
-  return reduce(
-    topLevelNode,
-    (previousValue, currentNode, config) => {
-      traversalConfig.needsRevisitAfterTraversingChildren = true
-
-      if (config._isRevisit) {
-        leaveNode(visitor, currentNode)
-      } else {
-        enterNode(visitor, currentNode)
-      }
-
-      return namespace
-    },
-    namespace,
-    traversalConfig
-  )
+  return namespace
 }

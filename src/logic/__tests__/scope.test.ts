@@ -5,7 +5,7 @@ import path from 'path'
 
 import { createNamespace } from '../namespace'
 import { createScopeContext } from '../scope'
-import { findNode } from '../node'
+import { findNode } from '../syntaxNode'
 
 function readLibrary(name: string): string {
   const librariesPath = path.join(__dirname, '../library')

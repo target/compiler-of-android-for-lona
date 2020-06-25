@@ -220,7 +220,7 @@ function replaceGenericsWithVars(getName: () => string, type: Unification) {
 }
 
 function specificIdentifierType(
-  scopeContext: LogicScope.ScopeContext,
+  scopeContext: LogicScope.Scope,
   unificationContext: UnificationContext,
   id: string
 ): Unification {
@@ -259,7 +259,7 @@ const makeEmptyContext = (): UnificationContext => ({
 
 export const makeUnificationContext = (
   rootNode: AST.SyntaxNode,
-  scopeContext: LogicScope.ScopeContext,
+  scopeContext: LogicScope.Scope,
   reporter: Reporter,
   initialContext: UnificationContext = makeEmptyContext()
 ): UnificationContext => {
