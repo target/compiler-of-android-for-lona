@@ -6,86 +6,19 @@ import { Reporter } from '@lona/compiler/lib/helpers/reporter'
 import { ShallowMap } from '@lona/compiler/lib/utils/shallow-map'
 import { assertNever } from '@lona/compiler/lib/utils/assert-never'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
-
-type FunctionArgument = {
-  label?: string
-  type: Unification
-}
-
-type Variable = {
-  type: 'variable'
-  value: string
-}
-
-type Constant = {
-  type: 'constant'
-  name: string
-  parameters: Unification[]
-}
-
-type Generic = {
-  type: 'generic'
-  name: string
-}
-
-type Function = {
-  type: 'function'
-  arguments: FunctionArgument[]
-  returnType: Unification
-}
-
-export type Unification = Variable | Constant | Generic | Function
-
-/* Builtins */
-export const unit: Constant = {
-  type: 'constant',
-  name: 'Void',
-  parameters: [],
-}
-export const bool: Constant = {
-  type: 'constant',
-  name: 'Boolean',
-  parameters: [],
-}
-export const number: Constant = {
-  type: 'constant',
-  name: 'Number',
-  parameters: [],
-}
-export const string: Constant = {
-  type: 'constant',
-  name: 'String',
-  parameters: [],
-}
-export const color: Constant = {
-  type: 'constant',
-  name: 'Color',
-  parameters: [],
-}
-export const shadow: Constant = {
-  type: 'constant',
-  name: 'Shadow',
-  parameters: [],
-}
-export const textStyle: Constant = {
-  type: 'constant',
-  name: 'TextStyle',
-  parameters: [],
-}
-export const optional = (type: Unification): Constant => ({
-  type: 'constant',
-  name: 'Optional',
-  parameters: [type],
-})
-export const array = (typeUnification: Unification): Constant => ({
-  type: 'constant',
-  name: 'Array',
-  parameters: [typeUnification],
-})
+import {
+  StaticType,
+  FunctionArgument,
+  unit,
+  bool,
+  number,
+  string,
+  color,
+} from './staticType'
 
 type Contraint = {
-  head: Unification
-  tail: Unification
+  head: StaticType
+  tail: StaticType
   origin?: any
 }
 
@@ -104,8 +37,8 @@ class LogicNameGenerator {
 
 export type UnificationContext = {
   constraints: Contraint[]
-  nodes: { [key: string]: Unification }
-  patternTypes: { [key: string]: Unification }
+  nodes: { [key: string]: StaticType }
+  patternTypes: { [key: string]: StaticType }
   typeNameGenerator: LogicNameGenerator
 }
 
@@ -113,7 +46,7 @@ function unificationType(
   genericsInScope: [string, string][],
   getName: () => string,
   typeAnnotation: AST.TypeAnnotation
-): Unification {
+): StaticType {
   if (typeAnnotation.type === 'typeIdentifier') {
     const { string, isPlaceholder } = typeAnnotation.data.identifier
     if (isPlaceholder) {
@@ -151,9 +84,9 @@ function unificationType(
 }
 
 export function substitute(
-  substitution: ShallowMap<Unification, Unification>,
-  type: Unification
-): Unification {
+  substitution: ShallowMap<StaticType, StaticType>,
+  type: StaticType
+): StaticType {
   let resolvedType = substitution.get(type)
   if (!resolvedType) {
     resolvedType = type
@@ -185,7 +118,7 @@ export function substitute(
   assertNever(resolvedType)
 }
 
-function genericNames(type: Unification): string[] {
+function genericNames(type: StaticType): string[] {
   if (type.type === 'variable') {
     return []
   }
@@ -207,8 +140,8 @@ function genericNames(type: Unification): string[] {
   assertNever(type)
 }
 
-function replaceGenericsWithVars(getName: () => string, type: Unification) {
-  let substitution = new ShallowMap<Unification, Unification>()
+function replaceGenericsWithVars(getName: () => string, type: StaticType) {
+  let substitution = new ShallowMap<StaticType, StaticType>()
   genericNames(type).forEach(name =>
     substitution.set(
       { type: 'generic', name },
@@ -223,7 +156,7 @@ function specificIdentifierType(
   scopeContext: LogicScope.Scope,
   unificationContext: UnificationContext,
   id: string
-): Unification {
+): StaticType {
   const patternId =
     scopeContext.identifierExpressionToPattern[id] ||
     scopeContext.memberExpressionToPattern[id]
@@ -298,7 +231,7 @@ export const makeUnificationContext = (
             x,
             result.typeNameGenerator.next(),
           ])
-          const universalTypes = genericNames.map<Unification>((x, i) => ({
+          const universalTypes = genericNames.map<StaticType>((x, i) => ({
             type: 'generic',
             name: genericsInScope[i][1],
           }))
@@ -327,12 +260,12 @@ export const makeUnificationContext = (
             result.patternTypes[name.id] = annotationType
           })
 
-          const returnType: Unification = {
+          const returnType: StaticType = {
             type: 'constant',
             name: node.data.name.name,
             parameters: universalTypes,
           }
-          const functionType: Unification = {
+          const functionType: StaticType = {
             type: 'function',
             returnType,
             arguments: parameterTypes,
@@ -354,12 +287,12 @@ export const makeUnificationContext = (
             x,
             result.typeNameGenerator.next(),
           ])
-          const universalTypes = genericNames.map<Unification>((x, i) => ({
+          const universalTypes = genericNames.map<StaticType>((x, i) => ({
             type: 'generic',
             name: genericsInScope[i][1],
           }))
 
-          const returnType: Unification = {
+          const returnType: StaticType = {
             type: 'constant',
             name: node.data.name.name,
             parameters: universalTypes,
@@ -384,7 +317,7 @@ export const makeUnificationContext = (
                 }
               })
               .filter(nonNullable)
-            const functionType: Unification = {
+            const functionType: StaticType = {
               type: 'function',
               returnType,
               arguments: parameterTypes,
@@ -435,7 +368,7 @@ export const makeUnificationContext = (
             () => result.typeNameGenerator.next(),
             node.data.returnType
           )
-          let functionType: Unification = {
+          let functionType: StaticType = {
             type: 'function',
             returnType,
             arguments: parameterTypes,
@@ -527,7 +460,7 @@ export const makeUnificationContext = (
 
           /* Unify against these to enforce a function type */
 
-          const placeholderReturnType: Unification = {
+          const placeholderReturnType: StaticType = {
             type: 'variable',
             value: result.typeNameGenerator.next(),
           }
@@ -547,7 +480,7 @@ export const makeUnificationContext = (
             })
             .filter(nonNullable)
 
-          const placeholderFunctionType: Unification = {
+          const placeholderFunctionType: StaticType = {
             type: 'function',
             returnType: placeholderReturnType,
             arguments: placeholderArgTypes,
@@ -628,7 +561,7 @@ export const makeUnificationContext = (
       }
       case 'array': {
         if (config._isRevisit) {
-          const elementType: Unification = {
+          const elementType: StaticType = {
             type: 'variable',
             value: result.typeNameGenerator.next(),
           }
@@ -688,8 +621,8 @@ export const makeUnificationContext = (
 export const unify = (
   constraints: Contraint[],
   reporter: Reporter,
-  substitution: ShallowMap<Unification, Unification> = new ShallowMap()
-): ShallowMap<Unification, Unification> => {
+  substitution: ShallowMap<StaticType, StaticType> = new ShallowMap()
+): ShallowMap<StaticType, StaticType> => {
   while (constraints.length > 0) {
     const constraint = constraints.shift()
     if (!constraint) {

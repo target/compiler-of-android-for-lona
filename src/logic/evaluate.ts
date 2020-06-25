@@ -1,5 +1,6 @@
 import intersection from 'lodash.intersection'
 import { LogicAST as AST } from '@lona/serialization'
+import * as StaticType from './staticType'
 import * as LogicUnify from './unify'
 import * as LogicScope from './scope'
 import * as LogicTraversal from '@lona/compiler/lib/helpers/logic-traversal'
@@ -39,13 +40,13 @@ export type Memory =
           }
         | {
             type: 'recordInit'
-            value: { [key: string]: [LogicUnify.Unification, Value | void] }
+            value: { [key: string]: [StaticType.StaticType, Value | void] }
           }
         | { type: 'enumInit'; value: string }
     }
 
 export type Value = {
-  type: LogicUnify.Unification
+  type: StaticType.StaticType
   memory: Memory
 }
 
@@ -189,7 +190,7 @@ export const evaluate = (
   rootNode: AST.SyntaxNode,
   scopeContext: LogicScope.Scope,
   unificationContext: LogicUnify.UnificationContext,
-  substitution: ShallowMap<LogicUnify.Unification, LogicUnify.Unification>,
+  substitution: ShallowMap<StaticType.StaticType, StaticType.StaticType>,
   reporter: Reporter,
   context_: EvaluationContext = makeEmpty(scopeContext, rootNode, reporter)
 ): EvaluationContext | undefined => {
@@ -218,7 +219,7 @@ export const evaluate = (
   switch (node.type) {
     case 'none': {
       context.addValue(node.data.id, {
-        type: LogicUnify.unit,
+        type: StaticType.unit,
         memory: {
           type: 'unit',
         },
@@ -228,7 +229,7 @@ export const evaluate = (
     case 'boolean': {
       const { value, id } = node.data
       context.addValue(id, {
-        type: LogicUnify.bool,
+        type: StaticType.bool,
         memory: {
           type: 'bool',
           value,
@@ -239,7 +240,7 @@ export const evaluate = (
     case 'number': {
       const { value, id } = node.data
       context.addValue(id, {
-        type: LogicUnify.number,
+        type: StaticType.number,
         memory: {
           type: 'number',
           value,
@@ -250,7 +251,7 @@ export const evaluate = (
     case 'string': {
       const { value, id } = node.data
       context.addValue(id, {
-        type: LogicUnify.string,
+        type: StaticType.string,
         memory: {
           type: 'string',
           value,
@@ -261,12 +262,12 @@ export const evaluate = (
     case 'color': {
       const { value, id } = node.data
       context.addValue(id, {
-        type: LogicUnify.color,
+        type: StaticType.color,
         memory: {
           type: 'record',
           value: {
             value: {
-              type: LogicUnify.string,
+              type: StaticType.string,
               memory: {
                 type: 'string',
                 value,
@@ -399,7 +400,7 @@ export const evaluate = (
             reporter.error(
               'tried to evaluate a function that is not a function'
             )
-            return { type: LogicUnify.unit, memory: { type: 'unit' } }
+            return { type: StaticType.unit, memory: { type: 'unit' } }
           }
 
           if (functionValue.memory.value.type === 'path') {
@@ -433,7 +434,7 @@ export const evaluate = (
             reporter.error(
               `Failed to evaluate "${node.data.id}": Unknown function ${functionName}`
             )
-            return { type: LogicUnify.unit, memory: { type: 'unit' } }
+            return { type: StaticType.unit, memory: { type: 'unit' } }
           }
 
           if (functionValue.memory.value.type === 'enumInit') {
@@ -610,7 +611,7 @@ export const evaluate = (
         dependencies,
         f: values => {
           const parameterTypes: {
-            [key: string]: [LogicUnify.Unification, Value | void]
+            [key: string]: [StaticType.StaticType, Value | void]
           } = {}
           let index = 0
 

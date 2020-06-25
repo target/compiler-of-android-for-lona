@@ -1,5 +1,6 @@
 import * as LogicUnify from '../unify'
 import { Value } from './value'
+import { StaticType } from '../staticType'
 
 export type Memory =
   | { type: 'unit' }
@@ -19,7 +20,7 @@ export type Memory =
           }
         | {
             type: 'recordInit'
-            value: { [key: string]: [LogicUnify.Unification, Value | void] }
+            value: { [key: string]: [StaticType, Value | void] }
           }
         | { type: 'enumInit'; value: string }
     }

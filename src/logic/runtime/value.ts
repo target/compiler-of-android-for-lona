@@ -1,27 +1,27 @@
-import * as LogicUnify from '../unify'
+import * as StaticType from '../staticType'
 import * as Memory from './memory'
 
 export type Value = {
-  type: LogicUnify.Unification
+  type: StaticType.StaticType
   memory: Memory.Memory
 }
 
 export const unit = (): Value => ({
-  type: LogicUnify.unit,
+  type: StaticType.unit,
   memory: Memory.unit(),
 })
 
 export const bool = (value: boolean): Value => ({
-  type: LogicUnify.bool,
+  type: StaticType.bool,
   memory: Memory.bool(value),
 })
 
 export const number = (value: number): Value => ({
-  type: LogicUnify.number,
+  type: StaticType.number,
   memory: Memory.number(value),
 })
 
 export const string = (value: string): Value => ({
-  type: LogicUnify.string,
+  type: StaticType.string,
   memory: Memory.string(value),
 })

@@ -1,24 +1,12 @@
-import { AST } from '@lona/compiler/lib/helpers/logic-ast'
 import * as Serialization from '@lona/serialization'
 import fs from 'fs'
-import path from 'path'
-import util from 'util'
-
-import { createNamespace, UUID } from '../namespace'
-import { createScopeContext } from '../scope'
-import {
-  makeUnificationContext,
-  unify,
-  substitute,
-  Unification,
-} from '../unify'
-import { silentReporter } from '../../reporter'
 import isEqual from 'lodash.isequal'
-
-function readLibrary(name: string): string {
-  const librariesPath = path.join(__dirname, '../library')
-  return fs.readFileSync(path.join(librariesPath, `${name}.logic`), 'utf8')
-}
+import path from 'path'
+import { silentReporter } from '../../reporter'
+import { createNamespace } from '../namespace'
+import { createScopeContext } from '../scope'
+import { StaticType } from '../staticType'
+import { makeUnificationContext, substitute, unify } from '../unify'
 
 describe('Logic / Scope', () => {
   it('finds identifier expression references', () => {
@@ -36,7 +24,7 @@ let x: Array<Number> = []`
 
     const substitution = unify(unification.constraints, silentReporter)
 
-    let type: Unification = { type: 'variable', value: '?5' }
+    let type: StaticType = { type: 'variable', value: '?5' }
 
     let result = substitute(substitution, type)
 
