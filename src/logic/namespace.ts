@@ -1,12 +1,7 @@
-import {
-  TraversalConfig,
-  emptyConfig,
-  reduce,
-} from '@lona/compiler/lib/helpers/logic-traversal'
 import { LogicAST as AST } from '@lona/serialization'
 import { NodePath } from './nodePath'
 import { createDeclarationNode } from './nodes/declarations'
-import { forEach, Traversal, visit } from './syntaxNode'
+import { Traversal, visit } from './syntaxNode'
 
 export type UUID = string
 

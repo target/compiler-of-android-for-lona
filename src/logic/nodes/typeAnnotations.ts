@@ -1,7 +1,6 @@
 import { LogicAST as AST } from '@lona/serialization'
-import { NamespaceVisitor, builtInTypeConstructorNames } from '../namespace'
-import { IDeclaration, ITypeAnnotation } from './interfaces'
 import { ScopeVisitor } from '../scope'
+import { ITypeAnnotation } from './interfaces'
 
 export function createTypeAnnotationNode(
   syntaxNode: AST.SyntaxNode

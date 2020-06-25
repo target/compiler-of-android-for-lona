@@ -84,18 +84,18 @@ type Thunk = {
 export class EvaluationContext {
   private values: { [uuid: string]: Value } = {}
   private thunks: { [uuid: string]: Thunk } = {}
-  private scopeContext: LogicScope.Scope
+  private scope: LogicScope.Scope
   private reporter: Reporter
 
   /** The root Logic node used to build the evaluation context  */
   public rootNode: AST.SyntaxNode
 
   constructor(
-    scopeContext: LogicScope.Scope,
+    scope: LogicScope.Scope,
     rootNode: AST.SyntaxNode,
     reporter: Reporter
   ) {
-    this.scopeContext = scopeContext
+    this.scope = scope
     this.rootNode = rootNode
     this.reporter = reporter
   }
@@ -128,7 +128,7 @@ export class EvaluationContext {
   // }
 
   getPattern(uuid: string): string | undefined {
-    return this.scopeContext.expressionToPattern[uuid]
+    return this.scope.expressionToPattern[uuid]
   }
 
   // private getOriginalFile(uuid: string): string | undefined {
@@ -168,7 +168,7 @@ export class EvaluationContext {
 
   copy() {
     const newContext = new EvaluationContext(
-      this.scopeContext,
+      this.scope,
       this.rootNode,
       this.reporter
     )

@@ -1,23 +1,13 @@
-import {
-  TraversalConfig,
-  emptyConfig,
-  reduce,
-} from '@lona/compiler/lib/helpers/logic-traversal'
-import {
-  AST,
-  flattenedMemberExpression,
-} from '@lona/compiler/lib/helpers/logic-ast'
-import { UUID, Namespace } from './namespace'
-import { NodePath } from './nodePath'
 import { Reporter } from '@lona/compiler/lib/helpers/reporter'
+import { LogicAST as AST } from '@lona/serialization'
 import { silentReporter } from '../reporter'
+import { Namespace, UUID } from './namespace'
+import { NodePath } from './nodePath'
+import { createScopeVisitor } from './nodes/createNode'
 import ScopeStack from './scopeStack'
 import { Traversal, visit } from './syntaxNode'
-import { createNode, createScopeVisitor } from './nodes/createNode'
 
 export class Scope {
-  currentPath: NodePath = new NodePath()
-
   // References to the pattern they're defined by (e.g. the record name or function argument)
   identifierExpressionToPattern: { [key: string]: UUID } = {}
   memberExpressionToPattern: { [key: string]: UUID } = {}
