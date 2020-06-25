@@ -3,7 +3,7 @@ import * as Serialization from '@lona/serialization'
 import fs from 'fs'
 import path from 'path'
 
-import { createNamespace, UUID } from '../namespace'
+import { createNamespace } from '../namespace'
 import { createScopeContext } from '../scope'
 import { findNode } from '../node'
 

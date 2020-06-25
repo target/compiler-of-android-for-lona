@@ -21,7 +21,7 @@ export class ScopeContext {
     this.namespace = namespace
   }
 
-  // Refernces to the pattern they're defined by (e.g. the record name or function argument)
+  // References to the pattern they're defined by (e.g. the record name or function argument)
   identifierExpressionToPattern: { [key: string]: UUID } = {}
   memberExpressionToPattern: { [key: string]: UUID } = {}
   typeIdentifierToPattern: { [key: string]: UUID } = {}
@@ -37,6 +37,13 @@ export class ScopeContext {
 
   get namesInScope(): string[] {
     return Object.keys(this.valueNames.flattened())
+  }
+
+  get expressionToPattern(): { [key: string]: UUID } {
+    return {
+      ...this.identifierExpressionToPattern,
+      ...this.memberExpressionToPattern,
+    }
   }
 
   pushScope() {
@@ -233,6 +240,9 @@ function leaveNode(
 
       if (found) {
         context.identifierExpressionToPattern[id] = found
+
+        // TEMPORARY
+        context.identifierExpressionToPattern[identifier.id] = found
       } else {
         reporter.warn(`No identifier: ${identifier.string}`, context.valueNames)
         context.undefinedIdentifierExpressions.add(id)
