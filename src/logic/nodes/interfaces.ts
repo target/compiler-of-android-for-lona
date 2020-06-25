@@ -1,31 +1,26 @@
 import { LogicAST as AST } from '@lona/serialization'
-import { TraversalConfig } from '@lona/compiler/lib/helpers/logic-traversal'
-import { Reporter } from '@lona/compiler/lib/helpers/reporter'
 import { NamespaceVisitor } from '../namespace'
-import { Scope } from '../scope'
+import { ScopeVisitor } from '../scope'
 
-// interface INode {
-//   syntaxNode: AST.SyntaxNode
-// }
+export interface INode {
+  syntaxNode: AST.SyntaxNode
+}
 
-export interface INamespaceContributor {
+export interface INamespaceContributor extends INode {
   namespaceEnter(visitor: NamespaceVisitor): void
   namespaceLeave(visitor: NamespaceVisitor): void
 }
 
-export interface IScopeContributor {
-  scopeEnter(
-    node: AST.SyntaxNode,
-    context: Scope,
-    config: TraversalConfig,
-    walk: (
-      result: Scope,
-      currentNode: AST.SyntaxNode,
-      config: TraversalConfig
-    ) => Scope,
-    reporter: Reporter
-  ): void
-  scopeLeave(visitor: NamespaceVisitor): void
+export interface IScopeContributor extends INode {
+  scopeEnter(visitor: ScopeVisitor): void
+  scopeLeave(visitor: ScopeVisitor): void
 }
 
-export interface IDeclaration extends INamespaceContributor {}
+export interface IDeclaration
+  extends INode,
+    INamespaceContributor,
+    IScopeContributor {}
+
+export interface ITypeAnnotation extends INode, IScopeContributor {}
+
+export interface IExpression extends INode, IScopeContributor {}

@@ -43,6 +43,39 @@ export function forEach(
   )
 }
 
+export function visit(
+  rootNode: AST.SyntaxNode,
+  config: TraversalConfig,
+  {
+    enter,
+    leave,
+    targetId,
+  }: {
+    enter?: (node: AST.SyntaxNode, config: TraversalConfig) => void
+    leave?: (node: AST.SyntaxNode, config: TraversalConfig) => void
+    targetId?: string
+  }
+) {
+  forEach(rootNode, config, node => {
+    if (node.data.id == targetId) {
+      config.stopTraversal = true
+      return
+    }
+
+    config.needsRevisitAfterTraversingChildren = true
+
+    if (config._isRevisit) {
+      if (leave) {
+        leave(node, config)
+      }
+    } else {
+      if (enter) {
+        enter(node, config)
+      }
+    }
+  })
+}
+
 export const Traversal = {
   get preorder(): TraversalConfig {
     return {

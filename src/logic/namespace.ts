@@ -6,7 +6,7 @@ import {
 import { LogicAST as AST } from '@lona/serialization'
 import { NodePath } from './nodePath'
 import { createDeclarationNode } from './nodes/declarations'
-import { forEach, Traversal } from './syntaxNode'
+import { forEach, Traversal, visit } from './syntaxNode'
 
 export type UUID = string
 
@@ -92,14 +92,9 @@ export class NamespaceVisitor {
   }
 
   traverse(rootNode: AST.SyntaxNode) {
-    return forEach(rootNode, Traversal.preorder, (currentNode, config) => {
-      config.needsRevisitAfterTraversingChildren = true
-
-      if (config._isRevisit) {
-        createDeclarationNode(currentNode)?.namespaceLeave(this)
-      } else {
-        createDeclarationNode(currentNode)?.namespaceEnter(this)
-      }
+    visit(rootNode, Traversal.preorder, {
+      enter: node => createDeclarationNode(node)?.namespaceEnter(this),
+      leave: node => createDeclarationNode(node)?.namespaceLeave(this),
     })
   }
 }

@@ -39,11 +39,7 @@ let y: Number = x`
 
     expect(identifierExpression).not.toBeUndefined()
 
-    let scope = createScopeContext(
-      rootNode,
-      namespace,
-      identifierExpression.data.id
-    )
+    let scope = createScopeContext(rootNode, namespace)
 
     expect(
       scope.identifierExpressionToPattern[identifierExpression.data.id]
@@ -79,11 +75,7 @@ let y: Number = Foo.x`
 
     expect(memberExpression).not.toBeUndefined()
 
-    let scope = createScopeContext(
-      rootNode,
-      namespace,
-      memberExpression.data.id
-    )
+    let scope = createScopeContext(rootNode, namespace)
 
     expect(scope.memberExpressionToPattern[memberExpression.data.id]).toEqual(
       variable.data.name.id
@@ -132,11 +124,7 @@ let y: Number = Foo.x`
 
     expect(typeIdentifier).not.toBeUndefined()
 
-    let scope = createScopeContext(
-      rootNode,
-      namespace,
-      memberExpression.data.id
-    )
+    let scope = createScopeContext(rootNode, namespace)
 
     expect(scope.typeIdentifierToPattern[typeIdentifier.data.id]).toEqual(
       enumeration.data.name.id
@@ -184,11 +172,7 @@ func bar(hello: Number) -> Number {
 
     expect(identifierExpression).not.toBeUndefined()
 
-    let scope = createScopeContext(
-      rootNode,
-      namespace,
-      identifierExpression.data.id
-    )
+    let scope = createScopeContext(rootNode, namespace)
 
     expect(
       scope.identifierExpressionToPattern[identifierExpression.data.id]
