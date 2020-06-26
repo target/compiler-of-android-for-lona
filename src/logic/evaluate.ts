@@ -1,54 +1,16 @@
-import intersection from 'lodash.intersection'
-import { LogicAST as AST } from '@lona/serialization'
-import * as StaticType from './staticType'
-import * as LogicUnify from './unify'
-import * as LogicScope from './scope'
-import * as LogicTraversal from '@lona/compiler/lib/helpers/logic-traversal'
+import { declarationPathTo } from '@lona/compiler/lib/helpers/logic-ast'
 import { Reporter } from '@lona/compiler/lib/helpers/reporter'
-import { ShallowMap } from '@lona/compiler/lib/utils/shallow-map'
 import { assertNever } from '@lona/compiler/lib/utils/assert-never'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
-import { declarationPathTo } from '@lona/compiler/lib/helpers/logic-ast'
-import { inspect } from 'util'
+import { ShallowMap } from '@lona/compiler/lib/utils/shallow-map'
+import { LogicAST as AST } from '@lona/serialization'
+import { Value, StandardLibrary } from './runtime/value'
+import { Scope } from './scope'
+import * as StaticType from './staticType'
+import { UnificationContext } from './typeChecker'
+import { substitute } from './typeUnifier'
 
 const STANDARD_LIBRARY = 'standard library'
-
-// import * as LogicUnify from './logic-unify'
-// import * as LogicAST from './logic-ast'
-// import * as LogicScope from './logic-scope'
-// import { isHardcodedMapCall } from './hardcoded-mapping'
-// import { hardcoded } from './logic-evaluation-hardcoded-map'
-// import { Reporter } from './reporter'
-// import { nonNullable, ShallowMap, assertNever } from '../utils'
-// import { STANDARD_LIBRARY } from './evaluation-context'
-
-export type Memory =
-  | { type: 'unit' }
-  | { type: 'bool'; value: boolean }
-  | { type: 'number'; value: number }
-  | { type: 'string'; value: string }
-  | { type: 'array'; value: Value[] }
-  | { type: 'enum'; value: string; data: Value[] }
-  | { type: 'record'; value: { [key: string]: Value } }
-  | {
-      type: 'function'
-      value:
-        | {
-            type: 'path'
-            value: string[]
-            evaluate: (...args: Value[]) => Value | undefined
-          }
-        | {
-            type: 'recordInit'
-            value: { [key: string]: [StaticType.StaticType, Value | void] }
-          }
-        | { type: 'enumInit'; value: string }
-    }
-
-export type Value = {
-  type: StaticType.StaticType
-  memory: Memory
-}
 
 function evaluateIsTrue(
   context: EvaluationContext,
@@ -85,17 +47,13 @@ type Thunk = {
 export class EvaluationContext {
   private values: { [uuid: string]: Value } = {}
   private thunks: { [uuid: string]: Thunk } = {}
-  private scope: LogicScope.Scope
+  private scope: Scope
   private reporter: Reporter
 
   /** The root Logic node used to build the evaluation context  */
   public rootNode: AST.SyntaxNode
 
-  constructor(
-    scope: LogicScope.Scope,
-    rootNode: AST.SyntaxNode,
-    reporter: Reporter
-  ) {
+  constructor(scope: Scope, rootNode: AST.SyntaxNode, reporter: Reporter) {
     this.scope = scope
     this.rootNode = rootNode
     this.reporter = reporter
@@ -180,7 +138,7 @@ export class EvaluationContext {
 }
 
 const makeEmpty = (
-  scopeContext: LogicScope.Scope,
+  scopeContext: Scope,
   rootNode: AST.SyntaxNode,
   reporter: Reporter
 ) => new EvaluationContext(scopeContext, rootNode, reporter)
@@ -188,8 +146,8 @@ const makeEmpty = (
 export const evaluate = (
   node: AST.SyntaxNode,
   rootNode: AST.SyntaxNode,
-  scopeContext: LogicScope.Scope,
-  unificationContext: LogicUnify.UnificationContext,
+  scopeContext: Scope,
+  unificationContext: UnificationContext,
   substitution: ShallowMap<StaticType.StaticType, StaticType.StaticType>,
   reporter: Reporter,
   context_: EvaluationContext = makeEmpty(scopeContext, rootNode, reporter)
@@ -239,43 +197,17 @@ export const evaluate = (
     }
     case 'number': {
       const { value, id } = node.data
-      context.addValue(id, {
-        type: StaticType.number,
-        memory: {
-          type: 'number',
-          value,
-        },
-      })
+      context.addValue(id, StandardLibrary.number(value))
       break
     }
     case 'string': {
       const { value, id } = node.data
-      context.addValue(id, {
-        type: StaticType.string,
-        memory: {
-          type: 'string',
-          value,
-        },
-      })
+      context.addValue(id, StandardLibrary.string(value))
       break
     }
     case 'color': {
       const { value, id } = node.data
-      context.addValue(id, {
-        type: StaticType.color,
-        memory: {
-          type: 'record',
-          value: {
-            value: {
-              type: StaticType.string,
-              memory: {
-                type: 'string',
-                value,
-              },
-            },
-          },
-        },
-      })
+      context.addValue(id, StandardLibrary.color(value))
       break
     }
     case 'array': {
@@ -284,20 +216,14 @@ export const evaluate = (
         reporter.error('Failed to unify type of array')
         break
       }
-      const resolvedType = LogicUnify.substitute(substitution, type)
+      const resolvedType = substitute(substitution, type)
       const dependencies = node.data.value
         .filter(x => x.type !== 'placeholder')
         .map(x => x.data.id)
       context.add(node.data.id, {
         label: 'Array Literal',
         dependencies,
-        f: values => ({
-          type: resolvedType,
-          memory: {
-            type: 'array',
-            value: values,
-          },
-        }),
+        f: values => StandardLibrary.array(resolvedType, values),
       })
       break
     }
@@ -354,7 +280,7 @@ export const evaluate = (
         break
       }
 
-      const resolvedType = LogicUnify.substitute(substitution, functionType)
+      const resolvedType = substitute(substitution, functionType)
       if (resolvedType.type !== 'function') {
         reporter.error(
           'Invalid functionCallExpression type (only functions are valid)',
@@ -597,7 +523,7 @@ export const evaluate = (
         reporter.error('Unknown record type')
         break
       }
-      const resolvedType = LogicUnify.substitute(substitution, type)
+      const resolvedType = substitute(substitution, type)
       const dependencies = declarations
         .map(x =>
           x.type === 'variable' && x.data.initializer
@@ -663,7 +589,7 @@ export const evaluate = (
         if (enumCase.type !== 'enumerationCase') {
           return
         }
-        const resolvedConsType = LogicUnify.substitute(substitution, type)
+        const resolvedConsType = substitute(substitution, type)
         const { name } = enumCase.data
         context.addValue(name.id, {
           type: resolvedConsType,

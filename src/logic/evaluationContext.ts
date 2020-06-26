@@ -2,12 +2,13 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { LogicAST as AST, decodeLogic } from '@lona/serialization'
 import * as LogicScope from './scope'
-import * as LogicUnify from './unify'
+import * as LogicUnify from './typeUnifier'
 import * as LogicEvaluate from './evaluate'
 import { Reporter } from '@lona/compiler/lib/helpers/reporter'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { makeProgram, joinPrograms } from '@lona/compiler/lib/helpers/logic-ast'
 import { createNamespace } from './namespace'
+import { makeUnificationContext } from './typeChecker'
 
 export const STANDARD_LIBRARY = 'standard library'
 
@@ -31,7 +32,7 @@ export const generate = (reporter: Reporter, programs: AST.SyntaxNode[]) => {
   const namespace = createNamespace(programNode)
   const scopeContext = LogicScope.createScopeContext(programNode, namespace)
 
-  const unificationContext = LogicUnify.makeUnificationContext(
+  const unificationContext = makeUnificationContext(
     programNode,
     scopeContext,
     reporter

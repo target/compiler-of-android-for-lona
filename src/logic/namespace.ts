@@ -1,7 +1,5 @@
 import { LogicAST as AST } from '@lona/serialization'
-import { NodePath } from './nodePath'
-import { createDeclarationNode } from './nodes/declarations'
-import { Traversal, visit } from './syntaxNode'
+import NamespaceVisitor from './namespaceVisitor'
 
 export type UUID = string
 
@@ -43,54 +41,13 @@ export function merge(namespaces: Namespace[]): Namespace {
   }, createNamespace())
 }
 
+/**
+ * Copy a namespace
+ */
 export function copy(namespace: Namespace): Namespace {
   return {
     values: { ...namespace.values },
     types: { ...namespace.types },
-  }
-}
-
-export class NamespaceVisitor {
-  namespace: Namespace
-  currentPath = new NodePath()
-
-  constructor(namespace: Namespace) {
-    this.namespace = namespace
-  }
-
-  pushPathComponent(name: string) {
-    this.currentPath.pushComponent(name)
-  }
-
-  popPathComponent() {
-    this.currentPath.popComponent()
-  }
-
-  declareValue(name: string, value: UUID) {
-    const path = this.currentPath.pathString(name)
-
-    if (this.namespace.values[path]) {
-      throw new Error(`Value already declared: ${path}`)
-    }
-
-    this.namespace.values[path] = value
-  }
-
-  declareType(name: string, type: UUID) {
-    const path = this.currentPath.pathString(name)
-
-    if (this.namespace.types[path]) {
-      throw new Error(`Type already declared: ${path}`)
-    }
-
-    this.namespace.types[path] = type
-  }
-
-  traverse(rootNode: AST.SyntaxNode) {
-    visit(rootNode, Traversal.preorder, {
-      enter: node => createDeclarationNode(node)?.namespaceEnter(this),
-      leave: node => createDeclarationNode(node)?.namespaceLeave(this),
-    })
   }
 }
 

@@ -1,12 +1,11 @@
 import * as Serialization from '@lona/serialization'
-import fs from 'fs'
 import isEqual from 'lodash.isequal'
-import path from 'path'
 import { silentReporter } from '../../reporter'
 import { createNamespace } from '../namespace'
 import { createScopeContext } from '../scope'
 import { StaticType } from '../staticType'
-import { makeUnificationContext, substitute, unify } from '../unify'
+import { makeUnificationContext } from '../typeChecker'
+import { substitute, unify } from '../typeUnifier'
 
 describe('Logic / Scope', () => {
   it('finds identifier expression references', () => {

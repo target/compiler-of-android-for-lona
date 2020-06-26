@@ -1,4 +1,4 @@
-import * as LogicUnify from '../unify'
+import * as LogicUnify from '../typeUnifier'
 import { Value } from './value'
 import { StaticType } from '../staticType'
 
@@ -32,3 +32,5 @@ export const bool = (value: boolean): Memory => ({ type: 'bool', value })
 export const number = (value: number): Memory => ({ type: 'number', value })
 
 export const string = (value: string): Memory => ({ type: 'string', value })
+
+export const array = (value: Value[]): Memory => ({ type: 'array', value })

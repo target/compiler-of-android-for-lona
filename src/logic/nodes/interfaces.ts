@@ -1,6 +1,6 @@
 import { LogicAST as AST } from '@lona/serialization'
-import { NamespaceVisitor } from '../namespace'
 import { ScopeVisitor } from '../scope'
+import NamespaceVisitor from '../namespaceVisitor'
 
 export interface INode {
   syntaxNode: AST.SyntaxNode
