@@ -138,19 +138,19 @@ export class EvaluationContext {
 }
 
 const makeEmpty = (
-  scopeContext: Scope,
+  scope: Scope,
   rootNode: AST.SyntaxNode,
   reporter: Reporter
-) => new EvaluationContext(scopeContext, rootNode, reporter)
+) => new EvaluationContext(scope, rootNode, reporter)
 
 export const evaluate = (
   node: AST.SyntaxNode,
   rootNode: AST.SyntaxNode,
-  scopeContext: Scope,
-  unificationContext: TypeChecker,
+  scope: Scope,
+  typeChecker: TypeChecker,
   substitution: ShallowMap<StaticType.StaticType, StaticType.StaticType>,
   reporter: Reporter,
-  context_: EvaluationContext = makeEmpty(scopeContext, rootNode, reporter)
+  initialContext: EvaluationContext = makeEmpty(scope, rootNode, reporter)
 ): EvaluationContext | undefined => {
   const context = AST.subNodes(node).reduce<EvaluationContext | undefined>(
     (prev, subNode) => {
@@ -160,14 +160,14 @@ export const evaluate = (
       return evaluate(
         subNode,
         rootNode,
-        scopeContext,
-        unificationContext,
+        scope,
+        typeChecker,
         substitution,
         reporter,
         prev
       )
     },
-    context_
+    initialContext
   )
 
   if (!context) {
@@ -211,7 +211,7 @@ export const evaluate = (
       break
     }
     case 'array': {
-      const type = unificationContext.nodes[node.data.id]
+      const type = typeChecker.nodes[node.data.id]
       if (!type) {
         reporter.error('Failed to unify type of array')
         break
@@ -240,7 +240,7 @@ export const evaluate = (
         id,
         identifier: { string },
       } = node.data
-      const patternId = scopeContext.identifierExpressionToPattern[id]
+      const patternId = scope.identifierExpressionToPattern[id]
 
       if (!patternId) {
         break
@@ -260,7 +260,7 @@ export const evaluate = (
       break
     }
     case 'memberExpression': {
-      const patternId = scopeContext.memberExpressionToPattern[node.data.id]
+      const patternId = scope.memberExpressionToPattern[node.data.id]
       if (!patternId) {
         break
       }
@@ -274,7 +274,7 @@ export const evaluate = (
     }
     case 'functionCallExpression': {
       const { expression, arguments: args } = node.data
-      let functionType = unificationContext.nodes[expression.data.id]
+      let functionType = typeChecker.nodes[expression.data.id]
       if (!functionType) {
         reporter.error('Unknown type of functionCallExpression')
         break
@@ -440,7 +440,7 @@ export const evaluate = (
     }
     case 'function': {
       const { name, block, parameters } = node.data
-      const type = unificationContext.patternTypes[name.id]
+      const type = typeChecker.patternTypes[name.id]
       const fullPath = declarationPathTo(rootNode, node.data.id)
 
       // if (name.name === 'View') {
@@ -518,7 +518,7 @@ export const evaluate = (
     }
     case 'record': {
       const { name, declarations } = node.data
-      const type = unificationContext.patternTypes[name.id]
+      const type = typeChecker.patternTypes[name.id]
       if (!type) {
         reporter.error('Unknown record type')
         break
@@ -546,7 +546,7 @@ export const evaluate = (
               return
             }
             const parameterType =
-              unificationContext.patternTypes[declaration.data.name.id]
+              typeChecker.patternTypes[declaration.data.name.id]
             if (!parameterType) {
               return
             }
@@ -579,7 +579,7 @@ export const evaluate = (
       break
     }
     case 'enumeration': {
-      const type = unificationContext.patternTypes[node.data.name.id]
+      const type = typeChecker.patternTypes[node.data.name.id]
 
       if (!type) {
         reporter.error('unknown enumberation type')

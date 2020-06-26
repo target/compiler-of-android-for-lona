@@ -1,22 +1,13 @@
 import * as LogicTraversal from '@lona/compiler/lib/helpers/logic-traversal'
 import { Reporter } from '@lona/compiler/lib/helpers/reporter'
 import { assertNever } from '@lona/compiler/lib/utils/assert-never'
-import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { ShallowMap } from '@lona/compiler/lib/utils/shallow-map'
 import { LogicAST as AST } from '@lona/serialization'
-import { Scope } from './scope'
-import {
-  bool,
-  color,
-  FunctionArgument,
-  number,
-  StaticType,
-  string,
-  unit,
-} from './staticType'
-import { Constraint, substitute } from './typeUnifier'
-import { forEach } from './syntaxNode'
 import { createTypeCheckerVisitor } from './nodes/createNode'
+import { Scope } from './scope'
+import { bool, color, number, StaticType, string, unit } from './staticType'
+import { forEach } from './syntaxNode'
+import { Constraint, substitute } from './typeUnifier'
 
 class LogicNameGenerator {
   private prefix: string
