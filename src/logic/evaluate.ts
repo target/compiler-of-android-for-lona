@@ -7,7 +7,7 @@ import { LogicAST as AST } from '@lona/serialization'
 import { Value, StandardLibrary } from './runtime/value'
 import { Scope } from './scope'
 import * as StaticType from './staticType'
-import { UnificationContext } from './typeChecker'
+import { TypeChecker } from './typeChecker'
 import { substitute } from './typeUnifier'
 
 const STANDARD_LIBRARY = 'standard library'
@@ -147,7 +147,7 @@ export const evaluate = (
   node: AST.SyntaxNode,
   rootNode: AST.SyntaxNode,
   scopeContext: Scope,
-  unificationContext: UnificationContext,
+  unificationContext: TypeChecker,
   substitution: ShallowMap<StaticType.StaticType, StaticType.StaticType>,
   reporter: Reporter,
   context_: EvaluationContext = makeEmpty(scopeContext, rootNode, reporter)

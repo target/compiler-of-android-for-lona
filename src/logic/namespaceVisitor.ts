@@ -1,6 +1,6 @@
 import { LogicAST as AST } from '@lona/serialization'
 import { NodePath } from './nodePath'
-import { createDeclarationNode } from './nodes/declarations'
+import { createDeclarationNode } from './nodes/createNode'
 import { Traversal, visit } from './syntaxNode'
 import { Namespace, UUID } from './namespace'
 
