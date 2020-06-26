@@ -1,7 +1,7 @@
-import { LogicAST as AST } from '@lona/serialization'
-import { ScopeVisitor } from '../scope'
-import { IExpression } from './interfaces'
 import { flattenedMemberExpression } from '@lona/compiler/lib/helpers/logic-ast'
+import { LogicAST as AST } from '@lona/serialization'
+import { ScopeVisitor } from '../scopeVisitor'
+import { IExpression } from './interfaces'
 
 export function createExpressionNode(
   syntaxNode: AST.SyntaxNode

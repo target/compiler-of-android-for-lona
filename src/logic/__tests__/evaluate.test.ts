@@ -50,7 +50,16 @@ describe('Logic / Evaluate', () => {
     })
   })
 
-  it('evaluates number literals', () => {
+  it('evaluates color literals', () => {
+    const file = `let x: Color = #color(css: "red")`
+    const rootNode = Serialization.decodeLogic(file)
+    const initializerId = getInitializerId(rootNode, 'x')
+    const evaluation = standardEvaluate(rootNode)
+
+    expect(evaluation.evaluate(initializerId)).toMatchSnapshot()
+  })
+
+  it('evaluates enums', () => {
     const file = `
 enum Foo {
   case bar()
@@ -68,6 +77,59 @@ let x: Foo = Foo.bar()
     })
   })
 
+  it('evaluates custom function', () => {
+    const file = `
+func test() -> Number {
+  return 42
+}
+
+let x: Number = test()
+`
+    const rootNode = Serialization.decodeLogic(file)
+    const initializerId = getInitializerId(rootNode, 'x')
+    const evaluation = standardEvaluate(rootNode)
+
+    const result = evaluation.evaluate(initializerId)
+
+    expect(result).toMatchSnapshot()
+  })
+
+  it('evaluates custom function with arguments', () => {
+    const file = `
+func test(myNumber: Number) -> Number {
+  return myNumber
+}
+
+let x: Number = test(myNumber: 42)
+`
+    const rootNode = Serialization.decodeLogic(file)
+    const initializerId = getInitializerId(rootNode, 'x')
+    const evaluation = standardEvaluate(rootNode)
+
+    const result = evaluation.evaluate(initializerId)
+
+    expect(result).toMatchSnapshot()
+  })
+
+  //   it('evaluates custom function with argument default value', () => {
+  //     const file = `
+  // func test(myNumber: Number) -> Number {
+  //   return myNumber
+  // }
+
+  // let x: Number = test()
+  // `
+  //     const rootNode = Serialization.decodeLogic(file)
+  //     const initializerId = getInitializerId(rootNode, 'x')
+  //     const evaluation = standardEvaluate(rootNode)
+
+  //     const result = evaluation.evaluate(initializerId)
+
+  //     console.log(result)
+
+  //     // expect(result).toMatchSnapshot()
+  //   })
+
   it('evaluates DimensionSize', () => {
     const file = `
 let x: DimensionSize = DimensionSize.fixed(100)
@@ -79,14 +141,10 @@ let x: DimensionSize = DimensionSize.fixed(100)
     expect(evaluation.evaluate(initializerId)).toMatchSnapshot()
   })
 
-  it('evaluates custom function', () => {
+  it('evaluates ElementParameter', () => {
     const file = `
-func test() -> DimensionSize {
-  return DimensionSize.fixed(100)
-}
-
-let x: DimensionSize = test()
-`
+  let x: ElementParameter = ElementParameter.number("height", 20)
+  `
     const rootNode = Serialization.decodeLogic(file)
     const initializerId = getInitializerId(rootNode, 'x')
     const evaluation = standardEvaluate(rootNode)
@@ -96,16 +154,47 @@ let x: DimensionSize = test()
     expect(result).toMatchSnapshot()
   })
 
-  //   it('evaluates View function', () => {
-  //     const file = `
-  // let x: Element = View()
-  // `
-  //     const rootNode = Serialization.decodeLogic(file)
-  //     const initializerId = getInitializerId(rootNode, 'x')
-  //     const evaluation = standardEvaluate(rootNode)
+  it('evaluates Element', () => {
+    const file = `
+  let x: Element = Element(type: "Test", parameters: [])
+  `
+    const rootNode = Serialization.decodeLogic(file)
+    const initializerId = getInitializerId(rootNode, 'x')
+    const evaluation = standardEvaluate(rootNode)
 
-  //     const result = evaluation.evaluate(initializerId)
+    const result = evaluation.evaluate(initializerId)
 
-  //     expect(result).toEqual({})
-  //   })
+    expect(result).toMatchSnapshot()
+  })
+
+  it('evaluates Padding', () => {
+    const file = `
+  let x: Padding = Padding.size(value: 8)
+  `
+    const rootNode = Serialization.decodeLogic(file)
+    const initializerId = getInitializerId(rootNode, 'x')
+    const evaluation = standardEvaluate(rootNode)
+
+    const result = evaluation.evaluate(initializerId)
+
+    expect(result).toMatchSnapshot()
+  })
+
+  it('evaluates View', () => {
+    const file = `
+  let width: DimensionSize = DimensionSize.fixed(20)
+  let height: DimensionSize = DimensionSize.fixed(20)
+  let name: String = "name"
+  let padding: Padding = Padding.size(value: 8)
+  let backgroundColor: Color = #color(css: "red")
+  let x: Element = View(__name: name, width: width, height: height, padding: padding, backgroundColor: backgroundColor, children: [])
+  `
+    const rootNode = Serialization.decodeLogic(file)
+    const initializerId = getInitializerId(rootNode, 'x')
+    const evaluation = standardEvaluate(rootNode)
+
+    const result = evaluation.evaluate(initializerId)
+
+    expect(result).toMatchSnapshot()
+  })
 })
