@@ -5,6 +5,8 @@ import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { StaticType } from '../staticType'
+import { EvaluationVisitor } from '../evaluate'
+import { substitute } from '../typeUnifier'
 
 export class EnumerationDeclaration implements IDeclaration {
   syntaxNode: AST.EnumerationDeclaration
@@ -124,4 +126,34 @@ export class EnumerationDeclaration implements IDeclaration {
   }
 
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {}
+
+  evaluationEnter(visitor: EvaluationVisitor) {
+    const { name, cases } = this.syntaxNode.data
+    const { typeChecker, substitution, reporter } = visitor
+
+    const type = typeChecker.patternTypes[name.id]
+
+    if (!type) {
+      reporter.error('unknown enumberation type')
+      return
+    }
+
+    cases.forEach(enumCase => {
+      if (enumCase.type !== 'enumerationCase') return
+
+      const resolvedConsType = substitute(substitution, type)
+      const { name } = enumCase.data
+
+      visitor.addValue(name.id, {
+        type: resolvedConsType,
+        memory: {
+          type: 'function',
+          value: {
+            type: 'enumInit',
+            value: name.name,
+          },
+        },
+      })
+    })
+  }
 }

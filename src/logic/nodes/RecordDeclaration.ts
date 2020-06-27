@@ -6,6 +6,9 @@ import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { StaticType, FunctionArgument } from '../staticType'
+import { EvaluationVisitor } from '../evaluate'
+import { Value } from '../runtime/value'
+import { substitute } from '@lona/compiler/lib/helpers/logic-unify'
 
 export class RecordDeclaration implements IDeclaration {
   syntaxNode: AST.RecordDeclaration
@@ -136,4 +139,69 @@ export class RecordDeclaration implements IDeclaration {
   }
 
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {}
+
+  evaluationEnter(visitor: EvaluationVisitor) {
+    const { name, declarations } = this.syntaxNode.data
+    const { typeChecker, substitution, reporter } = visitor
+
+    const type = typeChecker.patternTypes[name.id]
+
+    if (!type) {
+      reporter.error('Unknown record type')
+      return
+    }
+
+    const resolvedType = substitute(substitution, type)
+    const dependencies = declarations
+      .map(x =>
+        x.type === 'variable' && x.data.initializer
+          ? x.data.initializer.data.id
+          : undefined
+      )
+      .filter(nonNullable)
+
+    visitor.add(name.id, {
+      label: 'Record declaration for ' + name.name,
+      dependencies,
+      f: values => {
+        const parameterTypes: {
+          [key: string]: [StaticType, Value | void]
+        } = {}
+        let index = 0
+
+        declarations.forEach(declaration => {
+          if (declaration.type !== 'variable') {
+            return
+          }
+          const parameterType =
+            typeChecker.patternTypes[declaration.data.name.id]
+          if (!parameterType) {
+            return
+          }
+
+          let initialValue: Value | void
+          if (declaration.data.initializer) {
+            initialValue = values[index]
+            index += 1
+          }
+
+          parameterTypes[declaration.data.name.name] = [
+            parameterType,
+            initialValue,
+          ]
+        })
+
+        return {
+          type: resolvedType,
+          memory: {
+            type: 'function',
+            value: {
+              type: 'recordInit',
+              value: parameterTypes,
+            },
+          },
+        }
+      },
+    })
+  }
 }

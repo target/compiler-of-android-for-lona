@@ -3,6 +3,7 @@ import { IDeclaration } from './interfaces'
 import NamespaceVisitor from '../namespaceVisitor'
 import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
+import { EvaluationVisitor } from '../evaluate'
 
 export class VariableDeclaration implements IDeclaration {
   syntaxNode: AST.VariableDeclaration
@@ -60,5 +61,17 @@ export class VariableDeclaration implements IDeclaration {
 
       typeChecker.patternTypes[name.id] = annotationType
     }
+  }
+
+  evaluationEnter(visitor: EvaluationVisitor): void {
+    const { initializer, name } = this.syntaxNode.data
+
+    if (!initializer) return
+
+    visitor.add(name.id, {
+      label: 'Variable initializer for ' + name.name,
+      dependencies: [initializer.data.id],
+      f: values => values[0],
+    })
   }
 }

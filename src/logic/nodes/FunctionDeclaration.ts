@@ -5,6 +5,9 @@ import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { StaticType, FunctionArgument } from '../staticType'
+import { EvaluationVisitor, evaluateIsTrue } from '../evaluate'
+import { declarationPathTo } from '@lona/compiler/lib/helpers/logic-ast'
+import { Value } from '../runtime/value'
 
 export class FunctionDeclaration implements IDeclaration {
   syntaxNode: AST.FunctionDeclaration
@@ -104,4 +107,76 @@ export class FunctionDeclaration implements IDeclaration {
   }
 
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {}
+
+  evaluationEnter(visitor: EvaluationVisitor) {
+    const { id, name, block, parameters } = this.syntaxNode.data
+    const { rootNode, typeChecker, substitution, reporter } = visitor
+
+    const type = typeChecker.patternTypes[name.id]
+    const fullPath = declarationPathTo(rootNode, id)
+
+    if (!type) {
+      reporter.error('Unknown function type')
+      return
+    }
+
+    visitor.addValue(name.id, {
+      type,
+      memory: {
+        type: 'function',
+        value: {
+          type: 'path',
+          value: fullPath,
+          evaluate(...args: Value[]) {
+            const newContext = visitor.evaluation.copy()
+
+            parameters.forEach((p, i) => {
+              newContext.addValue(p.data.id, args[i])
+              if (p.type === 'parameter') {
+                newContext.addValue(p.data.localName.id, args[i])
+              }
+            })
+
+            function evaluateBlock(block: AST.Statement[]): Value | undefined {
+              for (let statement of block) {
+                switch (statement.type) {
+                  case 'branch': {
+                    if (evaluateIsTrue(newContext, statement.data.condition)) {
+                      const res = evaluateBlock(statement.data.block)
+                      if (res) {
+                        return res
+                      }
+                    }
+                    break
+                  }
+                  case 'placeholder':
+                  case 'expression':
+                  case 'declaration': {
+                    break
+                  }
+                  case 'loop': {
+                    while (
+                      evaluateIsTrue(newContext, statement.data.expression)
+                    ) {
+                      const res = evaluateBlock(statement.data.block)
+                      if (res) {
+                        return res
+                      }
+                    }
+                  }
+                  case 'return': {
+                    return newContext.evaluate(
+                      statement.data.expression.data.id
+                    )
+                  }
+                }
+              }
+            }
+
+            return evaluateBlock(block)
+          },
+        },
+      },
+    })
+  }
 }
