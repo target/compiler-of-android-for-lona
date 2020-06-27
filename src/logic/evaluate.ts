@@ -8,7 +8,8 @@ import { Value, StandardLibrary } from './runtime/value'
 import { Scope } from './scope'
 import * as StaticType from './staticType'
 import { TypeChecker } from './typeChecker'
-import { substitute } from './typeUnifier'
+import { substitute, Substitution } from './typeUnifier'
+import { createNode, createEvaluationVisitor } from './nodes/createNode'
 
 const STANDARD_LIBRARY = 'standard library'
 
@@ -33,29 +34,47 @@ type Thunk = {
   f: (args: Value[]) => Value
 }
 
+export class EvaluationVisitor {
+  evaluation: EvaluationContext
+  rootNode: AST.SyntaxNode
+  scope: Scope
+  reporter: Reporter
+  typeChecker: TypeChecker
+  substitution: Substitution
+
+  constructor(
+    rootNode: AST.SyntaxNode,
+    scope: Scope,
+    typeChecker: TypeChecker,
+    substitution: Substitution,
+    reporter: Reporter
+  ) {
+    this.evaluation = new EvaluationContext(reporter)
+    this.rootNode = rootNode
+    this.scope = scope
+    this.reporter = reporter
+    this.typeChecker = typeChecker
+    this.substitution = substitution
+  }
+
+  add(uuid: string, thunk: Thunk) {
+    this.evaluation.add(uuid, thunk)
+  }
+
+  addValue(uuid: string, value: Value) {
+    this.evaluation.addValue(uuid, value)
+  }
+}
+
 /**
  * The evaluation context of the Lona Workspace.
- *
- * It contains some mapping between the identifiers and what they reference,
- * eg. `Optional.none` -> the function declaration in Prelude.logic
- * which is used to evaluate `Optional.none` to
- * `{ type: unit, memory: { type: 'unit' } }` for example. It takes care of
- * the scope of the identifier to determine the reference.
- *
- * Additionally, it keeps track of where declaration are from.
  */
 export class EvaluationContext {
-  private values: { [uuid: string]: Value } = {}
-  private thunks: { [uuid: string]: Thunk } = {}
-  private scope: Scope
-  private reporter: Reporter
+  values: { [uuid: string]: Value } = {}
+  thunks: { [uuid: string]: Thunk } = {}
+  reporter?: Reporter
 
-  /** The root Logic node used to build the evaluation context  */
-  public rootNode: AST.SyntaxNode
-
-  constructor(scope: Scope, rootNode: AST.SyntaxNode, reporter: Reporter) {
-    this.scope = scope
-    this.rootNode = rootNode
+  constructor(reporter?: Reporter) {
     this.reporter = reporter
   }
 
@@ -67,52 +86,25 @@ export class EvaluationContext {
     this.values[uuid] = value
   }
 
-  /** Whether the id references something from the Lona's standard library */
-  // isFromStandardLibrary(uuid: string): boolean {
-  //   return this.getOriginalFile(uuid) === STANDARD_LIBRARY
-  // }
-
-  /** Whether the id references something from another file,
-   * and returns that file if true */
-  // isFromOtherFile(uuid: string, currentFile: string): string | undefined {
-  //   const otherFile = this.getOriginalFile(uuid)
-  //   if (
-  //     otherFile &&
-  //     otherFile !== currentFile &&
-  //     otherFile !== STANDARD_LIBRARY
-  //   ) {
-  //     return otherFile
-  //   }
-  //   return undefined
-  // }
-
-  getPattern(uuid: string): string | undefined {
-    return this.scope.expressionToPattern[uuid]
-  }
-
-  // private getOriginalFile(uuid: string): string | undefined {
-  //   return (
-  //     this.scopeContext.expressionToPattern[uuid] || {
-  //       in: undefined,
-  //     }
-  //   )
-  // }
-
-  /** Evaluate the id to a value, resolving any dependency along the way */
+  /**
+   * Evaluate the id to a value, resolving any dependency along the way
+   */
   evaluate(uuid: string): Value | undefined {
     const value = this.values[uuid]
-    if (value) {
-      return value
-    }
+
+    if (value) return value
+
     const thunk = this.thunks[uuid]
+
     if (!thunk) {
-      this.reporter.error(`no thunk for ${uuid}`)
+      this.reporter?.error(`no thunk for ${uuid}`)
       return undefined
     }
 
     const resolvedDependencies = thunk.dependencies.map(x => this.evaluate(x))
+
     if (resolvedDependencies.some(x => !x)) {
-      this.reporter.error(
+      this.reporter?.error(
         `Failed to evaluate thunk ${uuid} (${thunk.label}) - missing dep ${
           thunk.dependencies[resolvedDependencies.findIndex(x => !x)]
         }`
@@ -122,50 +114,38 @@ export class EvaluationContext {
 
     const result = thunk.f(resolvedDependencies as Value[])
     this.values[uuid] = result
+
     return result
   }
 
   copy() {
-    const newContext = new EvaluationContext(
-      this.scope,
-      this.rootNode,
-      this.reporter
-    )
+    const newContext = new EvaluationContext(this.reporter)
     newContext.thunks = { ...this.thunks }
     newContext.values = { ...this.values }
     return newContext
   }
 }
 
-const makeEmpty = (
-  scope: Scope,
-  rootNode: AST.SyntaxNode,
-  reporter: Reporter
-) => new EvaluationContext(scope, rootNode, reporter)
-
 export const evaluate = (
   node: AST.SyntaxNode,
-  rootNode: AST.SyntaxNode,
-  scope: Scope,
-  typeChecker: TypeChecker,
-  substitution: ShallowMap<StaticType.StaticType, StaticType.StaticType>,
-  reporter: Reporter,
-  initialContext: EvaluationContext = makeEmpty(scope, rootNode, reporter)
+  visitor: EvaluationVisitor
 ): EvaluationContext | undefined => {
+  const {
+    rootNode,
+    scope,
+    typeChecker,
+    substitution,
+    reporter,
+    evaluation: initialContext,
+  } = visitor
+
+  // TODO: Handle stopping
   const context = AST.subNodes(node).reduce<EvaluationContext | undefined>(
     (prev, subNode) => {
       if (!prev) {
         return undefined
       }
-      return evaluate(
-        subNode,
-        rootNode,
-        scope,
-        typeChecker,
-        substitution,
-        reporter,
-        prev
-      )
+      return evaluate(subNode, visitor)
     },
     initialContext
   )
@@ -175,103 +155,22 @@ export const evaluate = (
   }
 
   switch (node.type) {
-    case 'none': {
-      context.addValue(node.data.id, {
-        type: StaticType.unit,
-        memory: {
-          type: 'unit',
-        },
-      })
-      break
-    }
-    case 'boolean': {
-      const { value, id } = node.data
-      context.addValue(id, {
-        type: StaticType.bool,
-        memory: {
-          type: 'bool',
-          value,
-        },
-      })
-      break
-    }
-    case 'number': {
-      const { value, id } = node.data
-      context.addValue(id, StandardLibrary.number(value))
-      break
-    }
-    case 'string': {
-      const { value, id } = node.data
-      context.addValue(id, StandardLibrary.string(value))
-      break
-    }
-    case 'color': {
-      const { value, id } = node.data
-      context.addValue(id, StandardLibrary.color(value))
-      break
-    }
-    case 'array': {
-      const type = typeChecker.nodes[node.data.id]
-      if (!type) {
-        reporter.error('Failed to unify type of array')
-        break
-      }
-      const resolvedType = substitute(substitution, type)
-      const dependencies = node.data.value
-        .filter(x => x.type !== 'placeholder')
-        .map(x => x.data.id)
-      context.add(node.data.id, {
-        label: 'Array Literal',
-        dependencies,
-        f: values => StandardLibrary.array(resolvedType, values),
-      })
-      break
-    }
-    case 'literalExpression': {
-      context.add(node.data.id, {
-        label: 'Literal expression',
-        dependencies: [node.data.literal.data.id],
-        f: values => values[0],
-      })
-      break
-    }
-    case 'identifierExpression': {
-      const {
-        id,
-        identifier: { string },
-      } = node.data
-      const patternId = scope.identifierExpressionToPattern[id]
+    case 'identifierExpression':
+    case 'none':
+    case 'boolean':
+    case 'number':
+    case 'string':
+    case 'color':
+    case 'array':
+    case 'literalExpression':
+    case 'memberExpression':
+      const visitorNode = createEvaluationVisitor(node)
 
-      if (!patternId) {
-        break
+      if (visitorNode) {
+        visitorNode.evaluationEnter(visitor)
       }
 
-      context.add(id, {
-        label: 'Identifier ' + string,
-        dependencies: [patternId],
-        f: values => values[0],
-      })
-      context.add(node.data.id, {
-        label: 'IdentifierExpression ' + string,
-        dependencies: [patternId],
-        f: values => values[0],
-      })
-
       break
-    }
-    case 'memberExpression': {
-      const patternId = scope.memberExpressionToPattern[node.data.id]
-      if (!patternId) {
-        break
-      }
-      context.add(node.data.id, {
-        label: 'Member expression',
-        dependencies: [patternId],
-        f: values => values[0],
-      })
-
-      break
-    }
     case 'functionCallExpression': {
       const { expression, arguments: args } = node.data
       let functionType = typeChecker.nodes[expression.data.id]
@@ -316,7 +215,7 @@ export const evaluate = (
       //   )
       // }
 
-      context.add(node.data.id, {
+      visitor.add(node.data.id, {
         label: 'FunctionCallExpression',
         dependencies,
         f: values => {
@@ -430,7 +329,7 @@ export const evaluate = (
     }
     case 'variable': {
       if (node.data.initializer) {
-        context.add(node.data.name.id, {
+        visitor.add(node.data.name.id, {
           label: 'Variable initializer for ' + node.data.name.name,
           dependencies: [node.data.initializer.data.id],
           f: values => values[0],
@@ -452,7 +351,7 @@ export const evaluate = (
         break
       }
 
-      context.addValue(name.id, {
+      visitor.addValue(name.id, {
         type,
         memory: {
           type: 'function',
@@ -532,7 +431,7 @@ export const evaluate = (
         )
         .filter(nonNullable)
 
-      context.add(name.id, {
+      visitor.add(name.id, {
         label: 'Record declaration for ' + name.name,
         dependencies,
         f: values => {
@@ -591,7 +490,7 @@ export const evaluate = (
         }
         const resolvedConsType = substitute(substitution, type)
         const { name } = enumCase.data
-        context.addValue(name.id, {
+        visitor.addValue(name.id, {
           type: resolvedConsType,
           memory: {
             type: 'function',
@@ -606,10 +505,10 @@ export const evaluate = (
       break
     }
     case 'assignmentExpression': {
-      context.add(node.data.left.data.id, {
+      visitor.add(node.data.left.data.id, {
         label:
           'Assignment for ' +
-          declarationPathTo(context.rootNode, node.data.left.data.id).join('.'),
+          declarationPathTo(rootNode, node.data.left.data.id).join('.'),
         dependencies: [node.data.right.data.id],
         f: values => values[0],
       })

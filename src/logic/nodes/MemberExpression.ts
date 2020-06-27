@@ -3,6 +3,7 @@ import { LogicAST as AST } from '@lona/serialization'
 import { ScopeVisitor } from '../scopeVisitor'
 import { IExpression } from './interfaces'
 import { TypeCheckerVisitor } from '../typeChecker'
+import { EvaluationVisitor } from '../evaluate'
 
 export class MemberExpression implements IExpression {
   syntaxNode: AST.MemberExpression
@@ -49,5 +50,20 @@ export class MemberExpression implements IExpression {
       typeChecker,
       id
     )
+  }
+
+  evaluationEnter(visitor: EvaluationVisitor) {
+    const { id } = this.syntaxNode.data
+    const { scope } = visitor
+
+    const patternId = scope.memberExpressionToPattern[id]
+
+    if (!patternId) return
+
+    visitor.add(id, {
+      label: 'Member expression',
+      dependencies: [patternId],
+      f: values => values[0],
+    })
   }
 }

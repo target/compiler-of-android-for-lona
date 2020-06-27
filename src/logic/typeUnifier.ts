@@ -11,8 +11,10 @@ export type Constraint = {
   origin?: any
 }
 
+export type Substitution = ShallowMap<StaticType, StaticType>
+
 export function substitute(
-  substitution: ShallowMap<StaticType, StaticType>,
+  substitution: Substitution,
   type: StaticType
 ): StaticType {
   let resolvedType = substitution.get(type)
@@ -49,8 +51,8 @@ export function substitute(
 export const unify = (
   constraints: Constraint[],
   reporter: Reporter,
-  substitution: ShallowMap<StaticType, StaticType> = new ShallowMap()
-): ShallowMap<StaticType, StaticType> => {
+  substitution: Substitution = new ShallowMap()
+): Substitution => {
   while (constraints.length > 0) {
     const constraint = constraints.shift()
     if (!constraint) {

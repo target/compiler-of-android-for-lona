@@ -4,7 +4,7 @@ import { silentReporter } from '../../reporter'
 import { createNamespace } from '../namespace'
 import { createScopeContext } from '../scope'
 import { StaticType } from '../staticType'
-import { makeUnificationContext } from '../typeChecker'
+import { createUnificationContext } from '../typeChecker'
 import { substitute, unify } from '../typeUnifier'
 
 describe('Logic / Scope', () => {
@@ -19,7 +19,7 @@ let x: Array<Number> = []`
 
     let scope = createScopeContext(rootNode, namespace)
 
-    let unification = makeUnificationContext(rootNode, scope, silentReporter)
+    let unification = createUnificationContext(rootNode, scope, silentReporter)
 
     const substitution = unify(unification.constraints, silentReporter)
 

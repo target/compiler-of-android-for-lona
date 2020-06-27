@@ -2,6 +2,7 @@ import { LogicAST as AST } from '@lona/serialization'
 import { ScopeVisitor } from '../scopeVisitor'
 import { IExpression } from './interfaces'
 import { TypeCheckerVisitor } from '../typeChecker'
+import { EvaluationVisitor } from '../evaluate'
 
 export class IdentifierExpression implements IExpression {
   syntaxNode: AST.IdentifierExpression
@@ -43,5 +44,28 @@ export class IdentifierExpression implements IExpression {
 
     typeChecker.nodes[id] = type
     typeChecker.nodes[identifier.id] = type
+  }
+
+  evaluationEnter(visitor: EvaluationVisitor): void {
+    const {
+      id,
+      identifier: { string, id: identifierId },
+    } = this.syntaxNode.data
+
+    const patternId = visitor.scope.identifierExpressionToPattern[id]
+
+    if (!patternId) return
+
+    visitor.add(identifierId, {
+      label: 'Identifier ' + string,
+      dependencies: [patternId],
+      f: values => values[0],
+    })
+
+    visitor.add(id, {
+      label: 'IdentifierExpression ' + string,
+      dependencies: [patternId],
+      f: values => values[0],
+    })
   }
 }

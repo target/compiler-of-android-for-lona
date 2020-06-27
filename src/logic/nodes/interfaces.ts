@@ -2,6 +2,7 @@ import { LogicAST as AST } from '@lona/serialization'
 import NamespaceVisitor from '../namespaceVisitor'
 import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
+import { EvaluationVisitor } from '../evaluate'
 
 export interface INode {
   syntaxNode: AST.SyntaxNode
@@ -22,6 +23,10 @@ export interface ITypeCheckerContributor extends INode {
   typeCheckerLeave(visitor: TypeCheckerVisitor): void
 }
 
+export interface IEvaluationContributor extends INode {
+  evaluationEnter(visitor: EvaluationVisitor): void
+}
+
 export interface IDeclaration
   extends INode,
     INamespaceContributor,
@@ -30,3 +35,8 @@ export interface IDeclaration
 export interface ITypeAnnotation extends INode, IScopeContributor {}
 
 export interface IExpression extends INode, IScopeContributor {}
+
+export interface ILiteral
+  extends INode,
+    ITypeCheckerContributor,
+    IEvaluationContributor {}

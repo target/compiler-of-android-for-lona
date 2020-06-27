@@ -7,7 +7,8 @@ import { createTypeCheckerVisitor } from './nodes/createNode'
 import { Scope } from './scope'
 import { bool, color, number, StaticType, string, unit } from './staticType'
 import { forEach } from './syntaxNode'
-import { Constraint, substitute } from './typeUnifier'
+import { Constraint, substitute, Substitution } from './typeUnifier'
+import { UUID } from './namespace'
 
 class LogicNameGenerator {
   private prefix: string
@@ -45,6 +46,14 @@ export class TypeCheckerVisitor {
   constructor(scope: Scope, reporter: Reporter) {
     this.scope = scope
     this.reporter = reporter
+  }
+
+  setType(id: UUID, type: StaticType) {
+    this.typeChecker.nodes[id] = type
+  }
+
+  getType(id: UUID): StaticType {
+    return this.typeChecker.nodes[id]
   }
 
   specificIdentifierType(
@@ -140,7 +149,7 @@ export class TypeCheckerVisitor {
   }
 
   replaceGenericsWithVars(getName: () => string, type: StaticType) {
-    let substitution = new ShallowMap<StaticType, StaticType>()
+    let substitution: Substitution = new ShallowMap()
 
     this.genericNames(type).forEach(name =>
       substitution.set(
@@ -169,6 +178,13 @@ const build = (
     case 'identifierExpression':
     case 'memberExpression':
     case 'functionCallExpression':
+    case 'literalExpression':
+    case 'boolean':
+    case 'number':
+    case 'none':
+    case 'string':
+    case 'color':
+    case 'array':
       const visitorNode = createTypeCheckerVisitor(node)
 
       if (visitorNode) {
@@ -184,14 +200,14 @@ const build = (
     case 'branch': {
       if (!traversalConfig._isRevisit) {
         // the condition needs to be a Boolean
-        typeChecker.nodes[node.data.condition.data.id] = bool
+        visitor.setType(node.data.condition.data.id, bool)
       }
       break
     }
     case 'loop': {
       if (!traversalConfig._isRevisit) {
         // the condition needs to be a Boolean
-        typeChecker.nodes[node.data.expression.data.id] = bool
+        visitor.setType(node.data.expression.data.id, bool)
       }
       break
     }
@@ -199,83 +215,15 @@ const build = (
       // Using 'placeholder' here may cause problems, since
       // placeholder is ambiguous in our LogicAST TS types
       if (traversalConfig._isRevisit) {
-        typeChecker.nodes[node.data.id] = {
+        visitor.setType(node.data.id, {
           type: 'variable',
           value: typeChecker.typeNameGenerator.next(),
-        }
+        })
       }
       break
     }
-    case 'literalExpression': {
-      if (traversalConfig._isRevisit) {
-        typeChecker.nodes[node.data.id] =
-          typeChecker.nodes[node.data.literal.data.id]
-      }
-      break
-    }
-    case 'none': {
-      if (traversalConfig._isRevisit) {
-        typeChecker.nodes[node.data.id] = unit
-      }
-      break
-    }
-    case 'boolean': {
-      if (traversalConfig._isRevisit) {
-        typeChecker.nodes[node.data.id] = bool
-      }
-      break
-    }
-    case 'number': {
-      if (traversalConfig._isRevisit) {
-        typeChecker.nodes[node.data.id] = number
-      }
-      break
-    }
-    case 'string': {
-      if (traversalConfig._isRevisit) {
-        typeChecker.nodes[node.data.id] = string
-      }
-      break
-    }
-    case 'color': {
-      if (traversalConfig._isRevisit) {
-        typeChecker.nodes[node.data.id] = color
-      }
-      break
-    }
-    case 'array': {
-      if (traversalConfig._isRevisit) {
-        const elementType: StaticType = {
-          type: 'variable',
-          value: typeChecker.typeNameGenerator.next(),
-        }
-        typeChecker.nodes[node.data.id] = {
-          type: 'constant',
-          name: 'Array',
-          parameters: [elementType],
-        }
-
-        const constraints = node.data.value.map(expression => ({
-          head: elementType,
-          tail: typeChecker.nodes[expression.data.id] || {
-            type: 'variable',
-            value: typeChecker.typeNameGenerator.next(),
-          },
-          origin: node,
-        }))
-
-        typeChecker.constraints = typeChecker.constraints.concat(constraints)
-      }
-      break
-    }
-    case 'return': {
-      // already handled in the revisit of the function declaration
-      break
-    }
-    case 'parameter': {
-      // already handled in the function call
-      break
-    }
+    case 'return': // already handled in the revisit of the function declaration
+    case 'parameter': // already handled in the function call
     case 'functionType':
     case 'typeIdentifier':
     case 'declaration':
@@ -288,18 +236,16 @@ const build = (
     case 'topLevelDeclarations':
     case 'topLevelParameters':
     case 'argument':
-    case 'expression': {
+    case 'expression':
       break
-    }
-    default: {
+    default:
       assertNever(node)
-    }
   }
 
   return typeChecker
 }
 
-export const makeUnificationContext = (
+export const createUnificationContext = (
   rootNode: AST.SyntaxNode,
   scope: Scope,
   reporter: Reporter

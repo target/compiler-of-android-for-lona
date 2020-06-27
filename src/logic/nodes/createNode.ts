@@ -5,6 +5,8 @@ import {
   IScopeContributor,
   ITypeCheckerContributor,
   IExpression,
+  IEvaluationContributor,
+  ILiteral,
 } from './interfaces'
 import { IDeclaration } from './interfaces'
 import { VariableDeclaration } from './VariableDeclaration'
@@ -15,6 +17,36 @@ import { NamespaceDeclaration } from './NamespaceDeclaration'
 import { IdentifierExpression } from './IdentifierExpression'
 import { MemberExpression } from './MemberExpression'
 import { FunctionCallExpression } from './FunctionCallExpression'
+import {
+  BooleanLiteral,
+  NumberLiteral,
+  StringLiteral,
+  NoneLiteral,
+  ColorLiteral,
+  ArrayLiteral,
+} from './literals'
+import { LiteralExpression } from './LiteralExpression'
+
+export function createLiteralNode(
+  syntaxNode: AST.SyntaxNode
+): ILiteral | undefined {
+  switch (syntaxNode.type) {
+    case 'boolean':
+      return new BooleanLiteral(syntaxNode)
+    case 'number':
+      return new NumberLiteral(syntaxNode)
+    case 'string':
+      return new StringLiteral(syntaxNode)
+    case 'none':
+      return new NoneLiteral(syntaxNode)
+    case 'color':
+      return new ColorLiteral(syntaxNode)
+    case 'array':
+      return new ArrayLiteral(syntaxNode)
+    default:
+      return undefined
+  }
+}
 
 export function createExpressionNode(
   syntaxNode: AST.SyntaxNode
@@ -26,6 +58,8 @@ export function createExpressionNode(
       return new MemberExpression(syntaxNode)
     case 'functionCallExpression':
       return new FunctionCallExpression(syntaxNode)
+    case 'literalExpression':
+      return new LiteralExpression(syntaxNode)
     default:
       return undefined
   }
@@ -58,11 +92,16 @@ function isTypeCheckerVisitor(node: INode): node is ITypeCheckerContributor {
   return 'typeCheckerEnter' in node || 'typeCheckerLeave' in node
 }
 
+function isEvaluationVisitor(node: INode): node is IEvaluationContributor {
+  return 'evaluationEnter' in node
+}
+
 export function createNode(syntaxNode: AST.SyntaxNode) {
   return (
     createDeclarationNode(syntaxNode) ||
     createTypeAnnotationNode(syntaxNode) ||
-    createExpressionNode(syntaxNode)
+    createExpressionNode(syntaxNode) ||
+    createLiteralNode(syntaxNode)
   )
 }
 
@@ -80,4 +119,12 @@ export function createTypeCheckerVisitor(
   const node = createNode(syntaxNode)
 
   return node && isTypeCheckerVisitor(node) ? node : undefined
+}
+
+export function createEvaluationVisitor(
+  syntaxNode: AST.SyntaxNode
+): IEvaluationContributor | undefined {
+  const node = createNode(syntaxNode)
+
+  return node && isEvaluationVisitor(node) ? node : undefined
 }
