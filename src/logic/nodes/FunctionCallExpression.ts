@@ -127,6 +127,13 @@ export class FunctionCallExpression implements IExpression {
           return { type: unit, memory: { type: 'unit' } }
         }
 
+        if (typeof functionValue.memory.value === 'function') {
+          return {
+            type: resolvedType.returnType,
+            memory: functionValue.memory.value(...functionArgs),
+          }
+        }
+
         if (functionValue.memory.value.type === 'path') {
           const functionName = functionValue.memory.value.value.join('.')
 
@@ -157,17 +164,6 @@ export class FunctionCallExpression implements IExpression {
             `Failed to evaluate "${id}": Unknown function ${functionName}`
           )
           return { type: unit, memory: { type: 'unit' } }
-        }
-
-        if (functionValue.memory.value.type === 'enumInit') {
-          return {
-            type: resolvedType.returnType,
-            memory: {
-              type: 'enum',
-              value: functionValue.memory.value.value,
-              data: functionArgs,
-            },
-          }
         }
 
         if (functionValue.memory.value.type === 'recordInit') {
@@ -204,13 +200,9 @@ export class FunctionCallExpression implements IExpression {
             type: resolvedType.returnType,
             memory: {
               type: 'record',
-              value: members.reduce<{ [field: string]: Value }>((prev, m) => {
-                if (!m[1]) {
-                  return prev
-                }
-                prev[m[0]] = m[1]
-                return prev
-              }, {}),
+              value: Object.fromEntries(
+                members.flatMap(([key, value]) => (value ? [[key, value]] : []))
+              ),
             },
           }
         }

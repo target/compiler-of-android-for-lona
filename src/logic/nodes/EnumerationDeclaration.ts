@@ -7,6 +7,8 @@ import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { StaticType } from '../staticType'
 import { EvaluationVisitor } from '../EvaluationVisitor'
 import { substitute } from '../typeUnifier'
+import { Memory, FuncMemory } from '../runtime/memory'
+import { StandardLibrary } from '../runtime/value'
 
 export class EnumerationDeclaration implements IDeclaration {
   syntaxNode: AST.EnumerationDeclaration
@@ -148,9 +150,12 @@ export class EnumerationDeclaration implements IDeclaration {
         type: resolvedConsType,
         memory: {
           type: 'function',
-          value: {
-            type: 'enumInit',
-            value: name.name,
+          value: (...args) => {
+            return {
+              type: 'enum',
+              value: name.name,
+              data: args,
+            }
           },
         },
       })

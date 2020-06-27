@@ -1,6 +1,7 @@
-import * as LogicUnify from '../typeUnifier'
-import { Value } from './value'
 import { StaticType } from '../staticType'
+import { Value } from './value'
+
+export type FuncMemory = (...args: Value[]) => Memory
 
 export type Memory =
   | { type: 'unit' }
@@ -13,6 +14,7 @@ export type Memory =
   | {
       type: 'function'
       value:
+        | FuncMemory
         | {
             type: 'path'
             value: string[]
@@ -22,7 +24,6 @@ export type Memory =
             type: 'recordInit'
             value: { [key: string]: [StaticType, Value | void] }
           }
-        | { type: 'enumInit'; value: string }
     }
 
 export const unit = (): Memory => ({ type: 'unit' })
