@@ -1,15 +1,13 @@
 import { declarationPathTo } from '@lona/compiler/lib/helpers/logic-ast'
 import { Reporter } from '@lona/compiler/lib/helpers/reporter'
 import { assertNever } from '@lona/compiler/lib/utils/assert-never'
-import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
-import { ShallowMap } from '@lona/compiler/lib/utils/shallow-map'
 import { LogicAST as AST } from '@lona/serialization'
-import { Value, StandardLibrary } from './runtime/value'
+import { EvaluationVisitor } from './evaluationVisitor'
+import { createEvaluationVisitor } from './nodes/createNode'
+import { Value } from './runtime/value'
 import { Scope } from './scope'
-import * as StaticType from './staticType'
 import { TypeChecker } from './typeChecker'
-import { substitute, Substitution } from './typeUnifier'
-import { createNode, createEvaluationVisitor } from './nodes/createNode'
+import { Substitution } from './typeUnifier'
 
 const STANDARD_LIBRARY = 'standard library'
 
@@ -28,42 +26,10 @@ export function evaluateIsTrue(
   )
 }
 
-type Thunk = {
+export type Thunk = {
   label: string
   dependencies: string[]
   f: (args: Value[]) => Value
-}
-
-export class EvaluationVisitor {
-  evaluation: EvaluationContext
-  rootNode: AST.SyntaxNode
-  scope: Scope
-  reporter: Reporter
-  typeChecker: TypeChecker
-  substitution: Substitution
-
-  constructor(
-    rootNode: AST.SyntaxNode,
-    scope: Scope,
-    typeChecker: TypeChecker,
-    substitution: Substitution,
-    reporter: Reporter
-  ) {
-    this.evaluation = new EvaluationContext(reporter)
-    this.rootNode = rootNode
-    this.scope = scope
-    this.reporter = reporter
-    this.typeChecker = typeChecker
-    this.substitution = substitution
-  }
-
-  add(uuid: string, thunk: Thunk) {
-    this.evaluation.add(uuid, thunk)
-  }
-
-  addValue(uuid: string, value: Value) {
-    this.evaluation.addValue(uuid, value)
-  }
 }
 
 /**
@@ -126,28 +92,19 @@ export class EvaluationContext {
   }
 }
 
-export const evaluate = (
+const evaluateNode = (
   node: AST.SyntaxNode,
   visitor: EvaluationVisitor
 ): EvaluationContext | undefined => {
-  const {
-    rootNode,
-    scope,
-    typeChecker,
-    substitution,
-    reporter,
-    evaluation: initialContext,
-  } = visitor
-
   // TODO: Handle stopping
   const context = AST.subNodes(node).reduce<EvaluationContext | undefined>(
     (prev, subNode) => {
       if (!prev) {
         return undefined
       }
-      return evaluate(subNode, visitor)
+      return evaluateNode(subNode, visitor)
     },
-    initialContext
+    visitor.evaluation
   )
 
   if (!context) {
@@ -180,7 +137,7 @@ export const evaluate = (
       visitor.add(node.data.left.data.id, {
         label:
           'Assignment for ' +
-          declarationPathTo(rootNode, node.data.left.data.id).join('.'),
+          declarationPathTo(visitor.rootNode, node.data.left.data.id).join('.'),
         dependencies: [node.data.right.data.id],
         f: values => values[0],
       })
@@ -211,4 +168,22 @@ export const evaluate = (
   }
 
   return context
+}
+
+export const evaluate = (
+  rootNode: AST.SyntaxNode,
+  scope: Scope,
+  typeChecker: TypeChecker,
+  substitution: Substitution,
+  reporter: Reporter
+): EvaluationContext | undefined => {
+  const visitor = new EvaluationVisitor(
+    rootNode,
+    scope,
+    typeChecker,
+    substitution,
+    reporter
+  )
+
+  return evaluateNode(rootNode, visitor)
 }

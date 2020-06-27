@@ -2,19 +2,6 @@ import { LogicAST as AST } from '@lona/serialization'
 import { ITypeAnnotation } from './interfaces'
 import { ScopeVisitor } from '../scopeVisitor'
 
-export function createTypeAnnotationNode(
-  syntaxNode: AST.SyntaxNode
-): ITypeAnnotation | undefined {
-  switch (syntaxNode.type) {
-    case 'typeIdentifier':
-      return new IdentifierTypeAnnotation(syntaxNode)
-    case 'functionType':
-      return new FunctionTypeAnnotation(syntaxNode)
-    default:
-      return undefined
-  }
-}
-
 export class IdentifierTypeAnnotation implements ITypeAnnotation {
   syntaxNode: AST.TypeIdentifierTypeAnnotation
 

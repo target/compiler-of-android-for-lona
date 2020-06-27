@@ -2,7 +2,7 @@ import { LogicAST as AST } from '@lona/serialization'
 import NamespaceVisitor from '../namespaceVisitor'
 import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
-import { EvaluationVisitor } from '../evaluate'
+import { EvaluationVisitor } from '../EvaluationVisitor'
 
 export interface INode {
   syntaxNode: AST.SyntaxNode

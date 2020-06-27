@@ -2,7 +2,7 @@ import { LogicAST as AST } from '@lona/serialization'
 import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { IExpression } from './interfaces'
-import { EvaluationVisitor } from '../evaluate'
+import { EvaluationVisitor } from '../EvaluationVisitor'
 
 export class LiteralExpression implements IExpression {
   syntaxNode: AST.LiteralExpression

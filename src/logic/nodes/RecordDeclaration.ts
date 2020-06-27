@@ -6,7 +6,7 @@ import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { StaticType, FunctionArgument } from '../staticType'
-import { EvaluationVisitor } from '../evaluate'
+import { EvaluationVisitor } from '../EvaluationVisitor'
 import { Value } from '../runtime/value'
 import { substitute } from '@lona/compiler/lib/helpers/logic-unify'
 

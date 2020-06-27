@@ -1,8 +1,8 @@
 import { AST } from '@lona/compiler/lib/helpers/logic-ast'
 import * as Serialization from '@lona/serialization'
 import { silentReporter } from '../../reporter'
-import { EvaluationContext } from '../evaluate'
-import { generate } from '../evaluationContext'
+import { EvaluationContext } from '../evaluation'
+import { run } from '../environment'
 import { UUID } from '../namespace'
 import { findNode } from '../syntaxNode'
 
@@ -28,7 +28,7 @@ function getInitializerId(
 }
 
 function standardEvaluate(rootNode: AST.SyntaxNode): EvaluationContext {
-  const evaluation = generate(console, [rootNode])
+  const evaluation = run(console, [rootNode])
 
   if (!evaluation) {
     throw new Error('Failed to evaluate')

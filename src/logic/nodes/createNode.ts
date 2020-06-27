@@ -11,6 +11,7 @@ import {
   INode,
   IScopeContributor,
   ITypeCheckerContributor,
+  ITypeAnnotation,
 } from './interfaces'
 import { LiteralExpression } from './LiteralExpression'
 import {
@@ -24,8 +25,24 @@ import {
 import { MemberExpression } from './MemberExpression'
 import { NamespaceDeclaration } from './NamespaceDeclaration'
 import { RecordDeclaration } from './RecordDeclaration'
-import { createTypeAnnotationNode } from './typeAnnotations'
 import { VariableDeclaration } from './VariableDeclaration'
+import {
+  IdentifierTypeAnnotation,
+  FunctionTypeAnnotation,
+} from './typeAnnotations'
+
+export function createTypeAnnotationNode(
+  syntaxNode: AST.SyntaxNode
+): ITypeAnnotation | undefined {
+  switch (syntaxNode.type) {
+    case 'typeIdentifier':
+      return new IdentifierTypeAnnotation(syntaxNode)
+    case 'functionType':
+      return new FunctionTypeAnnotation(syntaxNode)
+    default:
+      return undefined
+  }
+}
 
 export function createLiteralNode(
   syntaxNode: AST.SyntaxNode

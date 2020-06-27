@@ -5,7 +5,7 @@ import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { StaticType } from '../staticType'
-import { EvaluationVisitor } from '../evaluate'
+import { EvaluationVisitor } from '../EvaluationVisitor'
 import { substitute } from '../typeUnifier'
 
 export class EnumerationDeclaration implements IDeclaration {
