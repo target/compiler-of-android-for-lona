@@ -1,31 +1,31 @@
 import { LogicAST as AST } from '@lona/serialization'
-import { createTypeAnnotationNode } from './typeAnnotations'
+import { EnumerationDeclaration } from './EnumerationDeclaration'
+import { FunctionCallExpression } from './FunctionCallExpression'
+import { FunctionDeclaration } from './FunctionDeclaration'
+import { IdentifierExpression } from './IdentifierExpression'
 import {
+  IDeclaration,
+  IEvaluationContributor,
+  IExpression,
+  ILiteral,
   INode,
   IScopeContributor,
   ITypeCheckerContributor,
-  IExpression,
-  IEvaluationContributor,
-  ILiteral,
 } from './interfaces'
-import { IDeclaration } from './interfaces'
-import { VariableDeclaration } from './VariableDeclaration'
-import { FunctionDeclaration } from './FunctionDeclaration'
-import { RecordDeclaration } from './RecordDeclaration'
-import { EnumerationDeclaration } from './EnumerationDeclaration'
-import { NamespaceDeclaration } from './NamespaceDeclaration'
-import { IdentifierExpression } from './IdentifierExpression'
-import { MemberExpression } from './MemberExpression'
-import { FunctionCallExpression } from './FunctionCallExpression'
+import { LiteralExpression } from './LiteralExpression'
 import {
+  ArrayLiteral,
   BooleanLiteral,
+  ColorLiteral,
+  NoneLiteral,
   NumberLiteral,
   StringLiteral,
-  NoneLiteral,
-  ColorLiteral,
-  ArrayLiteral,
 } from './literals'
-import { LiteralExpression } from './LiteralExpression'
+import { MemberExpression } from './MemberExpression'
+import { NamespaceDeclaration } from './NamespaceDeclaration'
+import { RecordDeclaration } from './RecordDeclaration'
+import { createTypeAnnotationNode } from './typeAnnotations'
+import { VariableDeclaration } from './VariableDeclaration'
 
 export function createLiteralNode(
   syntaxNode: AST.SyntaxNode
@@ -96,13 +96,26 @@ function isEvaluationVisitor(node: INode): node is IEvaluationContributor {
   return 'evaluationEnter' in node
 }
 
+const nodeCache: { [key: string]: INode } = {}
+
 export function createNode(syntaxNode: AST.SyntaxNode) {
-  return (
+  const id = syntaxNode.data.id
+
+  if (id in nodeCache) {
+    return nodeCache[id]
+  }
+
+  const node =
     createDeclarationNode(syntaxNode) ||
     createTypeAnnotationNode(syntaxNode) ||
     createExpressionNode(syntaxNode) ||
     createLiteralNode(syntaxNode)
-  )
+
+  if (node) {
+    nodeCache[id] = node
+  }
+
+  return node
 }
 
 export function createScopeVisitor(
