@@ -12,6 +12,7 @@ build
 .vscode
 node_modules
 yarn-error.log
+*.0x
 
 .gradle
 .project

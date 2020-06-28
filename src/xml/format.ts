@@ -7,13 +7,14 @@ const { line, softline, hardline, concat, join } = builders
 
 const quoted = (doc: Doc): Doc => concat(['"', doc, '"'])
 
-export const formatDocument = (document: Xml.Document): Doc =>
-  concat([
+export function formatDocument(document: Xml.Document): Doc {
+  return concat([
     ...(document.prolog.xmlDecl
       ? [formatProlog(document.prolog), hardline]
       : []),
     formatElement(document.element),
   ])
+}
 
 const formatProlog = (prolog: Xml.Prolog): Doc =>
   prolog.xmlDecl ? formatXmlDecl(prolog.xmlDecl) : ''
@@ -26,7 +27,7 @@ const formatXmlDecl = (xmlDecl: Xml.XmlDecl): Doc =>
     '?>',
   ])
 
-export const formatElement = (element: Xml.Element): Doc => {
+export function formatElement(element: Xml.Element): Doc {
   const opening = concat(['<', element.tag])
 
   const attributes =

@@ -1,8 +1,8 @@
 import { Reporter } from '@lona/compiler/lib/helpers/reporter'
 import { assertNever } from '@lona/compiler/lib/utils/assert-never'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
-import { ShallowMap } from '@lona/compiler/lib/utils/shallow-map'
 import intersection from 'lodash.intersection'
+import { MultiMap } from './multiMap'
 import { StaticType } from './staticType'
 
 export type Constraint = {
@@ -11,7 +11,7 @@ export type Constraint = {
   origin?: any
 }
 
-export type Substitution = ShallowMap<StaticType, StaticType>
+export type Substitution = MultiMap<StaticType, StaticType>
 
 export function substitute(
   substitution: Substitution,
@@ -51,7 +51,7 @@ export function substitute(
 export const unify = (
   constraints: Constraint[],
   reporter: Reporter,
-  substitution: Substitution = new ShallowMap()
+  substitution: Substitution = new MultiMap()
 ): Substitution => {
   while (constraints.length > 0) {
     const constraint = constraints.shift()

@@ -1,4 +1,3 @@
-import { substitute } from '@lona/compiler/lib/helpers/logic-unify'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { LogicAST as AST } from '@lona/serialization'
 import { compact } from '../../utils/sequence'
@@ -10,6 +9,7 @@ import { ScopeVisitor } from '../scopeVisitor'
 import { FunctionArgument, StaticType } from '../staticType'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { IDeclaration, Node } from './interfaces'
+import { substitute } from '../typeUnifier'
 
 export class RecordDeclaration extends Node<AST.RecordDeclaration>
   implements IDeclaration {

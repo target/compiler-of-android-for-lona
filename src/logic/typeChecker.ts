@@ -1,14 +1,14 @@
 import * as LogicTraversal from '@lona/compiler/lib/helpers/logic-traversal'
 import { Reporter } from '@lona/compiler/lib/helpers/reporter'
 import { assertNever } from '@lona/compiler/lib/utils/assert-never'
-import { ShallowMap } from '@lona/compiler/lib/utils/shallow-map'
 import { LogicAST as AST } from '@lona/serialization'
+import { MultiMap } from './multiMap'
+import { UUID } from './namespace'
 import { createTypeCheckerVisitor } from './nodes/createNode'
 import { Scope } from './scope'
-import { bool, color, number, StaticType, string, unit } from './staticType'
+import { bool, StaticType } from './staticType'
 import { forEach } from './syntaxNode'
 import { Constraint, substitute, Substitution } from './typeUnifier'
-import { UUID } from './namespace'
 
 class LogicNameGenerator {
   private prefix: string
@@ -149,7 +149,7 @@ export class TypeCheckerVisitor {
   }
 
   replaceGenericsWithVars(getName: () => string, type: StaticType) {
-    let substitution: Substitution = new ShallowMap()
+    let substitution: Substitution = new MultiMap()
 
     this.genericNames(type).forEach(name =>
       substitution.set(
