@@ -1,24 +1,18 @@
-import { LogicAST as AST } from '@lona/serialization'
-import { builtInTypeConstructorNames } from '../namespace'
-import { IDeclaration } from './interfaces'
-import NamespaceVisitor from '../namespaceVisitor'
-import { ScopeVisitor } from '../scopeVisitor'
-import { TypeCheckerVisitor } from '../typeChecker'
-import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
-import { StaticType, FunctionArgument } from '../staticType'
-import { EvaluationVisitor } from '../EvaluationVisitor'
-import { Value, StandardLibrary } from '../runtime/value'
 import { substitute } from '@lona/compiler/lib/helpers/logic-unify'
+import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
+import { LogicAST as AST } from '@lona/serialization'
 import { compact } from '../../utils/sequence'
+import { EvaluationVisitor } from '../EvaluationVisitor'
+import { builtInTypeConstructorNames } from '../namespace'
+import NamespaceVisitor from '../namespaceVisitor'
 import { DefaultArguments } from '../runtime/memory'
+import { ScopeVisitor } from '../scopeVisitor'
+import { FunctionArgument, StaticType } from '../staticType'
+import { TypeCheckerVisitor } from '../typeChecker'
+import { IDeclaration, Node } from './interfaces'
 
-export class RecordDeclaration implements IDeclaration {
-  syntaxNode: AST.RecordDeclaration
-
-  constructor(syntaxNode: AST.RecordDeclaration) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class RecordDeclaration extends Node<AST.RecordDeclaration>
+  implements IDeclaration {
   namespaceEnter(visitor: NamespaceVisitor): void {
     const {
       name: { name, id },

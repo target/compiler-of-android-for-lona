@@ -1,15 +1,10 @@
 import { LogicAST as AST } from '@lona/serialization'
-import { IDeclaration } from './interfaces'
+import { IDeclaration, Node } from './interfaces'
 import NamespaceVisitor from '../namespaceVisitor'
 import { ScopeVisitor } from '../scopeVisitor'
 
-export class NamespaceDeclaration implements IDeclaration {
-  syntaxNode: AST.NamespaceDeclaration
-
-  constructor(syntaxNode: AST.NamespaceDeclaration) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class NamespaceDeclaration extends Node<AST.NamespaceDeclaration>
+  implements IDeclaration {
   namespaceEnter(visitor: NamespaceVisitor): void {
     const {
       name: { name, id },

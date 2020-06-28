@@ -1,17 +1,12 @@
 import { LogicAST as AST } from '@lona/serialization'
-import { IDeclaration } from './interfaces'
+import { IDeclaration, Node } from './interfaces'
 import NamespaceVisitor from '../namespaceVisitor'
 import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { EvaluationVisitor } from '../EvaluationVisitor'
 
-export class VariableDeclaration implements IDeclaration {
-  syntaxNode: AST.VariableDeclaration
-
-  constructor(syntaxNode: AST.VariableDeclaration) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class VariableDeclaration extends Node<AST.VariableDeclaration>
+  implements IDeclaration {
   namespaceEnter(visitor: NamespaceVisitor): void {}
 
   namespaceLeave(visitor: NamespaceVisitor): void {

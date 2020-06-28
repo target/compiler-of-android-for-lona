@@ -8,6 +8,18 @@ export interface INode {
   syntaxNode: AST.SyntaxNode
 }
 
+export class Node<T extends AST.SyntaxNode> implements INode {
+  syntaxNode: T
+
+  constructor(syntaxNode: T) {
+    this.syntaxNode = syntaxNode
+  }
+
+  children(): AST.SyntaxNode[] {
+    return AST.subNodes(this.syntaxNode)
+  }
+}
+
 export interface INamespaceContributor extends INode {
   namespaceEnter(visitor: NamespaceVisitor): void
   namespaceLeave(visitor: NamespaceVisitor): void

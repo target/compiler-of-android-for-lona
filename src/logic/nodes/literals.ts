@@ -2,17 +2,11 @@ import { LogicAST as AST } from '@lona/serialization'
 import { EvaluationVisitor } from '../EvaluationVisitor'
 import { bool, number, string, unit, color, StaticType } from '../staticType'
 import { TypeCheckerVisitor } from '../typeChecker'
-import { ILiteral } from './interfaces'
+import { ILiteral, Node } from './interfaces'
 import { StandardLibrary } from '../runtime/value'
 import { substitute } from '../typeUnifier'
 
-export class NoneLiteral implements ILiteral {
-  syntaxNode: AST.NoneLiteral
-
-  constructor(syntaxNode: AST.NoneLiteral) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class NoneLiteral extends Node<AST.NoneLiteral> implements ILiteral {
   typeCheckerEnter(visitor: TypeCheckerVisitor): void {}
 
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {
@@ -24,13 +18,8 @@ export class NoneLiteral implements ILiteral {
   }
 }
 
-export class BooleanLiteral implements ILiteral {
-  syntaxNode: AST.BooleanLiteral
-
-  constructor(syntaxNode: AST.BooleanLiteral) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class BooleanLiteral extends Node<AST.BooleanLiteral>
+  implements ILiteral {
   typeCheckerEnter(visitor: TypeCheckerVisitor): void {}
 
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {
@@ -43,13 +32,7 @@ export class BooleanLiteral implements ILiteral {
   }
 }
 
-export class NumberLiteral implements ILiteral {
-  syntaxNode: AST.NumberLiteral
-
-  constructor(syntaxNode: AST.NumberLiteral) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class NumberLiteral extends Node<AST.NumberLiteral> implements ILiteral {
   typeCheckerEnter(visitor: TypeCheckerVisitor): void {}
 
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {
@@ -62,13 +45,7 @@ export class NumberLiteral implements ILiteral {
   }
 }
 
-export class StringLiteral implements ILiteral {
-  syntaxNode: AST.StringLiteral
-
-  constructor(syntaxNode: AST.StringLiteral) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class StringLiteral extends Node<AST.StringLiteral> implements ILiteral {
   typeCheckerEnter(visitor: TypeCheckerVisitor): void {}
 
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {
@@ -81,13 +58,7 @@ export class StringLiteral implements ILiteral {
   }
 }
 
-export class ColorLiteral implements ILiteral {
-  syntaxNode: AST.ColorLiteral
-
-  constructor(syntaxNode: AST.ColorLiteral) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class ColorLiteral extends Node<AST.ColorLiteral> implements ILiteral {
   typeCheckerEnter(visitor: TypeCheckerVisitor): void {}
 
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {
@@ -100,13 +71,7 @@ export class ColorLiteral implements ILiteral {
   }
 }
 
-export class ArrayLiteral implements ILiteral {
-  syntaxNode: AST.ArrayLiteral
-
-  constructor(syntaxNode: AST.ArrayLiteral) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class ArrayLiteral extends Node<AST.ArrayLiteral> implements ILiteral {
   typeCheckerEnter(visitor: TypeCheckerVisitor): void {}
 
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {

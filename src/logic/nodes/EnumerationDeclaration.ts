@@ -1,24 +1,17 @@
-import { LogicAST as AST } from '@lona/serialization'
-import { IDeclaration } from './interfaces'
-import NamespaceVisitor from '../namespaceVisitor'
-import { ScopeVisitor } from '../scopeVisitor'
-import { TypeCheckerVisitor } from '../typeChecker'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
-import { StaticType } from '../staticType'
-import { EvaluationVisitor } from '../EvaluationVisitor'
-import { substitute } from '../typeUnifier'
-import { Memory, FuncMemory, DefaultArguments } from '../runtime/memory'
-import { StandardLibrary } from '../runtime/value'
+import { LogicAST as AST } from '@lona/serialization'
 import { compact } from '../../utils/sequence'
-import { inspect } from 'util'
+import { EvaluationVisitor } from '../EvaluationVisitor'
+import NamespaceVisitor from '../namespaceVisitor'
+import { DefaultArguments } from '../runtime/memory'
+import { ScopeVisitor } from '../scopeVisitor'
+import { StaticType } from '../staticType'
+import { TypeCheckerVisitor } from '../typeChecker'
+import { substitute } from '../typeUnifier'
+import { IDeclaration, Node } from './interfaces'
 
-export class EnumerationDeclaration implements IDeclaration {
-  syntaxNode: AST.EnumerationDeclaration
-
-  constructor(syntaxNode: AST.EnumerationDeclaration) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class EnumerationDeclaration extends Node<AST.EnumerationDeclaration>
+  implements IDeclaration {
   namespaceEnter(visitor: NamespaceVisitor): void {
     const {
       name: { name, id },

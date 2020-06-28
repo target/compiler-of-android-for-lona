@@ -1,22 +1,14 @@
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { LogicAST as AST } from '@lona/serialization'
-import { ScopeVisitor } from '../scopeVisitor'
-import { IExpression } from './interfaces'
-import { TypeCheckerVisitor } from '../typeChecker'
-import { StaticType, FunctionArgument, unit } from '../staticType'
 import { EvaluationVisitor } from '../EvaluationVisitor'
-import { substitute } from '../typeUnifier'
 import { Value } from '../runtime/value'
-import { assertNever } from '@lona/compiler/lib/utils'
-import { compact } from '../../utils/sequence'
+import { ScopeVisitor } from '../scopeVisitor'
+import { FunctionArgument, StaticType, unit } from '../staticType'
+import { TypeCheckerVisitor } from '../typeChecker'
+import { IExpression, Node } from './interfaces'
 
-export class FunctionCallExpression implements IExpression {
-  syntaxNode: AST.FunctionCallExpression
-
-  constructor(syntaxNode: AST.FunctionCallExpression) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class FunctionCallExpression extends Node<AST.FunctionCallExpression>
+  implements IExpression {
   scopeEnter(visitor: ScopeVisitor): void {}
 
   scopeLeave(visitor: ScopeVisitor): void {}

@@ -1,16 +1,11 @@
 import { LogicAST as AST } from '@lona/serialization'
 import { ScopeVisitor } from '../scopeVisitor'
-import { IExpression } from './interfaces'
+import { IExpression, Node } from './interfaces'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { EvaluationVisitor } from '../EvaluationVisitor'
 
-export class IdentifierExpression implements IExpression {
-  syntaxNode: AST.IdentifierExpression
-
-  constructor(syntaxNode: AST.IdentifierExpression) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class IdentifierExpression extends Node<AST.IdentifierExpression>
+  implements IExpression {
   scopeEnter(visitor: ScopeVisitor): void {}
 
   scopeLeave(visitor: ScopeVisitor): void {

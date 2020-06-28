@@ -1,17 +1,12 @@
 import { flattenedMemberExpression } from '@lona/compiler/lib/helpers/logic-ast'
 import { LogicAST as AST } from '@lona/serialization'
 import { ScopeVisitor } from '../scopeVisitor'
-import { IExpression } from './interfaces'
+import { IExpression, Node } from './interfaces'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { EvaluationVisitor } from '../EvaluationVisitor'
 
-export class MemberExpression implements IExpression {
-  syntaxNode: AST.MemberExpression
-
-  constructor(syntaxNode: AST.MemberExpression) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class MemberExpression extends Node<AST.MemberExpression>
+  implements IExpression {
   scopeEnter(visitor: ScopeVisitor): void {
     visitor.traversalConfig.ignoreChildren = true
   }

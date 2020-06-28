@@ -1,26 +1,19 @@
-import { LogicAST as AST } from '@lona/serialization'
-import { IDeclaration } from './interfaces'
-import NamespaceVisitor from '../namespaceVisitor'
-import { ScopeVisitor } from '../scopeVisitor'
-import { TypeCheckerVisitor } from '../typeChecker'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
-import { StaticType, FunctionArgument } from '../staticType'
+import { LogicAST as AST } from '@lona/serialization'
+import { compact } from '../../utils/sequence'
 import { evaluateIsTrue } from '../evaluation'
 import { EvaluationVisitor } from '../EvaluationVisitor'
-import { declarationPathTo } from '@lona/compiler/lib/helpers/logic-ast'
-import { Value, StandardLibrary } from '../runtime/value'
-import { substitute } from '../typeUnifier'
-import { DefaultArguments } from '../runtime/memory'
-import { compact } from '../../utils/sequence'
 import { UUID } from '../namespace'
+import NamespaceVisitor from '../namespaceVisitor'
+import { DefaultArguments } from '../runtime/memory'
+import { StandardLibrary, Value } from '../runtime/value'
+import { ScopeVisitor } from '../scopeVisitor'
+import { FunctionArgument, StaticType } from '../staticType'
+import { TypeCheckerVisitor } from '../typeChecker'
+import { IDeclaration, Node } from './interfaces'
 
-export class FunctionDeclaration implements IDeclaration {
-  syntaxNode: AST.FunctionDeclaration
-
-  constructor(syntaxNode: AST.FunctionDeclaration) {
-    this.syntaxNode = syntaxNode
-  }
-
+export class FunctionDeclaration extends Node<AST.FunctionDeclaration>
+  implements IDeclaration {
   namespaceEnter(visitor: NamespaceVisitor): void {}
 
   namespaceLeave(visitor: NamespaceVisitor): void {
