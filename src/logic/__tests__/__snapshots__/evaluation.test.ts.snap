@@ -512,6 +512,20 @@ Object {
 }
 `;
 
+exports[`Logic / Evaluate evaluates custom function with argument default value 1`] = `
+Object {
+  "memory": Object {
+    "type": "number",
+    "value": 42,
+  },
+  "type": Object {
+    "name": "Number",
+    "parameters": Array [],
+    "type": "constant",
+  },
+}
+`;
+
 exports[`Logic / Evaluate evaluates custom function with arguments 1`] = `
 Object {
   "memory": Object {

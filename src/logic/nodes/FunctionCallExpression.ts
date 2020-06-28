@@ -146,6 +146,7 @@ export class FunctionCallExpression implements IExpression {
               (x.data.label == null || x.data.label === key)
           )
 
+          // If an argument is explicitly passed, use it
           if (match && match.type === 'argument' && isValidArgument(match)) {
             const dependencyIndex = dependencies.indexOf(
               match.data.expression.data.id
@@ -160,9 +161,10 @@ export class FunctionCallExpression implements IExpression {
                 `Failed to find arg dependency ${match.data.expression.data.id}`
               )
             }
+          } else {
+            // Fall back to default argument
+            return [key, value[1]]
           }
-
-          return [key, value[1]]
         })
 
         const namedArguments = Object.fromEntries(

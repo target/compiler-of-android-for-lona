@@ -111,24 +111,22 @@ let x: Number = test(myNumber: 42)
     expect(result).toMatchSnapshot()
   })
 
-  //   it('evaluates custom function with argument default value', () => {
-  //     const file = `
-  // func test(myNumber: Number) -> Number {
-  //   return myNumber
-  // }
+  it('evaluates custom function with argument default value', () => {
+    const file = `
+  func test(myNumber: Number = 42) -> Number {
+    return myNumber
+  }
 
-  // let x: Number = test()
-  // `
-  //     const rootNode = Serialization.decodeLogic(file)
-  //     const initializerId = getInitializerId(rootNode, 'x')
-  //     const evaluation = standardEvaluate(rootNode)
+  let x: Number = test()
+  `
+    const rootNode = Serialization.decodeLogic(file)
+    const initializerId = getInitializerId(rootNode, 'x')
+    const evaluation = standardEvaluate(rootNode)
 
-  //     const result = evaluation.evaluate(initializerId)
+    const result = evaluation.evaluate(initializerId)
 
-  //     console.log(result)
-
-  //     // expect(result).toMatchSnapshot()
-  //   })
+    expect(result).toMatchSnapshot()
+  })
 
   it('evaluates DimensionSize', () => {
     const file = `

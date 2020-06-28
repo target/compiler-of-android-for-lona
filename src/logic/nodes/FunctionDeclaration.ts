@@ -12,6 +12,7 @@ import { Value, StandardLibrary } from '../runtime/value'
 import { substitute } from '../typeUnifier'
 import { DefaultArguments } from '../runtime/memory'
 import { compact } from '../../utils/sequence'
+import { UUID } from '../namespace'
 
 export class FunctionDeclaration implements IDeclaration {
   syntaxNode: AST.FunctionDeclaration
@@ -120,81 +121,123 @@ export class FunctionDeclaration implements IDeclaration {
 
     if (!functionType) return
 
-    const defaultArguments: DefaultArguments = Object.fromEntries(
-      compact(
-        parameters.map((parameter, index) => {
-          if (parameter.type !== 'parameter') return
+    const explicitDefaults: [string, UUID][] = compact(
+      parameters.map(parameter => {
+        if (
+          parameter.type !== 'parameter' ||
+          parameter.data.defaultValue.type !== 'value'
+        ) {
+          return
+        }
 
-          const parameterType = resolveType(parameter.data.localName.id)
+        const { localName } = parameter.data
+        const {
+          expression,
+          id: defaultValueId,
+        } = parameter.data.defaultValue.data
 
-          if (!parameterType) return
-
-          return [
-            parameter.data.localName.name,
-            [parameterType, StandardLibrary.unit()],
-          ]
+        visitor.add(defaultValueId, {
+          label: `func '${name}' default value for param '${localName.name}'`,
+          dependencies: [expression.data.id],
+          f: ([value]) => value,
         })
-      )
+
+        return [localName.name, defaultValueId]
+      })
     )
 
-    visitor.addValue(name.id, {
-      type: functionType,
-      memory: {
-        type: 'function',
-        value: {
-          defaultArguments,
-          f: args => {
-            const newContext = visitor.evaluation.copy()
+    visitor.add(name.id, {
+      label: `function ${name.name}`,
+      dependencies: explicitDefaults.map(value => value[1]),
+      f: values => {
+        const defaultArguments: DefaultArguments = Object.fromEntries(
+          compact(
+            parameters.map(parameter => {
+              if (parameter.type !== 'parameter') return
 
-            parameters.forEach((p, i) => {
-              if (p.type === 'parameter') {
-                newContext.addValue(
-                  p.data.localName.id,
-                  args[p.data.localName.name] ||
-                    defaultArguments[p.data.localName.name][1]
-                )
-              }
+              const parameterType = resolveType(parameter.data.localName.id)
+
+              if (!parameterType) return
+
+              const defaultIndex = explicitDefaults.findIndex(
+                def => def[0] === parameter.data.localName.name
+              )
+              const defaultValue =
+                defaultIndex !== -1 ? values[defaultIndex] : undefined
+
+              return [
+                parameter.data.localName.name,
+                [parameterType, defaultValue],
+              ]
             })
+          )
+        )
 
-            function evaluateBlock(block: AST.Statement[]): Value | undefined {
-              for (let statement of block) {
-                switch (statement.type) {
-                  case 'branch': {
-                    if (evaluateIsTrue(newContext, statement.data.condition)) {
-                      const res = evaluateBlock(statement.data.block)
-                      if (res) {
-                        return res
-                      }
-                    }
-                    break
-                  }
-                  case 'placeholder':
-                  case 'expression':
-                  case 'declaration': {
-                    break
-                  }
-                  case 'loop': {
-                    while (
-                      evaluateIsTrue(newContext, statement.data.expression)
-                    ) {
-                      const res = evaluateBlock(statement.data.block)
-                      if (res) {
-                        return res
-                      }
-                    }
-                  }
-                  case 'return': {
-                    return newContext.evaluate(
-                      statement.data.expression.data.id
+        return {
+          type: functionType,
+          memory: {
+            type: 'function',
+            value: {
+              defaultArguments,
+              f: args => {
+                const newContext = visitor.evaluation.copy()
+
+                parameters.forEach((p, i) => {
+                  if (p.type === 'parameter') {
+                    newContext.addValue(
+                      p.data.localName.id,
+                      args[p.data.localName.name]
                     )
                   }
-                }
-              }
-            }
+                })
 
-            return evaluateBlock(block)?.memory || StandardLibrary.unit().memory
+                function evaluateBlock(
+                  block: AST.Statement[]
+                ): Value | undefined {
+                  for (let statement of block) {
+                    switch (statement.type) {
+                      case 'branch': {
+                        if (
+                          evaluateIsTrue(newContext, statement.data.condition)
+                        ) {
+                          const res = evaluateBlock(statement.data.block)
+                          if (res) {
+                            return res
+                          }
+                        }
+                        break
+                      }
+                      case 'placeholder':
+                      case 'expression':
+                      case 'declaration': {
+                        break
+                      }
+                      case 'loop': {
+                        while (
+                          evaluateIsTrue(newContext, statement.data.expression)
+                        ) {
+                          const res = evaluateBlock(statement.data.block)
+                          if (res) {
+                            return res
+                          }
+                        }
+                      }
+                      case 'return': {
+                        return newContext.evaluate(
+                          statement.data.expression.data.id
+                        )
+                      }
+                    }
+                  }
+                }
+
+                return (
+                  evaluateBlock(block)?.memory || StandardLibrary.unit().memory
+                )
+              },
+            },
           },
-        },
+        }
       },
     })
   }
