@@ -1,29 +1,38 @@
-import * as Serialization from '@lona/serialization'
+import {
+  LogicAST as AST,
+  decodeLogic,
+  decodeDocument,
+  extractProgramFromAST,
+} from '@lona/serialization'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
 import { copy, IFS } from 'buffs'
 import path from 'path'
-import { createNamespace, Namespace, merge } from './namespace'
-import { createScopeContext, Scope } from './scope'
+import { Namespace, mergeNamespaces, createNamespace } from './namespace'
+import { createScopeContext, Scope, mergeScopes } from './scope'
+import { createUnificationContext } from './typeChecker'
+import { unify } from './typeUnifier'
+import { joinPrograms, makeProgram } from '@lona/compiler/lib/helpers/logic-ast'
+import { evaluate, EvaluationContext } from './evaluation'
 
-export function componentFiles(workspacePath: string): string[] {
+export function componentFilePaths(workspacePath: string): string[] {
   return FileSearch.sync(workspacePath, '**/*.cmp').map(file =>
     path.join(workspacePath, file)
   )
 }
 
-export function logicFiles(workspacePath: string): string[] {
+export function logicFilePaths(workspacePath: string): string[] {
   return FileSearch.sync(workspacePath, '**/*.logic').map(file =>
     path.join(workspacePath, file)
   )
 }
 
-export function documentFiles(workspacePath: string): string[] {
+export function documentFilePaths(workspacePath: string): string[] {
   return FileSearch.sync(workspacePath, '**/*.md').map(file =>
     path.join(workspacePath, file)
   )
 }
 
-export function libraryFiles(): string[] {
+export function libraryFilePaths(): string[] {
   const libraryPath = path.join(__dirname, 'library')
 
   return FileSearch.sync(libraryPath, '**/*.logic').map(file =>
@@ -34,7 +43,7 @@ export function libraryFiles(): string[] {
 type LogicFile = {
   isLibrary: boolean
   sourcePath: string
-  rootNode: Serialization.LogicAST.TopLevelDeclarations
+  rootNode: AST.TopLevelDeclarations
 }
 
 export function decode<T>(
@@ -47,53 +56,62 @@ export function decode<T>(
   return ast
 }
 
-export function program(fs: IFS, workspacePath: string): any {
+type ProgramConfig = {
+  componentFiles: LogicFile[]
+  evaluationContext?: EvaluationContext
+}
+
+export function program(fs: IFS, workspacePath: string): ProgramConfig {
+  const componentFiles = componentFilePaths(workspacePath).map(sourcePath => ({
+    isLibrary: false,
+    sourcePath,
+    rootNode: decode(fs, sourcePath, decodeLogic) as AST.TopLevelDeclarations,
+  }))
+
   const files: LogicFile[] = [
-    ...libraryFiles().map(sourcePath => ({
+    ...libraryFilePaths().map(sourcePath => ({
       isLibrary: true,
       sourcePath,
-      rootNode: decode(
-        fs,
-        sourcePath,
-        Serialization.decodeLogic
-      ) as Serialization.LogicAST.TopLevelDeclarations,
+      rootNode: decode(fs, sourcePath, decodeLogic) as AST.TopLevelDeclarations,
     })),
-    ...componentFiles(workspacePath).map(sourcePath => ({
-      isLibrary: false,
-      sourcePath,
-      rootNode: decode(
-        fs,
-        sourcePath,
-        Serialization.decodeLogic
-      ) as Serialization.LogicAST.TopLevelDeclarations,
-    })),
-    ...documentFiles(workspacePath).map(sourcePath => ({
+    ...componentFiles,
+    ...documentFilePaths(workspacePath).map(sourcePath => ({
       isLibrary: false,
       sourcePath,
       rootNode: decode(fs, sourcePath, data =>
-        Serialization.extractProgramFromAST(Serialization.decodeDocument(data))
+        extractProgramFromAST(decodeDocument(data))
       ),
     })),
   ]
 
-  const processed: (LogicFile & { namespace: Namespace })[] = files.map(
-    logicFile => ({
-      ...logicFile,
-      namespace: createNamespace(logicFile.rootNode),
-    })
+  const namespace: Namespace = mergeNamespaces(
+    files.map(logicFile => createNamespace(logicFile.rootNode))
   )
 
-  const globalNamespace: Namespace = merge(
-    processed.map(logicFile => logicFile.namespace)
+  const scope: Scope = mergeScopes(
+    files.map(logicFile =>
+      createScopeContext(logicFile.rootNode, namespace, undefined, console)
+    )
   )
 
-  // const withScope: (LogicFile & {
-  //   namespace: Namespace
-  //   scope: ScopeContext
-  // })[] = processed.map(logicFile => ({
-  //   ...logicFile,
-  //   scope: createScopeContext(logicFile.rootNode, logicFile.namespace),
-  // }))
+  const programNode = joinPrograms(
+    files.map(logicFile => makeProgram(logicFile.rootNode))
+  )
 
-  // console.log(withScope)
+  const typeChecker = createUnificationContext(programNode, scope, console)
+
+  const substitution = unify(typeChecker.constraints, console)
+
+  const evaluationContext = evaluate(
+    programNode,
+    scope,
+    typeChecker,
+    substitution,
+    console
+  )
+
+  return {
+    componentFiles,
+    evaluationContext,
+  }
 }

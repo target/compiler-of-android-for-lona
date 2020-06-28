@@ -6,6 +6,10 @@ import { EvaluationVisitor } from '../EvaluationVisitor'
 
 export class IdentifierExpression extends Node<AST.IdentifierExpression>
   implements IExpression {
+  get name(): string {
+    return this.syntaxNode.data.identifier.string
+  }
+
   scopeEnter(visitor: ScopeVisitor): void {}
 
   scopeLeave(visitor: ScopeVisitor): void {

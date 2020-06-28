@@ -32,6 +32,39 @@ export class Scope {
   }
 }
 
+function mergeSets<T>(sets: Set<T>[]): Set<T> {
+  return new Set<T>(sets.flatMap(set => [...set]))
+}
+
+export function mergeScopes(scopes: Scope[]) {
+  const result = new Scope()
+
+  result.identifierExpressionToPattern = Object.assign(
+    {},
+    ...scopes.map(scope => scope.identifierExpressionToPattern)
+  )
+  result.memberExpressionToPattern = Object.assign(
+    {},
+    ...scopes.map(scope => scope.memberExpressionToPattern)
+  )
+  result.typeIdentifierToPattern = Object.assign(
+    {},
+    ...scopes.map(scope => scope.typeIdentifierToPattern)
+  )
+
+  result.undefinedIdentifierExpressions = mergeSets(
+    scopes.map(scope => scope.undefinedIdentifierExpressions)
+  )
+  result.undefinedMemberExpressions = mergeSets(
+    scopes.map(scope => scope.undefinedMemberExpressions)
+  )
+  result.undefinedTypeIdentifiers = mergeSets(
+    scopes.map(scope => scope.undefinedTypeIdentifiers)
+  )
+
+  return result
+}
+
 export function createScopeContext(
   rootNode: AST.SyntaxNode,
   namespace: Namespace,

@@ -5,10 +5,32 @@ import { Value } from '../runtime/value'
 import { ScopeVisitor } from '../scopeVisitor'
 import { FunctionArgument, StaticType, unit } from '../staticType'
 import { TypeCheckerVisitor } from '../typeChecker'
-import { IExpression, Node } from './interfaces'
+import { IExpression, Node, INode } from './interfaces'
+import { createExpressionNode } from './createNode'
+import { compact } from '../../utils/sequence'
 
 export class FunctionCallExpression extends Node<AST.FunctionCallExpression>
   implements IExpression {
+  get callee(): IExpression {
+    return createExpressionNode(this.syntaxNode.data.expression)!
+  }
+
+  get argumentExpressionNodes(): { [key: string]: IExpression } {
+    return Object.fromEntries(
+      compact(
+        this.syntaxNode.data.arguments.map((arg, index) => {
+          if (arg.type === 'placeholder') return
+
+          const expressionNode = createExpressionNode(arg.data.expression)
+
+          if (!expressionNode) return
+
+          return [arg.data.label ?? index.toString(), expressionNode]
+        })
+      )
+    )
+  }
+
   scopeEnter(visitor: ScopeVisitor): void {}
 
   scopeLeave(visitor: ScopeVisitor): void {}

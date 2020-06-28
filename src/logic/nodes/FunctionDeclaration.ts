@@ -11,9 +11,18 @@ import { ScopeVisitor } from '../scopeVisitor'
 import { FunctionArgument, StaticType } from '../staticType'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { IDeclaration, Node } from './interfaces'
+import { ReturnStatement } from './ReturnStatement'
 
 export class FunctionDeclaration extends Node<AST.FunctionDeclaration>
   implements IDeclaration {
+  get returnStatements(): ReturnStatement[] {
+    const syntaxNodes = this.findAll(
+      node => node.type === 'return'
+    ) as AST.ReturnStatement[]
+
+    return syntaxNodes.map(node => new ReturnStatement(node))
+  }
+
   namespaceEnter(visitor: NamespaceVisitor): void {}
 
   namespaceLeave(visitor: NamespaceVisitor): void {

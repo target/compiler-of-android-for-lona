@@ -19,7 +19,7 @@ export const builtInTypeConstructorNames: Set<String> = new Set([
 /**
  * Merge namespaces, throwing an error in the case of collisions
  */
-export function merge(namespaces: Namespace[]): Namespace {
+export function mergeNamespaces(namespaces: Namespace[]): Namespace {
   return namespaces.reduce((result, namespace) => {
     Object.entries(namespace.values).forEach(([key, value]) => {
       if (key in result.values) {

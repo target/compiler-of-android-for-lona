@@ -27,6 +27,26 @@ export function findNode(
   return found
 }
 
+export function findNodes(
+  rootNode: AST.SyntaxNode,
+  predicate: (node: AST.SyntaxNode) => boolean
+): AST.SyntaxNode[] {
+  let found: AST.SyntaxNode[] = []
+
+  reduce(
+    rootNode,
+    (_result, node, config) => {
+      if (predicate(node)) {
+        found.push(node)
+      }
+      return undefined
+    },
+    undefined
+  )
+
+  return found
+}
+
 export function forEach(
   rootNode: AST.SyntaxNode,
   config: TraversalConfig,

@@ -21,13 +21,13 @@ export const createConstraintLayout = (
   }
 }
 
-type ViewOptions = {
+export type ViewOptions = {
   layoutWidth?: string
   layoutHeight?: string
   background?: string
 }
 
-type TextViewOptions = ViewOptions & {
+export type TextViewOptions = ViewOptions & {
   text?: string
 }
 
@@ -47,7 +47,7 @@ function convertViewOptions({
     },
     typeof background === 'string' && {
       name: 'android:background',
-      value: '#AABBCC',
+      value: background,
     },
     { name: 'app:layout_constraintTop_toTopOf', value: 'parent' },
     { name: 'app:layout_constraintLeft_toLeftOf', value: 'parent' },
@@ -71,7 +71,7 @@ function convertTextViewOptions({
 
 export const createView = (
   options: ViewOptions = {},
-  children: XML.Element[]
+  children: XML.Element[] = []
 ): XML.Element => {
   return {
     tag: 'View',
@@ -80,14 +80,11 @@ export const createView = (
   }
 }
 
-export const createTextView = (
-  options: TextViewOptions = {},
-  children: XML.Element[]
-): XML.Element => {
+export const createTextView = (options: TextViewOptions = {}): XML.Element => {
   return {
     tag: 'TextView',
     attributes: convertTextViewOptions(options),
-    content: children.map(item => ({ type: 'element', data: item })),
+    content: [],
   }
 }
 
@@ -99,7 +96,7 @@ export const createTextView = (
  *   ...
  * </resources>
  */
-export const createFile = (element: XML.Element): string => {
+export const createLayoutFile = (element: XML.Element): string => {
   const document: XML.Document = {
     prolog: {
       xmlDecl: {

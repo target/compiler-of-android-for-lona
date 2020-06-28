@@ -22,7 +22,12 @@ import {
 } from '../template/context'
 import { inflate, InflateOptions } from '../template/inflate'
 import { createValueResources } from './tokens'
-import { componentFiles, documentFiles, program } from '../logic/files'
+import { program } from '../logic/files'
+import { createLayout, findComponentFunction } from '../logic/component'
+import {
+  createConstraintLayout,
+  createLayoutFile,
+} from '../android/layoutResources'
 
 export function inflateProjectTemplate(
   outputPath: string,
@@ -175,7 +180,18 @@ export async function convert(
     return Promise.reject(error)
   }
 
-  program(fs, workspacePath)
+  // const { componentFiles, evaluationContext } = program(fs, workspacePath)
+
+  // componentFiles.forEach(({ rootNode }) => {
+  //   const componentFunction = findComponentFunction(rootNode)
+
+  //   if (!componentFunction || !evaluationContext) return
+
+  //   const layout = createLayout({ evaluationContext }, componentFunction)
+  //   const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+
+  //   // console.log(layoutFile)
+  // })
 
   const drawableResources: [string, IFS][] = await convertSvgFiles(
     workspacePath,
