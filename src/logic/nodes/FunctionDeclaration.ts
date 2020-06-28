@@ -8,7 +8,10 @@ import { StaticType, FunctionArgument } from '../staticType'
 import { evaluateIsTrue } from '../evaluation'
 import { EvaluationVisitor } from '../EvaluationVisitor'
 import { declarationPathTo } from '@lona/compiler/lib/helpers/logic-ast'
-import { Value } from '../runtime/value'
+import { Value, StandardLibrary } from '../runtime/value'
+import { substitute } from '../typeUnifier'
+import { DefaultArguments } from '../runtime/memory'
+import { compact } from '../../utils/sequence'
 
 export class FunctionDeclaration implements IDeclaration {
   syntaxNode: AST.FunctionDeclaration
@@ -110,31 +113,46 @@ export class FunctionDeclaration implements IDeclaration {
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {}
 
   evaluationEnter(visitor: EvaluationVisitor) {
-    const { id, name, block, parameters } = this.syntaxNode.data
-    const { rootNode, typeChecker, substitution, reporter } = visitor
+    const { name, block, parameters } = this.syntaxNode.data
+    const { resolveType } = visitor
 
-    const type = typeChecker.patternTypes[name.id]
-    const fullPath = declarationPathTo(rootNode, id)
+    const functionType = resolveType(name.id)
 
-    if (!type) {
-      reporter.error('Unknown function type')
-      return
-    }
+    if (!functionType) return
+
+    const defaultArguments: DefaultArguments = Object.fromEntries(
+      compact(
+        parameters.map((parameter, index) => {
+          if (parameter.type !== 'parameter') return
+
+          const parameterType = resolveType(parameter.data.localName.id)
+
+          if (!parameterType) return
+
+          return [
+            parameter.data.localName.name,
+            [parameterType, StandardLibrary.unit()],
+          ]
+        })
+      )
+    )
 
     visitor.addValue(name.id, {
-      type,
+      type: functionType,
       memory: {
         type: 'function',
         value: {
-          type: 'path',
-          value: fullPath,
-          evaluate(...args: Value[]) {
+          defaultArguments,
+          f: args => {
             const newContext = visitor.evaluation.copy()
 
             parameters.forEach((p, i) => {
-              newContext.addValue(p.data.id, args[i])
               if (p.type === 'parameter') {
-                newContext.addValue(p.data.localName.id, args[i])
+                newContext.addValue(
+                  p.data.localName.id,
+                  args[p.data.localName.name] ||
+                    defaultArguments[p.data.localName.name][1]
+                )
               }
             })
 
@@ -174,7 +192,7 @@ export class FunctionDeclaration implements IDeclaration {
               }
             }
 
-            return evaluateBlock(block)
+            return evaluateBlock(block)?.memory || StandardLibrary.unit().memory
           },
         },
       },

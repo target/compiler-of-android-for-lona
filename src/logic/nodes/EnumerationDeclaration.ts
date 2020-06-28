@@ -7,8 +7,10 @@ import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { StaticType } from '../staticType'
 import { EvaluationVisitor } from '../EvaluationVisitor'
 import { substitute } from '../typeUnifier'
-import { Memory, FuncMemory } from '../runtime/memory'
+import { Memory, FuncMemory, DefaultArguments } from '../runtime/memory'
 import { StandardLibrary } from '../runtime/value'
+import { compact } from '../../utils/sequence'
+import { inspect } from 'util'
 
 export class EnumerationDeclaration implements IDeclaration {
   syntaxNode: AST.EnumerationDeclaration
@@ -93,12 +95,10 @@ export class EnumerationDeclaration implements IDeclaration {
     }
 
     cases.forEach(enumCase => {
-      if (enumCase.type === 'placeholder') {
-        return
-      }
+      if (enumCase.type === 'placeholder') return
 
-      const parameterTypes = enumCase.data.associatedValueTypes
-        .map(annotation => {
+      const parameterTypes = compact(
+        enumCase.data.associatedValueTypes.map(annotation => {
           if (annotation.type === 'placeholder') return
 
           return {
@@ -110,7 +110,7 @@ export class EnumerationDeclaration implements IDeclaration {
             ),
           }
         })
-        .filter(nonNullable)
+      )
 
       const functionType: StaticType = {
         type: 'function',
@@ -140,22 +140,44 @@ export class EnumerationDeclaration implements IDeclaration {
       return
     }
 
+    const enumType = substitute(substitution, type)
+
     cases.forEach(enumCase => {
       if (enumCase.type !== 'enumerationCase') return
 
-      const resolvedConsType = substitute(substitution, type)
-      const { name } = enumCase.data
+      const { name: caseName } = enumCase.data
 
-      visitor.addValue(name.id, {
-        type: resolvedConsType,
+      const caseType = substitute(
+        substitution,
+        typeChecker.nodes[enumCase.data.name.id]
+      )
+
+      if (caseType.type !== 'function') {
+        throw new Error('Enum case type must be a function')
+      }
+
+      const defaultArguments: DefaultArguments = Object.fromEntries(
+        caseType.arguments.map(({ label, type }, index) => {
+          return [
+            typeof label === 'string' ? label : index.toString(),
+            [substitute(substitution, type), undefined],
+          ]
+        })
+      )
+
+      visitor.addValue(caseName.id, {
+        type: enumType,
         memory: {
           type: 'function',
-          value: (...args) => {
-            return {
-              type: 'enum',
-              value: name.name,
-              data: args,
-            }
+          value: {
+            f: record => {
+              return {
+                type: 'enum',
+                value: caseName.name,
+                data: Object.values(record),
+              }
+            },
+            defaultArguments,
           },
         },
       })

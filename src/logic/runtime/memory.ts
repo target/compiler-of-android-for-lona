@@ -1,7 +1,16 @@
 import { StaticType } from '../staticType'
 import { Value } from './value'
 
-export type FuncMemory = (...args: Value[]) => Memory
+export type RecordMemory = { [key: string]: Value }
+
+export type DefaultArguments = {
+  [key: string]: [StaticType, Value | void]
+}
+
+export type FuncMemory = {
+  f: (args: RecordMemory) => Memory
+  defaultArguments: DefaultArguments
+}
 
 export type Memory =
   | { type: 'unit' }
@@ -10,20 +19,10 @@ export type Memory =
   | { type: 'string'; value: string }
   | { type: 'array'; value: Value[] }
   | { type: 'enum'; value: string; data: Value[] }
-  | { type: 'record'; value: { [key: string]: Value } }
+  | { type: 'record'; value: RecordMemory }
   | {
       type: 'function'
-      value:
-        | FuncMemory
-        | {
-            type: 'path'
-            value: string[]
-            evaluate: (...args: Value[]) => Value | undefined
-          }
-        | {
-            type: 'recordInit'
-            value: { [key: string]: [StaticType, Value | void] }
-          }
+      value: FuncMemory
     }
 
 export const unit = (): Memory => ({ type: 'unit' })

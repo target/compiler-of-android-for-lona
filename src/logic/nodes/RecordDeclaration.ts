@@ -7,8 +7,10 @@ import { TypeCheckerVisitor } from '../typeChecker'
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { StaticType, FunctionArgument } from '../staticType'
 import { EvaluationVisitor } from '../EvaluationVisitor'
-import { Value } from '../runtime/value'
+import { Value, StandardLibrary } from '../runtime/value'
 import { substitute } from '@lona/compiler/lib/helpers/logic-unify'
+import { compact } from '../../utils/sequence'
+import { DefaultArguments } from '../runtime/memory'
 
 export class RecordDeclaration implements IDeclaration {
   syntaxNode: AST.RecordDeclaration
@@ -151,53 +153,52 @@ export class RecordDeclaration implements IDeclaration {
       return
     }
 
-    const resolvedType = substitute(substitution, type)
-    const dependencies = declarations
-      .map(x =>
-        x.type === 'variable' && x.data.initializer
-          ? x.data.initializer.data.id
-          : undefined
-      )
-      .filter(nonNullable)
+    const recordType = substitute(substitution, type)
+
+    const memberVariables: {
+      pattern: AST.Pattern
+      initializer: AST.Expression
+      type: StaticType
+    }[] = compact(
+      declarations.map(declaration => {
+        if (declaration.type === 'variable') {
+          const { name: variableName, initializer } = declaration.data
+
+          const memberType = typeChecker.patternTypes[variableName.id]
+
+          if (!memberType || !initializer) return
+
+          return {
+            pattern: variableName,
+            initializer: initializer,
+            type: substitute(substitution, memberType),
+          }
+        }
+      })
+    )
 
     visitor.add(name.id, {
-      label: 'Record declaration for ' + name.name,
-      dependencies,
+      label: 'Record initializer for ' + name.name,
+      dependencies: memberVariables.map(member => member.initializer.data.id),
       f: values => {
-        const parameterTypes: {
-          [key: string]: [StaticType, Value | void]
-        } = {}
-        let index = 0
-
-        declarations.forEach(declaration => {
-          if (declaration.type !== 'variable') {
-            return
-          }
-          const parameterType =
-            typeChecker.patternTypes[declaration.data.name.id]
-          if (!parameterType) {
-            return
-          }
-
-          let initialValue: Value | void
-          if (declaration.data.initializer) {
-            initialValue = values[index]
-            index += 1
-          }
-
-          parameterTypes[declaration.data.name.name] = [
-            parameterType,
-            initialValue,
-          ]
-        })
+        const defaultArguments: DefaultArguments = Object.fromEntries(
+          memberVariables.map(({ pattern, type }, index) => {
+            return [pattern.name, [type, values[index]]]
+          })
+        )
 
         return {
-          type: resolvedType,
+          type: recordType,
           memory: {
             type: 'function',
             value: {
-              type: 'recordInit',
-              value: parameterTypes,
+              defaultArguments,
+              f: record => {
+                return {
+                  type: 'record',
+                  value: record,
+                }
+              },
             },
           },
         }

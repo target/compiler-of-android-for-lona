@@ -169,6 +169,19 @@ let x: DimensionSize = DimensionSize.fixed(100)
 
   it('evaluates Padding', () => {
     const file = `
+  let x: Padding = Padding(top: 10, right: 20, bottom: 30, left: 40)
+  `
+    const rootNode = Serialization.decodeLogic(file)
+    const initializerId = getInitializerId(rootNode, 'x')
+    const evaluation = standardEvaluate(rootNode)
+
+    const result = evaluation.evaluate(initializerId)
+
+    expect(result).toMatchSnapshot()
+  })
+
+  it('evaluates function that returns Padding', () => {
+    const file = `
   let x: Padding = Padding.size(value: 8)
   `
     const rootNode = Serialization.decodeLogic(file)

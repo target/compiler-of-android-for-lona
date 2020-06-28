@@ -8,6 +8,7 @@ import { EvaluationVisitor } from '../EvaluationVisitor'
 import { substitute } from '../typeUnifier'
 import { Value } from '../runtime/value'
 import { assertNever } from '@lona/compiler/lib/utils'
+import { compact } from '../../utils/sequence'
 
 export class FunctionCallExpression implements IExpression {
   syntaxNode: AST.FunctionCallExpression
@@ -83,131 +84,95 @@ export class FunctionCallExpression implements IExpression {
 
   evaluationEnter(visitor: EvaluationVisitor) {
     const { expression, arguments: args, id } = this.syntaxNode.data
-    const { typeChecker, reporter, substitution } = visitor
+    const { reporter, resolveType } = visitor
 
-    let functionType = typeChecker.nodes[expression.data.id]
-    if (!functionType) {
-      reporter.error('Unknown type of functionCallExpression')
-      return
-    }
+    const type = resolveType(expression.data.id)
 
-    const resolvedType = substitute(substitution, functionType)
-    if (resolvedType.type !== 'function') {
+    if (!type) return
+
+    if (type.type !== 'function') {
       reporter.error(
         'Invalid functionCallExpression type (only functions are valid)',
-        resolvedType
+        type
       )
       return
     }
 
-    const dependencies = [expression.data.id].concat(
-      args
-        .map(arg => {
-          if (
-            arg.type === 'placeholder' ||
-            arg.data.expression.type === 'placeholder' ||
-            (arg.data.expression.type === 'identifierExpression' &&
-              arg.data.expression.data.identifier.isPlaceholder)
-          ) {
-            return undefined
-          }
-          return arg.data.expression.data.id
-        })
-        .filter(nonNullable)
-    )
+    // TODO: Fix union between argument and placeholder type
+    const isValidArgument = (arg: AST.FunctionCallArgument) => {
+      if (
+        arg.type === 'placeholder' ||
+        arg.data.expression.type === 'placeholder' ||
+        (arg.data.expression.type === 'identifierExpression' &&
+          arg.data.expression.data.identifier.isPlaceholder)
+      ) {
+        return false
+      }
+      return true
+    }
+
+    const validArguments = args.filter(isValidArgument)
+
+    const dependencies = [
+      expression.data.id,
+      ...validArguments.map(arg => {
+        if (arg.type === 'placeholder') throw new Error('Invalid argument')
+        return arg.data.expression.data.id
+      }),
+    ]
 
     visitor.add(id, {
       label: 'FunctionCallExpression',
       dependencies,
       f: values => {
-        const [functionValue, ...functionArgs] = values
+        const [functionValue] = values
 
         if (functionValue.memory.type !== 'function') {
           reporter.error('tried to evaluate a function that is not a function')
           return { type: unit, memory: { type: 'unit' } }
         }
 
-        if (typeof functionValue.memory.value === 'function') {
-          return {
-            type: resolvedType.returnType,
-            memory: functionValue.memory.value(...functionArgs),
-          }
-        }
+        const { f, defaultArguments } = functionValue.memory.value
 
-        if (functionValue.memory.value.type === 'path') {
-          const functionName = functionValue.memory.value.value.join('.')
+        const alreadyMatched = new Set<string>()
 
-          // if (
-          //   context.isFromStandardLibrary(expression.data.id) &&
-          //   isHardcodedMapCall.functionCallExpression(functionName, hardcoded)
-          // ) {
-          //   const value = hardcoded.functionCallExpression[functionName](
-          //     node,
-          //     ...functionArgs
-          //   )
-          //   if (value) {
-          //     return value
-          //   }
-          // }
-
-          // we have a custom function
-          // let's try to evaluate it
-          const value = functionValue.memory.value.evaluate(...functionArgs)
-
-          if (value) {
-            return value
-          }
-
-          // we tried and we have no idea what it is
-          // so let's warn about it and ignore it
-          reporter.error(
-            `Failed to evaluate "${id}": Unknown function ${functionName}`
+        const members: [string, Value | void][] = Object.entries(
+          defaultArguments
+        ).map(([key, value]) => {
+          const match = validArguments.find(
+            x =>
+              x.type === 'argument' &&
+              !alreadyMatched.has(x.data.id) &&
+              (x.data.label == null || x.data.label === key)
           )
-          return { type: unit, memory: { type: 'unit' } }
-        }
 
-        if (functionValue.memory.value.type === 'recordInit') {
-          const members: [string, Value | void][] = Object.entries(
-            functionValue.memory.value.value
-          ).map(([key, value]) => {
-            const arg = args.find(
-              x =>
-                x.type === 'argument' && !!x.data.label && x.data.label === key
+          if (match && match.type === 'argument' && isValidArgument(match)) {
+            const dependencyIndex = dependencies.indexOf(
+              match.data.expression.data.id
             )
-            let argumentValue: Value | void
 
-            if (arg && arg.type === 'argument') {
-              const { expression } = arg.data
-              if (
-                expression.type !== 'identifierExpression' ||
-                !expression.data.identifier.isPlaceholder
-              ) {
-                const dependencyIndex = dependencies.indexOf(expression.data.id)
+            if (dependencyIndex !== -1) {
+              alreadyMatched.add(match.data.id)
 
-                if (dependencyIndex !== -1) {
-                  argumentValue = values[dependencyIndex]
-                }
-              }
+              return [key, values[dependencyIndex]]
+            } else {
+              throw new Error(
+                `Failed to find arg dependency ${match.data.expression.data.id}`
+              )
             }
-
-            if (argumentValue) {
-              return [key, argumentValue]
-            }
-            return [key, value[1]]
-          })
-
-          return {
-            type: resolvedType.returnType,
-            memory: {
-              type: 'record',
-              value: Object.fromEntries(
-                members.flatMap(([key, value]) => (value ? [[key, value]] : []))
-              ),
-            },
           }
-        }
 
-        assertNever(functionValue.memory.value)
+          return [key, value[1]]
+        })
+
+        const namedArguments = Object.fromEntries(
+          members.flatMap(([key, value]) => (value ? [[key, value]] : []))
+        )
+
+        return {
+          type: type.returnType,
+          memory: f(namedArguments),
+        }
       },
     })
   }

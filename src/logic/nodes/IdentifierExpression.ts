@@ -57,13 +57,13 @@ export class IdentifierExpression implements IExpression {
     if (!patternId) return
 
     visitor.add(identifierId, {
-      label: 'Identifier ' + string,
+      label: `Identifier (${string})`,
       dependencies: [patternId],
       f: values => values[0],
     })
 
     visitor.add(id, {
-      label: 'IdentifierExpression ' + string,
+      label: `IdentifierExpression (${string})`,
       dependencies: [patternId],
       f: values => values[0],
     })

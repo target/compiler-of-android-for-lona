@@ -115,7 +115,7 @@ Object {
       "bottom": Object {
         "memory": Object {
           "type": "number",
-          "value": 8,
+          "value": 30,
         },
         "type": Object {
           "name": "Number",
@@ -126,7 +126,7 @@ Object {
       "left": Object {
         "memory": Object {
           "type": "number",
-          "value": 8,
+          "value": 40,
         },
         "type": Object {
           "name": "Number",
@@ -137,7 +137,7 @@ Object {
       "right": Object {
         "memory": Object {
           "type": "number",
-          "value": 8,
+          "value": 20,
         },
         "type": Object {
           "name": "Number",
@@ -148,7 +148,7 @@ Object {
       "top": Object {
         "memory": Object {
           "type": "number",
-          "value": 8,
+          "value": 10,
         },
         "type": Object {
           "name": "Number",
@@ -520,6 +520,65 @@ Object {
   },
   "type": Object {
     "name": "Number",
+    "parameters": Array [],
+    "type": "constant",
+  },
+}
+`;
+
+exports[`Logic / Evaluate evaluates function that returns Padding 1`] = `
+Object {
+  "memory": Object {
+    "type": "record",
+    "value": Object {
+      "bottom": Object {
+        "memory": Object {
+          "type": "number",
+          "value": 8,
+        },
+        "type": Object {
+          "name": "Number",
+          "parameters": Array [],
+          "type": "constant",
+        },
+      },
+      "left": Object {
+        "memory": Object {
+          "type": "number",
+          "value": 8,
+        },
+        "type": Object {
+          "name": "Number",
+          "parameters": Array [],
+          "type": "constant",
+        },
+      },
+      "right": Object {
+        "memory": Object {
+          "type": "number",
+          "value": 8,
+        },
+        "type": Object {
+          "name": "Number",
+          "parameters": Array [],
+          "type": "constant",
+        },
+      },
+      "top": Object {
+        "memory": Object {
+          "type": "number",
+          "value": 8,
+        },
+        "type": Object {
+          "name": "Number",
+          "parameters": Array [],
+          "type": "constant",
+        },
+      },
+    },
+  },
+  "type": Object {
+    "name": "Padding",
     "parameters": Array [],
     "type": "constant",
   },

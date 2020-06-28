@@ -3,8 +3,10 @@ import { LogicAST as AST } from '@lona/serialization'
 import { Value } from './runtime/value'
 import { Scope } from './scope'
 import { TypeChecker } from './typeChecker'
-import { Substitution } from './typeUnifier'
+import { Substitution, substitute } from './typeUnifier'
 import { EvaluationContext, Thunk } from './evaluation'
+import { UUID } from './namespace'
+import { StaticType } from './staticType'
 
 export class EvaluationVisitor {
   evaluation: EvaluationContext
@@ -29,11 +31,24 @@ export class EvaluationVisitor {
     this.substitution = substitution
   }
 
-  add(uuid: string, thunk: Thunk) {
+  add(uuid: UUID, thunk: Thunk) {
     this.evaluation.add(uuid, thunk)
   }
 
-  addValue(uuid: string, value: Value) {
+  addValue(uuid: UUID, value: Value) {
     this.evaluation.addValue(uuid, value)
+  }
+
+  resolveType = (uuid: UUID): StaticType | undefined => {
+    const { typeChecker, substitution, reporter } = this
+
+    let type = typeChecker.nodes[uuid]
+
+    if (!type) {
+      reporter.error(`Unknown type ${uuid}`)
+      return
+    }
+
+    return substitute(substitution, type)
   }
 }
