@@ -22,6 +22,7 @@ export const createConstraintLayout = (
 }
 
 export type ViewOptions = {
+  id?: string
   layoutWidth?: string
   layoutHeight?: string
   background?: string
@@ -32,11 +33,16 @@ export type TextViewOptions = ViewOptions & {
 }
 
 function convertViewOptions({
+  id,
   layoutWidth,
   layoutHeight,
   background,
 }: ViewOptions): XML.Attribute[] {
   return compact<XML.Attribute>([
+    typeof id === 'string' && {
+      name: 'android:id',
+      value: id,
+    },
     typeof layoutWidth === 'string' && {
       name: 'android:layout_width',
       value: layoutWidth,

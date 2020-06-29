@@ -4,6 +4,7 @@ import {
   createView,
   ViewOptions,
   createTextView,
+  TextViewOptions,
 } from '../android/layoutResources'
 import { AST } from '@lona/compiler/lib/helpers/logic-ast'
 import { findNode } from './syntaxNode'
@@ -89,6 +90,16 @@ export function createElementTree(
     const { callee, argumentExpressionNodes } = node
 
     let viewOptions: ViewOptions = {}
+    let children: XML.Element[] = []
+
+    if ('__name' in argumentExpressionNodes) {
+      const expression = argumentExpressionNodes['__name']
+      const value = context.evaluationContext.evaluate(expression.id)
+      const id = value && getString(value)
+      if (id) {
+        viewOptions.id = `@+id/${id.toLowerCase()}`
+      }
+    }
 
     if ('width' in argumentExpressionNodes) {
       const expression = argumentExpressionNodes['width']
@@ -120,18 +131,33 @@ export function createElementTree(
         expression instanceof LiteralExpression && expression.literal
 
       if (literal instanceof ArrayLiteral) {
-        console.log(literal.children)
+        children = literal.elements.map(expression =>
+          createElementTree(context, expression)
+        )
       }
     }
 
     if (callee instanceof IdentifierExpression) {
       switch (callee.name) {
-        case 'View':
-          return createView(viewOptions, [])
-        case 'Text':
-          return createTextView(viewOptions)
+        case 'View': {
+          return createView(viewOptions, children)
+        }
+        case 'Text': {
+          const textViewOptions: TextViewOptions = { ...viewOptions }
+
+          if ('value' in argumentExpressionNodes) {
+            const expression = argumentExpressionNodes['value']
+            const value = context.evaluationContext.evaluate(expression.id)
+            const text = value && getString(value)
+            if (text) {
+              textViewOptions.text = text
+            }
+          }
+
+          return createTextView(textViewOptions)
+        }
         default:
-          throw new Error(`Unknown callee name: ${callee.name}`)
+          throw new Error(`Unknown element name: ${callee.name}`)
       }
     }
   }

@@ -2,9 +2,11 @@ import { LogicAST as AST } from '@lona/serialization'
 import { EvaluationVisitor } from '../EvaluationVisitor'
 import { bool, number, string, unit, color, StaticType } from '../staticType'
 import { TypeCheckerVisitor } from '../typeChecker'
-import { ILiteral, Node } from './interfaces'
+import { ILiteral, Node, IExpression } from './interfaces'
 import { StandardLibrary } from '../runtime/value'
 import { substitute } from '../typeUnifier'
+import { createExpressionNode } from './createNode'
+import { compact } from '../../utils/sequence'
 
 export class NoneLiteral extends Node<AST.NoneLiteral> implements ILiteral {
   typeCheckerEnter(visitor: TypeCheckerVisitor): void {}
@@ -72,6 +74,10 @@ export class ColorLiteral extends Node<AST.ColorLiteral> implements ILiteral {
 }
 
 export class ArrayLiteral extends Node<AST.ArrayLiteral> implements ILiteral {
+  get elements(): IExpression[] {
+    return compact(this.syntaxNode.data.value.map(createExpressionNode))
+  }
+
   typeCheckerEnter(visitor: TypeCheckerVisitor): void {}
 
   typeCheckerLeave(visitor: TypeCheckerVisitor): void {

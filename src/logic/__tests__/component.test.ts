@@ -40,3 +40,52 @@ func Row() -> Element {
 
   expect(layoutFile).toMatchSnapshot()
 })
+
+it('creates View with children layout', () => {
+  const file = `
+let primary: Color = #color(css: "#FAB")
+
+func Row() -> Element {
+  return View(__name: "Container", children: [
+    View(__name: "Child1"),
+    View(__name: "Child2")
+  ])
+}
+`
+  const rootNode = Serialization.decodeLogic(file)
+  const evaluationContext = standardEvaluate(rootNode)
+  const componentFunction = findComponentFunction(rootNode)
+
+  expect(componentFunction).toBeDefined()
+  expect(evaluationContext).toBeDefined()
+
+  if (!componentFunction || !evaluationContext) return
+
+  const layout = createLayout({ evaluationContext }, componentFunction)
+  const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+
+  expect(layoutFile).toMatchSnapshot()
+})
+
+it('creates Text layout', () => {
+  const file = `
+let primary: Color = #color(css: "#FAB")
+
+func Row() -> Element {
+  return Text(__name: "Container", value: "Hello")
+}
+`
+  const rootNode = Serialization.decodeLogic(file)
+  const evaluationContext = standardEvaluate(rootNode)
+  const componentFunction = findComponentFunction(rootNode)
+
+  expect(componentFunction).toBeDefined()
+  expect(evaluationContext).toBeDefined()
+
+  if (!componentFunction || !evaluationContext) return
+
+  const layout = createLayout({ evaluationContext }, componentFunction)
+  const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+
+  expect(layoutFile).toMatchSnapshot()
+})
