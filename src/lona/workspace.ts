@@ -190,7 +190,7 @@ export async function convert(
     if (!componentFunction || !evaluationContext) return
 
     const layout = createLayout({ evaluationContext }, componentFunction)
-    const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+    const layoutFile = createLayoutFile(layout)
 
     const xmlFileName = formatDrawableName(path.basename(sourcePath), 'xml', {
       nameTemplate: '${qualifiedName?join("-")}',

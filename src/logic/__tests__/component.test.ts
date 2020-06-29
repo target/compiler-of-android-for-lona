@@ -36,7 +36,7 @@ func Row() -> Element {
   if (!componentFunction || !evaluationContext) return
 
   const layout = createLayout({ evaluationContext }, componentFunction)
-  const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+  const layoutFile = createLayoutFile(layout)
 
   expect(layoutFile).toMatchSnapshot()
 })
@@ -62,7 +62,7 @@ func Row() -> Element {
   if (!componentFunction || !evaluationContext) return
 
   const layout = createLayout({ evaluationContext }, componentFunction)
-  const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+  const layoutFile = createLayoutFile(layout)
 
   expect(layoutFile).toMatchSnapshot()
 })
@@ -72,7 +72,9 @@ it('creates Text layout', () => {
 let primary: Color = #color(css: "#FAB")
 
 func Row() -> Element {
-  return Text(__name: "Container", value: "Hello")
+  return View(children: [
+    Text(value: "Hello")
+  ])
 }
 `
   const rootNode = Serialization.decodeLogic(file)
@@ -85,7 +87,7 @@ func Row() -> Element {
   if (!componentFunction || !evaluationContext) return
 
   const layout = createLayout({ evaluationContext }, componentFunction)
-  const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+  const layoutFile = createLayoutFile(layout)
 
   expect(layoutFile).toMatchSnapshot()
 })
@@ -112,7 +114,7 @@ func Row() -> Element {
   if (!componentFunction || !evaluationContext) return
 
   const layout = createLayout({ evaluationContext }, componentFunction)
-  const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+  const layoutFile = createLayoutFile(layout)
 
   expect(layoutFile).toMatchSnapshot()
 })

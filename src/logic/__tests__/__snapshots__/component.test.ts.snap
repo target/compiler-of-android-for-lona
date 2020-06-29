@@ -6,37 +6,33 @@ exports[`creates HorizontalStack layout 1`] = `
     xmlns:android=\\"http://schemas.android.com/apk/res/android\\"
     xmlns:app=\\"http://schemas.android.com/apk/res-auto\\"
     xmlns:tools=\\"http://schemas.android.com/tools\\"
+    android:id=\\"@+id/container\\"
     android:layout_width=\\"match_parent\\"
     android:layout_height=\\"match_parent\\">
   <View
-      android:id=\\"@+id/container\\"
+      android:id=\\"@+id/view\\"
+      android:layout_width=\\"0dp\\"
+      android:layout_height=\\"match_parent\\"
+      app:layout_constraintStart_toStartOf=\\"parent\\"
+      app:layout_constraintEnd_toStartOf=\\"@id/view2\\"
       app:layout_constraintTop_toTopOf=\\"parent\\"
-      app:layout_constraintLeft_toLeftOf=\\"parent\\">
-    <View
-        android:id=\\"@+id/view\\"
-        app:layout_constraintStart_toStartOf=\\"parent\\"
-        app:layout_constraintEnd_toStartOf=\\"@id/view2\\"
-        app:layout_constraintTop_toTopOf=\\"parent\\"
-        app:layout_constraintBottom_toBottomOf=\\"parent\\"
-        app:layout_constraintTop_toTopOf=\\"parent\\"
-        app:layout_constraintLeft_toLeftOf=\\"parent\\" />
-    <View
-        android:id=\\"@+id/view2\\"
-        app:layout_constraintStart_toEndOf=\\"@id/view\\"
-        app:layout_constraintEnd_toStartOf=\\"@id/view3\\"
-        app:layout_constraintTop_toTopOf=\\"parent\\"
-        app:layout_constraintBottom_toBottomOf=\\"parent\\"
-        app:layout_constraintTop_toTopOf=\\"parent\\"
-        app:layout_constraintLeft_toLeftOf=\\"parent\\" />
-    <View
-        android:id=\\"@+id/view3\\"
-        app:layout_constraintStart_toEndOf=\\"@id/view2\\"
-        app:layout_constraintEnd_toEndOf=\\"parent\\"
-        app:layout_constraintTop_toTopOf=\\"parent\\"
-        app:layout_constraintBottom_toBottomOf=\\"parent\\"
-        app:layout_constraintTop_toTopOf=\\"parent\\"
-        app:layout_constraintLeft_toLeftOf=\\"parent\\" />
-  </View>
+      app:layout_constraintBottom_toBottomOf=\\"parent\\" />
+  <View
+      android:id=\\"@+id/view2\\"
+      android:layout_width=\\"0dp\\"
+      android:layout_height=\\"match_parent\\"
+      app:layout_constraintStart_toEndOf=\\"@id/view\\"
+      app:layout_constraintEnd_toStartOf=\\"@id/view3\\"
+      app:layout_constraintTop_toTopOf=\\"parent\\"
+      app:layout_constraintBottom_toBottomOf=\\"parent\\" />
+  <View
+      android:id=\\"@+id/view3\\"
+      android:layout_width=\\"0dp\\"
+      android:layout_height=\\"match_parent\\"
+      app:layout_constraintStart_toEndOf=\\"@id/view2\\"
+      app:layout_constraintEnd_toEndOf=\\"parent\\"
+      app:layout_constraintTop_toTopOf=\\"parent\\"
+      app:layout_constraintBottom_toBottomOf=\\"parent\\" />
 </androidx.constraintlayout.widget.ConstraintLayout>"
 `;
 
@@ -46,13 +42,10 @@ exports[`creates Text layout 1`] = `
     xmlns:android=\\"http://schemas.android.com/apk/res/android\\"
     xmlns:app=\\"http://schemas.android.com/apk/res-auto\\"
     xmlns:tools=\\"http://schemas.android.com/tools\\"
+    android:id=\\"@+id/view\\"
     android:layout_width=\\"match_parent\\"
     android:layout_height=\\"match_parent\\">
-  <TextView
-      android:id=\\"@+id/container\\"
-      app:layout_constraintTop_toTopOf=\\"parent\\"
-      app:layout_constraintLeft_toLeftOf=\\"parent\\"
-      android:text=\\"Hello\\" />
+  <TextView android:id=\\"@+id/text\\" android:text=\\"Hello\\" />
 </androidx.constraintlayout.widget.ConstraintLayout>"
 `;
 
@@ -62,16 +55,10 @@ exports[`creates View layout 1`] = `
     xmlns:android=\\"http://schemas.android.com/apk/res/android\\"
     xmlns:app=\\"http://schemas.android.com/apk/res-auto\\"
     xmlns:tools=\\"http://schemas.android.com/tools\\"
-    android:layout_width=\\"match_parent\\"
-    android:layout_height=\\"match_parent\\">
-  <View
-      android:id=\\"@+id/container\\"
-      android:layout_width=\\"100dp\\"
-      android:layout_height=\\"100dp\\"
-      android:background=\\"#FAB\\"
-      app:layout_constraintTop_toTopOf=\\"parent\\"
-      app:layout_constraintLeft_toLeftOf=\\"parent\\" />
-</androidx.constraintlayout.widget.ConstraintLayout>"
+    android:id=\\"@+id/container\\"
+    android:layout_width=\\"100dp\\"
+    android:layout_height=\\"100dp\\"
+    android:background=\\"#FAB\\" />"
 `;
 
 exports[`creates View with children layout 1`] = `
@@ -80,20 +67,10 @@ exports[`creates View with children layout 1`] = `
     xmlns:android=\\"http://schemas.android.com/apk/res/android\\"
     xmlns:app=\\"http://schemas.android.com/apk/res-auto\\"
     xmlns:tools=\\"http://schemas.android.com/tools\\"
+    android:id=\\"@+id/container\\"
     android:layout_width=\\"match_parent\\"
     android:layout_height=\\"match_parent\\">
-  <View
-      android:id=\\"@+id/container\\"
-      app:layout_constraintTop_toTopOf=\\"parent\\"
-      app:layout_constraintLeft_toLeftOf=\\"parent\\">
-    <View
-        android:id=\\"@+id/child1\\"
-        app:layout_constraintTop_toTopOf=\\"parent\\"
-        app:layout_constraintLeft_toLeftOf=\\"parent\\" />
-    <View
-        android:id=\\"@+id/child2\\"
-        app:layout_constraintTop_toTopOf=\\"parent\\"
-        app:layout_constraintLeft_toLeftOf=\\"parent\\" />
-  </View>
+  <View android:id=\\"@+id/child1\\" />
+  <View android:id=\\"@+id/child2\\" />
 </androidx.constraintlayout.widget.ConstraintLayout>"
 `;

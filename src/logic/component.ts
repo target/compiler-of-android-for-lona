@@ -5,6 +5,7 @@ import {
   ViewOptions,
   createTextView,
   TextViewOptions,
+  createConstraintLayout,
 } from '../android/layoutResources'
 import { AST } from '@lona/compiler/lib/helpers/logic-ast'
 import { findNode } from './syntaxNode'
@@ -211,12 +212,20 @@ function createViewHierarchy(
           }
         })
 
-        // Secondary axis constraint
+        // Primary axis
+        children.forEach(child => {
+          if (!child.options.layoutWidth) {
+            child.options.layoutWidth = '0dp'
+          }
+        })
+
+        // Secondary axis
         children.forEach(child => {
           child.options.constraintTopToTopOf = 'parent'
 
           if (!child.options.layoutHeight) {
             child.options.constraintBottomToBottomOf = 'parent'
+            child.options.layoutHeight = 'match_parent'
           }
         })
 
@@ -273,7 +282,20 @@ export function createLayout(
 
   const viewHierarchy = createViewHierarchy(visitor, returnExpression)
 
-  return createElementTree(viewHierarchy)
+  if (viewHierarchy.type !== 'View') {
+    throw new Error('Only View is supported as the top level element (for now)')
+  }
+
+  const { options } = viewHierarchy
+
+  return createConstraintLayout(
+    {
+      ...options,
+      layoutHeight: options.layoutHeight ?? 'match_parent',
+      layoutWidth: options.layoutWidth ?? 'match_parent',
+    },
+    viewHierarchy.children.map(createElementTree)
+  )
 }
 
 export function findComponentFunction(
