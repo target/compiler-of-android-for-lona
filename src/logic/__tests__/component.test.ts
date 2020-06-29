@@ -89,3 +89,30 @@ func Row() -> Element {
 
   expect(layoutFile).toMatchSnapshot()
 })
+
+it('creates HorizontalStack layout', () => {
+  const file = `
+let primary: Color = #color(css: "#FAB")
+
+func Row() -> Element {
+  return HorizontalStack(__name: "Container", children: [
+    View(),
+    View(),
+    View()
+  ])
+}
+`
+  const rootNode = Serialization.decodeLogic(file)
+  const evaluationContext = standardEvaluate(rootNode)
+  const componentFunction = findComponentFunction(rootNode)
+
+  expect(componentFunction).toBeDefined()
+  expect(evaluationContext).toBeDefined()
+
+  if (!componentFunction || !evaluationContext) return
+
+  const layout = createLayout({ evaluationContext }, componentFunction)
+  const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+
+  expect(layoutFile).toMatchSnapshot()
+})

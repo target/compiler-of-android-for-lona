@@ -16,7 +16,28 @@ import { Value } from './runtime/value'
 import { LiteralExpression } from './nodes/LiteralExpression'
 import { ArrayLiteral } from './nodes/literals'
 
-type ComponentContext = { evaluationContext: EvaluationContext }
+class ComponentVisitor {
+  evaluation: EvaluationContext
+  intrinsicNameCount: { [key: string]: number } = {}
+
+  constructor(evaluation: EvaluationContext) {
+    this.evaluation = evaluation
+  }
+
+  private createIntrinsicNameCount(type: string): number {
+    const count = this.intrinsicNameCount[type] || 1
+
+    this.intrinsicNameCount[type] = count + 1
+
+    return count
+  }
+
+  createIntrinsicName(type: string): string {
+    const count = this.createIntrinsicNameCount(type)
+
+    return count === 1 ? type.toLowerCase() : `${type.toLowerCase()}${count}`
+  }
+}
 
 type DimensionSize =
   | {
@@ -82,28 +103,54 @@ function convertDimensionSize(
   }
 }
 
-export function createElementTree(
-  context: ComponentContext,
+type AndroidView =
+  | {
+      id: string
+      type: 'View'
+      options: ViewOptions
+      children: AndroidView[]
+    }
+  | {
+      id: string
+      type: 'TextView'
+      options: TextViewOptions
+    }
+
+const createAndroidId = (string: string) => `@+id/${string}`
+const createAndroidIdReference = (string: string) => `@id/${string}`
+
+function createViewHierarchy(
+  visitor: ComponentVisitor,
   node: IExpression
-): XML.Element {
+): AndroidView {
   if (node instanceof FunctionCallExpression) {
     const { callee, argumentExpressionNodes } = node
 
-    let viewOptions: ViewOptions = {}
-    let children: XML.Element[] = []
+    if (!(callee instanceof IdentifierExpression)) {
+      throw new Error('Element function must be an identifier (for now)')
+    }
 
-    if ('__name' in argumentExpressionNodes) {
-      const expression = argumentExpressionNodes['__name']
-      const value = context.evaluationContext.evaluate(expression.id)
-      const id = value && getString(value)
-      if (id) {
-        viewOptions.id = `@+id/${id.toLowerCase()}`
+    function getViewName(): string | undefined {
+      if ('__name' in argumentExpressionNodes) {
+        const expression = argumentExpressionNodes['__name']
+        const value = visitor.evaluation.evaluate(expression.id)
+        const id = value && getString(value)
+        return id
       }
     }
 
+    const id =
+      getViewName()?.toLowerCase() || visitor.createIntrinsicName(callee.name)
+
+    let viewOptions: ViewOptions = {
+      id: createAndroidId(id),
+    }
+
+    let children: AndroidView[] = []
+
     if ('width' in argumentExpressionNodes) {
       const expression = argumentExpressionNodes['width']
-      const value = context.evaluationContext.evaluate(expression.id)
+      const value = visitor.evaluation.evaluate(expression.id)
       const dimensionSize = value && getDimensionSize(value)
       viewOptions.layoutWidth =
         dimensionSize && convertDimensionSize(dimensionSize)
@@ -111,7 +158,7 @@ export function createElementTree(
 
     if ('height' in argumentExpressionNodes) {
       const expression = argumentExpressionNodes['height']
-      const value = context.evaluationContext.evaluate(expression.id)
+      const value = visitor.evaluation.evaluate(expression.id)
       const dimensionSize = value && getDimensionSize(value)
       viewOptions.layoutHeight =
         dimensionSize && convertDimensionSize(dimensionSize)
@@ -119,7 +166,7 @@ export function createElementTree(
 
     if ('backgroundColor' in argumentExpressionNodes) {
       const expression = argumentExpressionNodes['backgroundColor']
-      const value = context.evaluationContext.evaluate(expression.id)
+      const value = visitor.evaluation.evaluate(expression.id)
       const background = value && getColor(value)
       viewOptions.background = background
     }
@@ -132,41 +179,86 @@ export function createElementTree(
 
       if (literal instanceof ArrayLiteral) {
         children = literal.elements.map(expression =>
-          createElementTree(context, expression)
+          createViewHierarchy(visitor, expression)
         )
       }
     }
 
-    if (callee instanceof IdentifierExpression) {
-      switch (callee.name) {
-        case 'View': {
-          return createView(viewOptions, children)
-        }
-        case 'Text': {
-          const textViewOptions: TextViewOptions = { ...viewOptions }
-
-          if ('value' in argumentExpressionNodes) {
-            const expression = argumentExpressionNodes['value']
-            const value = context.evaluationContext.evaluate(expression.id)
-            const text = value && getString(value)
-            if (text) {
-              textViewOptions.text = text
-            }
-          }
-
-          return createTextView(textViewOptions)
-        }
-        default:
-          throw new Error(`Unknown element name: ${callee.name}`)
+    switch (callee.name) {
+      case 'View': {
+        return { id: id, type: 'View', options: viewOptions, children }
       }
+      case 'HorizontalStack': {
+        // Start constraint
+        children.forEach((child, index) => {
+          if (index === 0) {
+            child.options.constraintStartToStartOf = 'parent'
+          } else {
+            child.options.constraintStartToEndOf = createAndroidIdReference(
+              children[index - 1].id
+            )
+          }
+        })
+
+        // End constraint
+        children.forEach((child, index, list) => {
+          if (index < list.length - 1) {
+            child.options.constraintEndToStartOf = createAndroidIdReference(
+              children[index + 1].id
+            )
+          } else {
+            child.options.constraintEndToEndOf = 'parent'
+          }
+        })
+
+        // Secondary axis constraint
+        children.forEach(child => {
+          child.options.constraintTopToTopOf = 'parent'
+
+          if (!child.options.layoutHeight) {
+            child.options.constraintBottomToBottomOf = 'parent'
+          }
+        })
+
+        return { id: id, type: 'View', options: viewOptions, children }
+      }
+      case 'Text': {
+        const textViewOptions: TextViewOptions = { ...viewOptions }
+
+        if ('value' in argumentExpressionNodes) {
+          const expression = argumentExpressionNodes['value']
+          const value = visitor.evaluation.evaluate(expression.id)
+          const text = value && getString(value)
+          if (text) {
+            textViewOptions.text = text
+          }
+        }
+
+        return { id: id, type: 'TextView', options: textViewOptions }
+      }
+      default:
+        throw new Error(`Unknown element name: ${callee.name}`)
     }
   }
 
   throw new Error('Unhandled element')
 }
 
+function createElementTree(view: AndroidView): XML.Element {
+  switch (view.type) {
+    case 'View': {
+      const { options, children } = view
+      return createView(options, children.map(createElementTree))
+    }
+    case 'TextView': {
+      const { options } = view
+      return createTextView(options)
+    }
+  }
+}
+
 export function createLayout(
-  context: ComponentContext,
+  { evaluationContext }: { evaluationContext: EvaluationContext },
   node: FunctionDeclaration
 ): XML.Element {
   const returnStatements = node.returnStatements
@@ -177,7 +269,11 @@ export function createLayout(
 
   const returnExpression = returnStatements[0].expression
 
-  return createElementTree(context, returnExpression)
+  const visitor = new ComponentVisitor(evaluationContext)
+
+  const viewHierarchy = createViewHierarchy(visitor, returnExpression)
+
+  return createElementTree(viewHierarchy)
 }
 
 export function findComponentFunction(

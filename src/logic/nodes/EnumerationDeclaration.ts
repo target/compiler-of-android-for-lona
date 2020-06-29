@@ -22,10 +22,7 @@ export class EnumerationDeclaration extends Node<AST.EnumerationDeclaration>
   }
 
   namespaceLeave(visitor: NamespaceVisitor): void {
-    const {
-      name: { name, id },
-      cases,
-    } = (this.syntaxNode as AST.EnumerationDeclaration).data
+    const { cases } = this.syntaxNode.data
 
     // Add initializers for each case into the namespace
     cases.forEach(enumCase => {

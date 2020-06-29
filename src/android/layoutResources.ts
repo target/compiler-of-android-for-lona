@@ -26,6 +26,14 @@ export type ViewOptions = {
   layoutWidth?: string
   layoutHeight?: string
   background?: string
+  constraintStartToStartOf?: string
+  constraintStartToEndOf?: string
+  constraintEndToStartOf?: string
+  constraintEndToEndOf?: string
+  constraintTopToTopOf?: string
+  constraintTopToBottomOf?: string
+  constraintBottomToTopOf?: string
+  constraintBottomToBottomOf?: string
 }
 
 export type TextViewOptions = ViewOptions & {
@@ -37,6 +45,14 @@ function convertViewOptions({
   layoutWidth,
   layoutHeight,
   background,
+  constraintStartToStartOf,
+  constraintStartToEndOf,
+  constraintEndToStartOf,
+  constraintEndToEndOf,
+  constraintTopToTopOf,
+  constraintTopToBottomOf,
+  constraintBottomToTopOf,
+  constraintBottomToBottomOf,
 }: ViewOptions): XML.Attribute[] {
   return compact<XML.Attribute>([
     typeof id === 'string' && {
@@ -54,6 +70,38 @@ function convertViewOptions({
     typeof background === 'string' && {
       name: 'android:background',
       value: background,
+    },
+    typeof constraintStartToStartOf === 'string' && {
+      name: 'app:layout_constraintStart_toStartOf',
+      value: constraintStartToStartOf,
+    },
+    typeof constraintStartToEndOf === 'string' && {
+      name: 'app:layout_constraintStart_toEndOf',
+      value: constraintStartToEndOf,
+    },
+    typeof constraintEndToStartOf === 'string' && {
+      name: 'app:layout_constraintEnd_toStartOf',
+      value: constraintEndToStartOf,
+    },
+    typeof constraintEndToEndOf === 'string' && {
+      name: 'app:layout_constraintEnd_toEndOf',
+      value: constraintEndToEndOf,
+    },
+    typeof constraintTopToTopOf === 'string' && {
+      name: 'app:layout_constraintTop_toTopOf',
+      value: constraintTopToTopOf,
+    },
+    typeof constraintTopToBottomOf === 'string' && {
+      name: 'app:layout_constraintTop_toBottomOf',
+      value: constraintTopToBottomOf,
+    },
+    typeof constraintBottomToTopOf === 'string' && {
+      name: 'app:layout_constraintBottom_toTopOf',
+      value: constraintBottomToTopOf,
+    },
+    typeof constraintBottomToBottomOf === 'string' && {
+      name: 'app:layout_constraintBottom_toBottomOf',
+      value: constraintBottomToBottomOf,
     },
     { name: 'app:layout_constraintTop_toTopOf', value: 'parent' },
     { name: 'app:layout_constraintLeft_toLeftOf', value: 'parent' },
