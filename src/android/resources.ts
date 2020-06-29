@@ -33,10 +33,12 @@ export function createResourceFiles(
     elevationResources,
     textStyleResources,
     drawableResources,
+    layoutResources,
   }: {
     colorResources: XML.Element[]
     elevationResources: XML.Element[]
     textStyleResources: XML.Element[]
+    layoutResources: IFS
     drawableResources: [string, IFS][]
   }
 ): ReturnType<typeof createFs> {
@@ -69,6 +71,12 @@ export function createResourceFiles(
       createValueResourcesFile(textStyleResources)
     )
   }
+
+  const layoutPath = path.join(resPath, 'layout')
+
+  target.mkdirSync(layoutPath, { recursive: true })
+
+  copy(layoutResources, target, '/', layoutPath)
 
   // Drawable resources are already in the appropriate main/drawable* directory
   drawableResources.forEach(([key, source]) => {

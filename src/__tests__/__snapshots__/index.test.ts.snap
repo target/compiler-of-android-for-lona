@@ -19,6 +19,7 @@ exports[`Convert converts the example workspace 1`] = `
 │           ├── drawable-xhdpi / assets_gradient_fill.webp
 │           ├── drawable-xxhdpi / assets_gradient_fill.webp
 │           ├── drawable-xxxhdpi / assets_gradient_fill.webp
+│           ├── layout / row.xml
 │           └── values
 │               ├── colors.xml
 │               ├── elevations.xml

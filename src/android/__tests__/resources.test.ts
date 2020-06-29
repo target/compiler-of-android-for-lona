@@ -10,6 +10,7 @@ describe('Android / Resources', () => {
       drawableResources: [
         ['test.svg', createFs({ 'drawable/test.xml': '' }).fs],
       ],
+      layoutResources: createFs({ 'row.xml': '' }).fs,
     })
 
     expect(volume.toJSON()).toMatchSnapshot()

@@ -3,6 +3,7 @@
 exports[`Android / Resources creates library resources 1`] = `
 Object {
   "/main/res/drawable/test.xml": "",
+  "/main/res/layout/row.xml": "",
   "/main/res/values": null,
 }
 `;

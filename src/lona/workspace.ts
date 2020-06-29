@@ -2,7 +2,7 @@ import { Helpers } from '@lona/compiler/lib/helpers'
 import Tokens from '@lona/compiler/lib/plugins/tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
-import { copy, IFS } from 'buffs'
+import { copy, createFs, IFS } from 'buffs'
 import fs from 'fs'
 import path from 'path'
 import { Union } from 'unionfs'
@@ -180,18 +180,24 @@ export async function convert(
     return Promise.reject(error)
   }
 
-  // const { componentFiles, evaluationContext } = program(fs, workspacePath)
+  const { componentFiles, evaluationContext } = program(fs, workspacePath)
 
-  // componentFiles.forEach(({ rootNode }) => {
-  //   const componentFunction = findComponentFunction(rootNode)
+  const { fs: layoutResources } = createFs()
 
-  //   if (!componentFunction || !evaluationContext) return
+  componentFiles.forEach(({ sourcePath, rootNode }) => {
+    const componentFunction = findComponentFunction(rootNode)
 
-  //   const layout = createLayout({ evaluationContext }, componentFunction)
-  //   const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+    if (!componentFunction || !evaluationContext) return
 
-  //   // console.log(layoutFile)
-  // })
+    const layout = createLayout({ evaluationContext }, componentFunction)
+    const layoutFile = createLayoutFile(createConstraintLayout([layout]))
+
+    const xmlFileName = formatDrawableName(path.basename(sourcePath), 'xml', {
+      nameTemplate: '${qualifiedName?join("-")}',
+    })
+
+    layoutResources.writeFileSync(`/${xmlFileName}`, layoutFile)
+  })
 
   const drawableResources: [string, IFS][] = await convertSvgFiles(
     workspacePath,
@@ -225,6 +231,7 @@ export async function convert(
       elevationResources: valueResources.elevations,
       textStyleResources: valueResources.textStyles,
       drawableResources,
+      layoutResources,
     }
   )
 
