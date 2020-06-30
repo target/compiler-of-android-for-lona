@@ -1,4 +1,4 @@
-import { addDependency, addDependencies } from '../buildScript'
+import { addLine, addDependencies } from '../buildScript'
 
 describe('Android / BuildScript', () => {
   test('adds a dependency to a buildscript block', () => {
@@ -22,6 +22,7 @@ describe('Android / BuildScript', () => {
         google()
         jcenter()
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.0+'
         // NOTE: Do not place your application dependencies here; they belong
@@ -30,7 +31,9 @@ describe('Android / BuildScript', () => {
     }
 }`
 
-    expect(addDependency(source, dependency)).toEqual(result)
+    expect(
+      addLine(source, ['buildscript', 'dependencies'], dependency)
+    ).toEqual(result)
   })
 
   test('adds a dependency to the last dependencies block', () => {
@@ -55,6 +58,7 @@ dependencies {
         google()
         jcenter()
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.0+'
     }
@@ -64,7 +68,7 @@ dependencies {
     classpath 'foo'
 }`
 
-    expect(addDependency(source, dependency)).toEqual(result)
+    expect(addLine(source, ['dependencies'], dependency)).toEqual(result)
   })
 
   test('adds a dependency', () => {
@@ -80,7 +84,7 @@ dependencies {
     ${dependency}
 }`
 
-    expect(addDependency(source, dependency)).toEqual(result)
+    expect(addLine(source, ['dependencies'], dependency)).toEqual(result)
   })
 
   test('adds multiple dependency', () => {
@@ -114,6 +118,23 @@ dependencies {
     ${dependency}
 }`
 
-    expect(addDependency(source, dependency)).toEqual(source)
+    expect(addLine(source, ['dependencies'], dependency)).toEqual(source)
+  })
+
+  test('adds a line to an arbitrary block', () => {
+    const line = `viewBinding.enabled = true`
+
+    const source = `android {
+    compileSdkVersion 29
+    buildToolsVersion "29"
+}`
+
+    const result = `android {
+    compileSdkVersion 29
+    buildToolsVersion "29"
+    ${line}
+}`
+
+    expect(addLine(source, ['android'], line)).toEqual(result)
   })
 })

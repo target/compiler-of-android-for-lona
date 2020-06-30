@@ -59,9 +59,9 @@ export function traverseElements(
 
     f(element, control)
 
-    control.ancestors.pop()
-
     getChildrenElements(element).forEach(inner)
+
+    control.ancestors.pop()
   }
 
   inner(element)

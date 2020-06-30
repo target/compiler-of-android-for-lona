@@ -2,7 +2,7 @@ import { Helpers } from '@lona/compiler/lib/helpers'
 import Tokens from '@lona/compiler/lib/plugins/tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
-import { copy, createFs, IFS } from 'buffs'
+import { copy, createFs, IFS, describe } from 'buffs'
 import fs from 'fs'
 import path from 'path'
 import { Union } from 'unionfs'
@@ -10,6 +10,7 @@ import util from 'util'
 import {
   addDependenciesAndPluginsToModuleBuildScript,
   addKotlinDependencyToRootBuildScript,
+  enableViewBinding,
 } from '../android/buildScript'
 import { formatDrawableName } from '../android/drawableResources'
 import { createResourceFiles } from '../android/resources'
@@ -56,6 +57,11 @@ export function inflateProjectTemplate(
     inflateOptions
   )
 
+  enableViewBinding(
+    moduleFiles,
+    path.join(outputPath, moduleContext.get('projectOut'), 'build.gradle')
+  )
+
   copy(moduleFiles, projectFiles, '/', '/')
 
   if (generateGallery) {
@@ -80,13 +86,13 @@ export function inflateProjectTemplate(
 
     addKotlinDependencyToRootBuildScript(
       projectFiles,
-      galleryContext,
-      outputPath
+      path.join(outputPath, galleryContext.get('topOut'), 'build.gradle')
     )
+
     addDependenciesAndPluginsToModuleBuildScript(
       projectFiles,
-      galleryContext,
-      outputPath
+      path.join(outputPath, galleryContext.get('projectOut'), 'build.gradle'),
+      galleryContext.get('dependencyList') || []
     )
 
     copy(galleryFiles, projectFiles, '/', '/')

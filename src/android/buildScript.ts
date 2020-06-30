@@ -1,38 +1,38 @@
-import path from 'path'
-import { IFS, copy, describe } from 'buffs'
-import { Context } from '../freemarker'
+import { IFS } from 'buffs'
+import * as Groovy from '../groovy'
 
-const DEPENDENCIES_RE = /([ \t]*)dependencies \{(.*?)\}/gs
+export function addLine(
+  buildScript: string,
+  blockPath: string | string[],
+  line: string
+) {
+  const program = Groovy.parse(buildScript)
 
-export function addDependency(buildScript: string, dependencyLine: string) {
-  const matches = Array.from(buildScript.matchAll(DEPENDENCIES_RE))
-  const match: RegExpMatchArray | undefined = matches[matches.length - 1]
-
-  if (match && typeof match.index === 'number') {
-    const [block, whitespace, contents] = match
-
-    const dependencies = contents
-      .split('\n')
-      .map(d => d.trim())
-      .filter(d => !!d)
-
-    if (!dependencies.includes(dependencyLine)) {
-      dependencies.push(dependencyLine)
-    }
-
-    const updated = `${whitespace}dependencies {
-${dependencies.map(d => whitespace + ' '.repeat(4) + d).join('\n')}
-${whitespace}}`
-
-    return (
-      buildScript.slice(0, match.index) +
-      updated +
-      buildScript.slice(match.index + block.length)
-    )
-  } else {
-    console.error('Failed to parse build script dependencies')
-    return buildScript
+  if (!program) {
+    throw new Error('Failed to parse build script')
   }
+
+  const block =
+    typeof blockPath === 'string'
+      ? Groovy.findBlockByName(program, blockPath)
+      : Groovy.findBlockByPath(program, blockPath)
+
+  if (!block) {
+    throw new Error(`Failed to find build script block ${blockPath}`)
+  }
+
+  const lines: string[] = block.content.flatMap(node =>
+    node.type === 'content' ? [node.value] : []
+  )
+
+  if (!lines.includes(line)) {
+    block.content.push({
+      type: 'content',
+      value: line,
+    })
+  }
+
+  return Groovy.print(program)
 }
 
 export function addDependencies(
@@ -40,13 +40,24 @@ export function addDependencies(
   dependencyLines: string[]
 ) {
   return dependencyLines.reduce(
-    (result, dependency) => addDependency(result, dependency),
+    (result, dependency) => addLine(result, ['dependencies'], dependency),
     buildScript
   )
 }
 
 export function applyPlugin(buildScript: string, pluginName: string) {
-  return [buildScript, `apply plugin: "${pluginName}"`].join('\n\n')
+  const program = Groovy.parse(buildScript)
+
+  if (!program) {
+    throw new Error('Failed to parse build script')
+  }
+
+  program.content.push({
+    type: 'content',
+    value: `apply plugin: "${pluginName}"`,
+  })
+
+  return Groovy.print(program)
 }
 
 export function applyPlugins(buildScript: string, pluginNames: string[]) {
@@ -61,17 +72,12 @@ export function applyPlugins(buildScript: string, pluginNames: string[]) {
  */
 export function addKotlinDependencyToRootBuildScript(
   fs: IFS,
-  context: Context,
-  outputPath: string
+  buildScriptPath: string
 ) {
-  const buildScriptPath = path.join(
-    outputPath,
-    context.get('topOut'),
-    'build.gradle'
-  )
   const originalBuildScript = fs.readFileSync(buildScriptPath, 'utf8')
-  const updatedBuildScript = addDependency(
+  const updatedBuildScript = addLine(
     originalBuildScript,
+    'dependencies',
     `classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.50"`
   )
 
@@ -80,15 +86,9 @@ export function addKotlinDependencyToRootBuildScript(
 
 export function addDependenciesAndPluginsToModuleBuildScript(
   fs: IFS,
-  context: Context,
-  outputPath: string
+  buildScriptPath: string,
+  dependencyList: string[]
 ) {
-  const dependencyList: string[] = context.get('dependencyList') || []
-  const buildScriptPath = path.join(
-    outputPath,
-    context.get('projectOut'),
-    'build.gradle'
-  )
   const originalBuildScript = fs.readFileSync(buildScriptPath, 'utf8')
   const targetBuildScript = applyPlugins(
     addDependencies(
@@ -99,4 +99,14 @@ export function addDependenciesAndPluginsToModuleBuildScript(
   )
 
   fs.writeFileSync(buildScriptPath, targetBuildScript)
+}
+
+export function enableViewBinding(fs: IFS, buildScriptPath: string) {
+  const originalBuildScript = fs.readFileSync(buildScriptPath, 'utf8')
+  const updatedBuildScript = addLine(
+    originalBuildScript,
+    ['android'],
+    `viewBinding.enabled = true`
+  )
+  fs.writeFileSync(buildScriptPath, updatedBuildScript)
 }
