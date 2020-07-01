@@ -3,7 +3,7 @@ import { IDeclaration, Node } from './interfaces'
 import NamespaceVisitor from '../namespaceVisitor'
 import { ScopeVisitor } from '../scopeVisitor'
 import { TypeCheckerVisitor } from '../typeChecker'
-import { EvaluationVisitor } from '../EvaluationVisitor'
+import { EvaluationVisitor } from '../evaluationVisitor'
 
 export class VariableDeclaration extends Node<AST.VariableDeclaration>
   implements IDeclaration {

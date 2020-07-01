@@ -1,6 +1,6 @@
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { LogicAST as AST } from '@lona/serialization'
-import { EvaluationVisitor } from '../EvaluationVisitor'
+import { EvaluationVisitor } from '../evaluationVisitor'
 import { Value } from '../runtime/value'
 import { ScopeVisitor } from '../scopeVisitor'
 import { FunctionArgument, StaticType, unit } from '../staticType'

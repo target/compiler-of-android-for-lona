@@ -1,7 +1,7 @@
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { LogicAST as AST } from '@lona/serialization'
 import { compact } from '../../utils/sequence'
-import { EvaluationVisitor } from '../EvaluationVisitor'
+import { EvaluationVisitor } from '../evaluationVisitor'
 import { builtInTypeConstructorNames } from '../namespace'
 import NamespaceVisitor from '../namespaceVisitor'
 import { DefaultArguments } from '../runtime/memory'

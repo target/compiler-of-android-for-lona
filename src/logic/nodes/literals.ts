@@ -1,5 +1,5 @@
 import { LogicAST as AST } from '@lona/serialization'
-import { EvaluationVisitor } from '../EvaluationVisitor'
+import { EvaluationVisitor } from '../evaluationVisitor'
 import { bool, number, string, unit, color, StaticType } from '../staticType'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { ILiteral, Node, IExpression } from './interfaces'

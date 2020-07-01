@@ -3,7 +3,7 @@ import { LogicAST as AST } from '@lona/serialization'
 import { ScopeVisitor } from '../scopeVisitor'
 import { IExpression, Node } from './interfaces'
 import { TypeCheckerVisitor } from '../typeChecker'
-import { EvaluationVisitor } from '../EvaluationVisitor'
+import { EvaluationVisitor } from '../evaluationVisitor'
 
 export class MemberExpression extends Node<AST.MemberExpression>
   implements IExpression {
