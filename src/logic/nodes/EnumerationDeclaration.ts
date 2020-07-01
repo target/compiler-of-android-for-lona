@@ -1,9 +1,9 @@
 import { nonNullable } from '@lona/compiler/lib/utils/non-nullable'
 import { LogicAST as AST } from '@lona/serialization'
 import { compact } from '../../utils/sequence'
-import { EvaluationVisitor } from '../EvaluationVisitor'
+import { EvaluationVisitor } from '../evaluationVisitor'
 import NamespaceVisitor from '../namespaceVisitor'
-import { DefaultArguments } from '../runtime/memory'
+import { DefaultArguments, RecordMemory } from '../runtime/memory'
 import { ScopeVisitor } from '../scopeVisitor'
 import { StaticType } from '../staticType'
 import { TypeCheckerVisitor } from '../typeChecker'
@@ -160,7 +160,7 @@ export class EnumerationDeclaration extends Node<AST.EnumerationDeclaration>
         memory: {
           type: 'function',
           value: {
-            f: record => {
+            f: (record: RecordMemory) => {
               return {
                 type: 'enum',
                 value: caseName.name,
