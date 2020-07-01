@@ -23,6 +23,7 @@ describe('Options', () => {
       generateGallery: false,
       valueResourceNameTemplate: DEFAULT_VALUE_NAME_TEMPLATE,
       drawableResourceNameTemplate: DEFAULT_DRAWABLE_NAME_TEMPLATE,
+      noOverwrite: [],
     }
 
     expect(Options.validate(raw, 'cwd')).toEqual({

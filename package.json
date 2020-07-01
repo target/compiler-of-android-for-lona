@@ -24,6 +24,7 @@
   "dependencies": {
     "@lona/serialization": "^0.3.10",
     "@lona/svg-model": "3.0.0-alpha.3",
+    "@types/micromatch": "^4.0.1",
     "@types/moo": "^0.5.3",
     "@types/nearley": "^2.11.1",
     "buffs": "^0.2.1",
@@ -39,6 +40,7 @@
     "lodash.lowerfirst": "^4.3.1",
     "lodash.snakecase": "^4.1.1",
     "lodash.upperfirst": "^4.3.1",
+    "micromatch": "^4.0.2",
     "moo": "^0.5.1",
     "nearley": "^2.19.4",
     "prettier": "^1.19.1",

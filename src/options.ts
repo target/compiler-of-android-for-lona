@@ -16,6 +16,7 @@ export type Raw = {
   generateGallery?: boolean
   valueResourceNameTemplate?: string
   drawableResourceNameTemplate?: string
+  noOverwrite?: string[]
 }
 
 export type Validated = {
@@ -30,6 +31,7 @@ export type Validated = {
   generateGallery: boolean
   valueResourceNameTemplate: string
   drawableResourceNameTemplate: string
+  noOverwrite: string[]
 }
 
 export function validate(
@@ -54,9 +56,9 @@ export function validate(
       dryRun,
       outputPath: options.output ? path.resolve(options.output) : cwd,
       packageName: options.packageName,
-      minSdk: options.minSdk || 21,
-      buildSdk: options.buildSdk || options.targetSdk || 29,
-      targetSdk: options.targetSdk || options.buildSdk || 29,
+      minSdk: options.minSdk ?? 21,
+      buildSdk: options.buildSdk ?? options.targetSdk ?? 29,
+      targetSdk: options.targetSdk ?? options.buildSdk ?? 29,
       generateGallery:
         typeof options.generateGallery === 'boolean'
           ? options.generateGallery
@@ -69,6 +71,7 @@ export function validate(
         typeof options.drawableResourceNameTemplate === 'string'
           ? options.drawableResourceNameTemplate
           : DEFAULT_DRAWABLE_NAME_TEMPLATE,
+      noOverwrite: options.noOverwrite ?? [],
     },
   }
 }

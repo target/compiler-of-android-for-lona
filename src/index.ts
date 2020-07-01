@@ -2,6 +2,7 @@ import fs from 'fs'
 import { Plugin } from '@lona/compiler/lib/plugins'
 import { Helpers } from '@lona/compiler/lib/helpers'
 import { describeComparison, copy } from 'buffs'
+import { isMatch } from 'micromatch'
 
 import * as Options from './options'
 import { convert } from './lona/workspace'
@@ -22,10 +23,28 @@ const plugin: Plugin<Options.Raw, void> = {
 
     const source = await convert(workspacePath, helpers, validatedOptions.value)
 
-    const { shouldOutputFiles, outputPath } = validatedOptions.value
+    const {
+      shouldOutputFiles,
+      outputPath,
+      noOverwrite,
+    } = validatedOptions.value
 
     if (shouldOutputFiles) {
-      copy(source, fs, outputPath)
+      copy(source, fs, outputPath, undefined, {
+        filterPath: ({ targetPath }) => {
+          // Check if this file is in the "noOverwrite" list
+          const matched = noOverwrite.some(pattern =>
+            isMatch(targetPath, pattern)
+          )
+
+          // If we matched this file, don't overwrite it if it already exists
+          if (matched && fs.existsSync(targetPath)) {
+            return false
+          }
+
+          return true
+        },
+      })
     } else {
       helpers.reporter.info(
         `\nThe following files will be generated at ${outputPath}:\n`

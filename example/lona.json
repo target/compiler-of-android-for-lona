@@ -4,7 +4,11 @@
       "packageName": "com.example.designlibrary",
       "minSdk": 21,
       "targetSdk": 29,
-      "generateGallery": true
+      "generateGallery": true,
+      "noOverwrite": [
+        "**/settings.gradle",
+        "**/gradle/wrapper/gradle-wrapper.properties"
+      ]
     }
   }
 }
