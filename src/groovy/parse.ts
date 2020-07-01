@@ -17,11 +17,13 @@ let grammar = compileGrammar(
 const lexer = require('lexer')
 
 const compact = (list) => list.filter(x => !!x)
+
+const flattenRightRecursion = ([head, _, tail]) => [head, ...tail]
 %}
 
 @lexer lexer
 
-main -> _ contentList {% 
+main -> _ contentList _ {% 
   ([_1, items, _2]) => ({ type: 'program', content: items }) 
 %}
 
@@ -29,7 +31,7 @@ item ->
   block {% ([item]) => item %}
 | content {% ([item]) => item %}
 
-block -> content "{" _ contentList:? "}" {% 
+block -> content "{" _ contentList:? _ "}" {% 
   ([name, _1, _2, content, _3]) => ({
     type: 'block',
     name: name.value, 
@@ -44,9 +46,9 @@ content -> %content {%
   })
 %}
 
-contentList -> (item _:?):* {% 
-  ([items]) => items.map(([item]) => item) 
-%}
+contentList -> 
+  item 
+| item _ contentList {% flattenRightRecursion %}
 
 _ -> (%newline | %space):* {% () => null %}
 `,
