@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Kotlin / Component creates a component class 1`] = `
+"package com.example
+
+import android.content.Context
+import android.util.AttributeSet
+import android.view.LayoutInflater
+import androidx.constraintlayout.widget.ConstraintLayout
+import com.example.databinding.ExampleBinding
+import android.widget.TextView
+
+open class ExampleView : ConstraintLayout {
+
+    //region Private
+
+    private lateinit var binding: ExampleBinding
+
+    open var titleText: CharSequence = \\"\\"
+      set(value) {
+        field = value
+        update()
+      }
+
+    //endregion
+
+    //region Public
+
+    open val textView: TextView by lazy { binding.text }
+
+    //endregion
+
+    //region Lifecycle
+
+    constructor(context: Context) : super(context) {
+        initialize(context, null)
+    }
+
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
+        initialize(context, attrs)
+    }
+
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    ) {
+        initialize(context, attrs)
+    }
+
+    private fun initialize(context: Context, attrs: AttributeSet?) {
+        binding = ExampleBinding.inflate(LayoutInflater.from(context), this, true)
+
+        attrs?.let {
+            val typedAttributes = context.obtainStyledAttributes(it, R.styleable.ExampleView)
+
+            titleText = typedAttributes.getString(R.styleable.ExampleView_title_text) ?: titleText
+        }
+    }
+
+    private fun update() {}
+
+    //endregion
+}
+"
+`;
