@@ -169,43 +169,71 @@ function createViewHierarchy(
       case 'View': {
         return { id: id, type: 'View', options: viewOptions, children }
       }
+      case 'VerticalStack':
       case 'HorizontalStack': {
+        const isHorizontal = callee.name === 'HorizontalStack'
+
+        const primaryStartToStartConstraint = isHorizontal
+          ? 'constraintStartToStartOf'
+          : 'constraintTopToTopOf'
+        const primaryStartToEndConstraint = isHorizontal
+          ? 'constraintStartToEndOf'
+          : 'constraintTopToBottomOf'
+        const primaryEndToStartConstraint = isHorizontal
+          ? 'constraintEndToStartOf'
+          : 'constraintBottomToTopOf'
+        const primaryEndToEndConstraint = isHorizontal
+          ? 'constraintEndToEndOf'
+          : 'constraintBottomToBottomOf'
+        const primaryLayoutDimension = isHorizontal
+          ? 'layoutWidth'
+          : 'layoutHeight'
+        const secondaryStartToStartConstraint = isHorizontal
+          ? 'constraintTopToTopOf'
+          : 'constraintStartToStartOf'
+        const secondaryEndToEndConstraint = isHorizontal
+          ? 'constraintBottomToBottomOf'
+          : 'constraintEndToEndOf'
+        const secondaryLayoutDimension = isHorizontal
+          ? 'layoutHeight'
+          : 'layoutWidth'
+
         // Start constraint
         children.forEach((child, index) => {
           if (index === 0) {
-            child.options.constraintStartToStartOf = 'parent'
+            child.options[primaryStartToStartConstraint] = 'parent'
           } else {
-            child.options.constraintStartToEndOf = createAndroidIdReference(
-              children[index - 1].id
-            )
+            child.options[
+              primaryStartToEndConstraint
+            ] = createAndroidIdReference(children[index - 1].id)
           }
         })
 
         // End constraint
         children.forEach((child, index, list) => {
           if (index < list.length - 1) {
-            child.options.constraintEndToStartOf = createAndroidIdReference(
-              children[index + 1].id
-            )
+            child.options[
+              primaryEndToStartConstraint
+            ] = createAndroidIdReference(children[index + 1].id)
           } else {
-            child.options.constraintEndToEndOf = 'parent'
+            child.options[primaryEndToEndConstraint] = 'parent'
           }
         })
 
         // Primary axis
         children.forEach(child => {
-          if (!child.options.layoutWidth) {
-            child.options.layoutWidth = '0dp'
+          if (!child.options[primaryLayoutDimension]) {
+            child.options[primaryLayoutDimension] = '0dp'
           }
         })
 
         // Secondary axis
         children.forEach(child => {
-          child.options.constraintTopToTopOf = 'parent'
+          child.options[secondaryStartToStartConstraint] = 'parent'
 
-          if (!child.options.layoutHeight) {
-            child.options.constraintBottomToBottomOf = 'parent'
-            child.options.layoutHeight = 'match_parent'
+          if (!child.options[secondaryLayoutDimension]) {
+            child.options[secondaryEndToEndConstraint] = 'parent'
+            child.options[secondaryLayoutDimension] = 'match_parent'
           }
         })
 
@@ -271,25 +299,24 @@ function createElementTree(
     case 'View': {
       const { id, options, children } = view
 
-      if (isRoot) {
-        visitor.addView(
-          id,
-          'ConstraintLayout',
-          'androidx.constraintlayout.widget.ConstraintLayout'
-        )
+      visitor.addView(
+        id,
+        'ConstraintLayout',
+        'androidx.constraintlayout.widget.ConstraintLayout'
+      )
 
+      if (isRoot) {
         return createConstraintLayout(
           {
             ...options,
             layoutHeight: options.layoutHeight ?? 'match_parent',
             layoutWidth: options.layoutWidth ?? 'match_parent',
+            isRoot,
           },
           children.map(child => createElementTree(false, visitor, child))
         )
       } else {
-        visitor.addView(id, 'View', 'android.view.View')
-
-        return createView(
+        return createConstraintLayout(
           options,
           children.map(child => createElementTree(false, visitor, child))
         )

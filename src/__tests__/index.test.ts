@@ -33,6 +33,21 @@ describe('Convert', () => {
     })
 
     expect(describeFs(result, outputPath)).toMatchSnapshot()
+
+    const rowComponent = result.readFileSync(
+      path.join(
+        outputPath,
+        'designlibrary/src/main/java/com/test/designlibrary/RowView.kt'
+      ),
+      'utf8'
+    )
+    const rowLayout = result.readFileSync(
+      path.join(outputPath, 'designlibrary/src/main/res/layout/row.xml'),
+      'utf8'
+    )
+
+    expect(rowComponent).toMatchSnapshot()
+    expect(rowLayout).toMatchSnapshot()
   })
 
   it('runs the plugin in dry-run mode without any errors', async () => {

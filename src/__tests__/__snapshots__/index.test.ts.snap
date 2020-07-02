@@ -35,3 +35,132 @@ exports[`Convert converts the example workspace 1`] = `
 ├── local.properties
 └── settings.gradle"
 `;
+
+exports[`Convert converts the example workspace 2`] = `
+"package com.test.designlibrary
+
+import android.content.Context
+import android.util.AttributeSet
+import android.view.LayoutInflater
+import com.test.designlibrary.databinding.RowBinding
+import androidx.constraintlayout.widget.ConstraintLayout
+import android.widget.TextView
+
+open class RowView : ConstraintLayout {
+
+    //region Public
+
+    open var titleText: CharSequence = \\"\\"
+      set(value) {
+        field = value
+        update()
+      }
+    
+    open var subtitleText: CharSequence = \\"\\"
+      set(value) {
+        field = value
+        update()
+      }
+    
+    open val containerView: ConstraintLayout by lazy { binding.container }
+    
+    open val viewView: ConstraintLayout by lazy { binding.view }
+    
+    open val descriptionView: ConstraintLayout by lazy { binding.description }
+    
+    open val titleView: TextView by lazy { binding.title }
+    
+    open val subtitleView: TextView by lazy { binding.subtitle }
+
+    //endregion
+  
+    //region Private
+
+    private lateinit var binding: RowBinding
+
+    //endregion
+
+    //region Lifecycle
+
+    constructor(context: Context) : super(context) {
+        initialize(context, null)
+    }
+
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
+        initialize(context, attrs)
+    }
+
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    ) {
+        initialize(context, attrs)
+    }
+
+    private fun initialize(context: Context, attrs: AttributeSet?) {
+        binding = RowBinding.inflate(LayoutInflater.from(context), this, true)
+
+        attrs?.let {
+            val typedAttributes = context.obtainStyledAttributes(it, R.styleable.RowView)
+
+            titleText = typedAttributes.getString(R.styleable.RowView_title_text) ?: titleText
+            
+            subtitleText = typedAttributes.getString(R.styleable.RowView_subtitle_text) ?: subtitleText
+        }
+    }
+
+    private fun update() {}
+
+    //endregion
+}
+"
+`;
+
+exports[`Convert converts the example workspace 3`] = `
+"<?xml version=\\"1.0\\" encoding=\\"utf-8\\"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android=\\"http://schemas.android.com/apk/res/android\\"
+    xmlns:app=\\"http://schemas.android.com/apk/res-auto\\"
+    xmlns:tools=\\"http://schemas.android.com/tools\\"
+    android:id=\\"@+id/container\\"
+    android:layout_width=\\"match_parent\\"
+    android:layout_height=\\"100dp\\"
+    android:background=\\"#CC0000\\">
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:id=\\"@+id/view\\"
+      android:layout_width=\\"100dp\\"
+      android:layout_height=\\"100dp\\"
+      android:background=\\"#00FFAA\\"
+      app:layout_constraintStart_toStartOf=\\"parent\\"
+      app:layout_constraintEnd_toStartOf=\\"@id/description\\"
+      app:layout_constraintTop_toTopOf=\\"parent\\" />
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:id=\\"@+id/description\\"
+      android:layout_width=\\"0dp\\"
+      android:layout_height=\\"match_parent\\"
+      app:layout_constraintStart_toEndOf=\\"@id/view\\"
+      app:layout_constraintEnd_toEndOf=\\"parent\\"
+      app:layout_constraintTop_toTopOf=\\"parent\\"
+      app:layout_constraintBottom_toBottomOf=\\"parent\\">
+    <TextView
+        android:id=\\"@+id/title\\"
+        android:layout_width=\\"match_parent\\"
+        android:layout_height=\\"0dp\\"
+        app:layout_constraintStart_toStartOf=\\"parent\\"
+        app:layout_constraintEnd_toEndOf=\\"parent\\"
+        app:layout_constraintTop_toTopOf=\\"parent\\"
+        app:layout_constraintBottom_toTopOf=\\"@id/subtitle\\"
+        android:text=\\"Hello, Lona!\\" />
+    <TextView
+        android:id=\\"@+id/subtitle\\"
+        android:layout_width=\\"match_parent\\"
+        android:layout_height=\\"0dp\\"
+        app:layout_constraintStart_toStartOf=\\"parent\\"
+        app:layout_constraintEnd_toEndOf=\\"parent\\"
+        app:layout_constraintTop_toBottomOf=\\"@id/title\\"
+        app:layout_constraintBottom_toBottomOf=\\"parent\\"
+        android:text=\\"Subtitle\\" />
+  </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>"
+`;

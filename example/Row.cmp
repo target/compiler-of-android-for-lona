@@ -1,8 +1,11 @@
 extension Row {
-  func Row(titleText: String = "") -> Element {
+  func Row(titleText: String = "", subtitleText: String = "") -> Element {
     return HorizontalStack(__name: "Container", backgroundColor: primary, height: DimensionSize.fixed(100), children: [
       View(width: DimensionSize.fixed(100), backgroundColor: #color(css: "#00FFAA"), height: DimensionSize.fixed(100)),
-      Text(value: "Hello, Lona!")
+      VerticalStack(__name: "Description", children: [
+        Text(__name: "Title", value: "Hello, Lona!"),
+        Text(__name: "Subtitle", value: "Subtitle")
+      ])
     ])
   }
   static let devices: Array<LonaDevice> = [

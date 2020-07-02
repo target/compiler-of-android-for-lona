@@ -21,6 +21,10 @@ export type TextViewOptions = ViewOptions & {
   text?: string
 }
 
+export type ConstraintLayoutOptions = ViewOptions & {
+  isRoot?: boolean
+}
+
 function convertViewOptions({
   id,
   layoutWidth,
@@ -122,20 +126,23 @@ export const createTextView = (options: TextViewOptions = {}): XML.Element => {
 }
 
 export const createConstraintLayout = (
-  options: ViewOptions = {},
+  options: ConstraintLayoutOptions = {},
   children: XML.Element[] = []
 ): XML.Element => {
+  const rootAttributes = options.isRoot
+    ? [
+        {
+          name: 'xmlns:android',
+          value: 'http://schemas.android.com/apk/res/android',
+        },
+        { name: 'xmlns:app', value: 'http://schemas.android.com/apk/res-auto' },
+        { name: 'xmlns:tools', value: 'http://schemas.android.com/tools' },
+      ]
+    : []
+
   return {
     tag: 'androidx.constraintlayout.widget.ConstraintLayout',
-    attributes: [
-      {
-        name: 'xmlns:android',
-        value: 'http://schemas.android.com/apk/res/android',
-      },
-      { name: 'xmlns:app', value: 'http://schemas.android.com/apk/res-auto' },
-      { name: 'xmlns:tools', value: 'http://schemas.android.com/tools' },
-      ...convertViewOptions(options),
-    ],
+    attributes: [...rootAttributes, ...convertViewOptions(options)],
     content: children.map(item => ({ type: 'element', data: item })),
   }
 }

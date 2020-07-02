@@ -9,7 +9,7 @@ exports[`creates HorizontalStack layout 1`] = `
     android:id=\\"@+id/container\\"
     android:layout_width=\\"match_parent\\"
     android:layout_height=\\"match_parent\\">
-  <View
+  <androidx.constraintlayout.widget.ConstraintLayout
       android:id=\\"@+id/view\\"
       android:layout_width=\\"0dp\\"
       android:layout_height=\\"match_parent\\"
@@ -17,7 +17,7 @@ exports[`creates HorizontalStack layout 1`] = `
       app:layout_constraintEnd_toStartOf=\\"@id/view2\\"
       app:layout_constraintTop_toTopOf=\\"parent\\"
       app:layout_constraintBottom_toBottomOf=\\"parent\\" />
-  <View
+  <androidx.constraintlayout.widget.ConstraintLayout
       android:id=\\"@+id/view2\\"
       android:layout_width=\\"0dp\\"
       android:layout_height=\\"match_parent\\"
@@ -25,7 +25,7 @@ exports[`creates HorizontalStack layout 1`] = `
       app:layout_constraintEnd_toStartOf=\\"@id/view3\\"
       app:layout_constraintTop_toTopOf=\\"parent\\"
       app:layout_constraintBottom_toBottomOf=\\"parent\\" />
-  <View
+  <androidx.constraintlayout.widget.ConstraintLayout
       android:id=\\"@+id/view3\\"
       android:layout_width=\\"0dp\\"
       android:layout_height=\\"match_parent\\"
@@ -70,7 +70,7 @@ exports[`creates View with children layout 1`] = `
     android:id=\\"@+id/container\\"
     android:layout_width=\\"match_parent\\"
     android:layout_height=\\"match_parent\\">
-  <View android:id=\\"@+id/child1\\" />
-  <View android:id=\\"@+id/child2\\" />
+  <androidx.constraintlayout.widget.ConstraintLayout android:id=\\"@+id/child1\\" />
+  <androidx.constraintlayout.widget.ConstraintLayout android:id=\\"@+id/child2\\" />
 </androidx.constraintlayout.widget.ConstraintLayout>"
 `;
