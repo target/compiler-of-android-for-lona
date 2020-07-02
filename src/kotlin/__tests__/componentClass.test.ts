@@ -11,7 +11,10 @@ describe('Kotlin / Component', () => {
           name: 'titleText',
           type: 'CharSequence',
           defaultValue: `""`,
-          attributeGetter: 'getString',
+          styleableAttribute: {
+            getter: 'getString',
+            format: 'string',
+          },
         },
       ],
       publicViews: [

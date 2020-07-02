@@ -1,5 +1,8 @@
 import { createModule } from '../../logic/module'
-import { convertComponentParameter } from '../componentParameter'
+import {
+  convertComponentParameter,
+  ComponentParameter,
+} from '../componentParameter'
 import { createFs } from 'buffs'
 import { findComponentFunction } from '../../logic/component'
 
@@ -35,11 +38,16 @@ func Test(titleText: String = "") -> Element {
       componentFunction!.parameters[0]
     )
 
-    expect(componentParameter).toEqual({
+    const result: ComponentParameter = {
       name: 'titleText',
       type: 'CharSequence',
       defaultValue: '""',
-      attributeGetter: 'getString',
-    })
+      styleableAttribute: {
+        getter: 'getString',
+        format: 'string',
+      },
+    }
+
+    expect(componentParameter).toEqual(result)
   })
 })
