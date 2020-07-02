@@ -6,15 +6,25 @@ import { EvaluationVisitor } from '../evaluationVisitor'
 import { UUID } from '../namespace'
 import NamespaceVisitor from '../namespaceVisitor'
 import { DefaultArguments } from '../runtime/memory'
-import { StandardLibrary, Value } from '../runtime/value'
+import { Encode, Value } from '../runtime/value'
 import { ScopeVisitor } from '../scopeVisitor'
 import { FunctionArgument, StaticType } from '../staticType'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { IDeclaration, Node } from './interfaces'
 import { ReturnStatement } from './ReturnStatement'
+import { FunctionParameter } from './FunctionParameter'
+import { createNode } from './createNode'
 
 export class FunctionDeclaration extends Node<AST.FunctionDeclaration>
   implements IDeclaration {
+  get parameters(): FunctionParameter[] {
+    return compact(
+      this.syntaxNode.data.parameters.map(
+        node => createNode(node) as FunctionParameter | undefined
+      )
+    )
+  }
+
   get returnStatements(): ReturnStatement[] {
     const syntaxNodes = this.findAll(
       node => node.type === 'return'
@@ -233,9 +243,7 @@ export class FunctionDeclaration extends Node<AST.FunctionDeclaration>
                   }
                 }
 
-                return (
-                  evaluateBlock(block)?.memory || StandardLibrary.unit().memory
-                )
+                return evaluateBlock(block)?.memory || Encode.unit().memory
               },
             },
           },

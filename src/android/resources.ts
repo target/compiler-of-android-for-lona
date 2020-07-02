@@ -32,12 +32,14 @@ export function createResourceFiles(
     colorResources,
     elevationResources,
     textStyleResources,
+    attrResources,
     drawableResources,
     layoutResources,
   }: {
     colorResources: XML.Element[]
     elevationResources: XML.Element[]
     textStyleResources: XML.Element[]
+    attrResources: XML.Element[]
     layoutResources: IFS
     drawableResources: [string, IFS][]
   }
@@ -69,6 +71,13 @@ export function createResourceFiles(
     target.writeFileSync(
       path.join(valuesPath, 'text-styles.xml'),
       createValueResourcesFile(textStyleResources)
+    )
+  }
+
+  if (attrResources.length > 0) {
+    target.writeFileSync(
+      path.join(valuesPath, 'attrs.xml'),
+      createValueResourcesFile(attrResources)
     )
   }
 

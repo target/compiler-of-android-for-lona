@@ -80,6 +80,28 @@ export const createStyle = (
   }
 }
 
+export const createAttr = (name: string, format: string): XML.Element => {
+  return {
+    tag: 'attr',
+    attributes: [
+      { name: 'name', value: name },
+      { name: 'format', value: format },
+    ],
+    content: [],
+  }
+}
+
+export const createStyleableDeclaration = (
+  name: string,
+  items: XML.Element[]
+): XML.Element => {
+  return {
+    tag: 'declare-styleable',
+    attributes: [{ name: 'name', value: name }],
+    content: items.map(item => ({ type: 'element', data: item })),
+  }
+}
+
 /**
  * Create a resource XML file using the following format:
  *

@@ -11,7 +11,7 @@ exports[`Convert converts the example workspace 1`] = `
 │   ├── libs
 │   └── src / main
 │       ├── AndroidManifest.xml
-│       ├── java / com / test / designlibrary
+│       ├── java / com / test / designlibrary / RowView.kt
 │       └── res
 │           ├── drawable / assets_check_circle.xml
 │           ├── drawable-hdpi / assets_gradient_fill.webp
@@ -21,6 +21,7 @@ exports[`Convert converts the example workspace 1`] = `
 │           ├── drawable-xxxhdpi / assets_gradient_fill.webp
 │           ├── layout / row.xml
 │           └── values
+│               ├── attrs.xml
 │               ├── colors.xml
 │               ├── elevations.xml
 │               ├── strings.xml

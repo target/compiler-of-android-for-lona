@@ -13,7 +13,7 @@ import { FunctionCallExpression } from './nodes/FunctionCallExpression'
 import { IdentifierExpression } from './nodes/IdentifierExpression'
 import { IExpression } from './nodes/interfaces'
 import { EvaluationContext } from './evaluation'
-import { Value } from './runtime/value'
+import { Value, Decode } from './runtime/value'
 import { LiteralExpression } from './nodes/LiteralExpression'
 import { ArrayLiteral } from './nodes/literals'
 
@@ -46,27 +46,6 @@ type DimensionSize =
       value: number
     }
   | { type: 'flexible' }
-
-function getString({ type, memory }: Value): string | undefined {
-  if (
-    type.type === 'constant' &&
-    type.name === 'String' &&
-    memory.type === 'string'
-  ) {
-    return memory.value
-  }
-}
-
-function getColor({ type, memory }: Value): string | undefined {
-  if (
-    type.type === 'constant' &&
-    type.name === 'Color' &&
-    memory.type === 'record'
-  ) {
-    const colorValue = memory.value['value']
-    return getString(colorValue)
-  }
-}
 
 function getDimensionSize({ type, memory }: Value): DimensionSize | undefined {
   if (
@@ -135,7 +114,7 @@ function createViewHierarchy(
       if ('__name' in argumentExpressionNodes) {
         const expression = argumentExpressionNodes['__name']
         const value = visitor.evaluation.evaluate(expression.id)
-        const id = value && getString(value)
+        const id = value && Decode.string(value)
         return id
       }
     }
@@ -168,7 +147,7 @@ function createViewHierarchy(
     if ('backgroundColor' in argumentExpressionNodes) {
       const expression = argumentExpressionNodes['backgroundColor']
       const value = visitor.evaluation.evaluate(expression.id)
-      const background = value && getColor(value)
+      const background = value && Decode.color(value)
       viewOptions.background = background
     }
 
@@ -237,7 +216,7 @@ function createViewHierarchy(
         if ('value' in argumentExpressionNodes) {
           const expression = argumentExpressionNodes['value']
           const value = visitor.evaluation.evaluate(expression.id)
-          const text = value && getString(value)
+          const text = value && Decode.string(value)
           if (text) {
             textViewOptions.text = text
           }

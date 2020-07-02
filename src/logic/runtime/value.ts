@@ -6,7 +6,7 @@ export type Value = {
   memory: Memory.Memory
 }
 
-export namespace StandardLibrary {
+export namespace Encode {
   export const unit = (): Value => ({
     type: StaticType.unit,
     memory: Memory.unit(),
@@ -47,4 +47,27 @@ export namespace StandardLibrary {
     type: elementType,
     memory: Memory.array(values),
   })
+}
+
+export namespace Decode {
+  export const string = ({ type, memory }: Value): string | undefined => {
+    if (
+      type.type === 'constant' &&
+      type.name === 'String' &&
+      memory.type === 'string'
+    ) {
+      return memory.value
+    }
+  }
+
+  export const color = ({ type, memory }: Value): string | undefined => {
+    if (
+      type.type === 'constant' &&
+      type.name === 'Color' &&
+      memory.type === 'record'
+    ) {
+      const colorValue = memory.value['value']
+      return string(colorValue)
+    }
+  }
 }

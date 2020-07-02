@@ -30,6 +30,10 @@ import {
   IdentifierTypeAnnotation,
   FunctionTypeAnnotation,
 } from './typeAnnotations'
+import {
+  FunctionParameter,
+  FunctionParameterDefaultValue,
+} from './FunctionParameter'
 
 export function createTypeAnnotationNode(
   syntaxNode: AST.SyntaxNode
@@ -115,18 +119,32 @@ function isEvaluationVisitor(node: INode): node is IEvaluationContributor {
 
 const nodeCache: { [key: string]: INode } = {}
 
-export function createNode(syntaxNode: AST.SyntaxNode) {
+export function createNode(syntaxNode: AST.SyntaxNode): INode | undefined {
   const id = syntaxNode.data.id
 
   if (id in nodeCache) {
     return nodeCache[id]
   }
 
-  const node =
+  let node: INode | undefined =
     createDeclarationNode(syntaxNode) ||
     createTypeAnnotationNode(syntaxNode) ||
     createExpressionNode(syntaxNode) ||
     createLiteralNode(syntaxNode)
+
+  if (!node) {
+    switch (syntaxNode.type) {
+      case 'parameter':
+        node = new FunctionParameter(syntaxNode as AST.FunctionParameter)
+        break
+      case 'value':
+      case 'none':
+        node = new FunctionParameterDefaultValue(
+          syntaxNode as AST.FunctionParameterDefaultValue
+        )
+        break
+    }
+  }
 
   if (node) {
     nodeCache[id] = node

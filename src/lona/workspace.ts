@@ -2,7 +2,7 @@ import { Helpers } from '@lona/compiler/lib/helpers'
 import Tokens from '@lona/compiler/lib/plugins/tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
 import * as FileSearch from '@lona/compiler/lib/utils/file-search'
-import { copy, createFs, IFS, describe } from 'buffs'
+import { copy, IFS } from 'buffs'
 import fs from 'fs'
 import path from 'path'
 import { Union } from 'unionfs'
@@ -14,6 +14,8 @@ import {
 } from '../android/buildScript'
 import { formatDrawableName } from '../android/drawableResources'
 import { createResourceFiles } from '../android/resources'
+import { convertComponentFiles } from '../kotlin/component'
+import { createModule } from '../logic/module'
 import { Validated } from '../options'
 import { createFiles as createSvgDrawableFiles } from '../svg/drawable'
 import { templatePathForName } from '../template/bundled'
@@ -23,12 +25,6 @@ import {
 } from '../template/context'
 import { inflate, InflateOptions } from '../template/inflate'
 import { createValueResources } from './tokens'
-import { program } from '../logic/files'
-import { createLayout, findComponentFunction } from '../logic/component'
-import {
-  createConstraintLayout,
-  createLayoutFile,
-} from '../android/layoutResources'
 
 export function inflateProjectTemplate(
   outputPath: string,
@@ -100,8 +96,8 @@ export function inflateProjectTemplate(
 
   return {
     files: projectFiles,
-    srcPath: moduleContext.get('srcDir'),
-    resPath: moduleContext.get('resDir'),
+    srcPath: path.join(outputPath, moduleContext.get('srcOut')),
+    resPath: path.join(outputPath, moduleContext.get('resDir')),
   }
 }
 
@@ -186,24 +182,13 @@ export async function convert(
     return Promise.reject(error)
   }
 
-  const { componentFiles, evaluationContext } = program(fs, workspacePath)
+  const moduleContext = createModule(fs, workspacePath)
 
-  const { fs: layoutResources } = createFs()
-
-  componentFiles.forEach(({ sourcePath, rootNode }) => {
-    const componentFunction = findComponentFunction(rootNode)
-
-    if (!componentFunction || !evaluationContext) return
-
-    const layout = createLayout({ evaluationContext }, componentFunction)
-    const layoutFile = createLayoutFile(layout)
-
-    const xmlFileName = formatDrawableName(path.basename(sourcePath), 'xml', {
-      nameTemplate: '${qualifiedName?join("-")}',
-    })
-
-    layoutResources.writeFileSync(`/${xmlFileName}`, layoutFile)
-  })
+  const {
+    layoutResources,
+    attrResources,
+    componentFiles,
+  } = convertComponentFiles(moduleContext, packageName)
 
   const drawableResources: [string, IFS][] = await convertSvgFiles(
     workspacePath,
@@ -217,7 +202,7 @@ export async function convert(
     })
   )
 
-  const { files: templateFiles, resPath } = inflateProjectTemplate(
+  const { files: templateFiles, resPath, srcPath } = inflateProjectTemplate(
     outputPath,
     generateGallery,
     drawableResourceNames,
@@ -230,18 +215,17 @@ export async function convert(
     nameTemplate: drawableResourceNameTemplate,
   })
 
-  const { fs: resourceFiles } = createResourceFiles(
-    path.join(outputPath, resPath),
-    {
-      colorResources: valueResources.colors,
-      elevationResources: valueResources.elevations,
-      textStyleResources: valueResources.textStyles,
-      drawableResources,
-      layoutResources,
-    }
-  )
+  const { fs: resourceFiles } = createResourceFiles(resPath, {
+    colorResources: valueResources.colors,
+    elevationResources: valueResources.elevations,
+    textStyleResources: valueResources.textStyles,
+    drawableResources,
+    layoutResources,
+    attrResources,
+  })
 
   copy(resourceFiles, templateFiles, '/', '/')
+  copy(componentFiles, templateFiles, '/', srcPath)
 
   return templateFiles
 }

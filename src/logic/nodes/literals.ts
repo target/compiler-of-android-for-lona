@@ -3,7 +3,7 @@ import { EvaluationVisitor } from '../evaluationVisitor'
 import { bool, number, string, unit, color, StaticType } from '../staticType'
 import { TypeCheckerVisitor } from '../typeChecker'
 import { ILiteral, Node, IExpression } from './interfaces'
-import { StandardLibrary } from '../runtime/value'
+import { Encode } from '../runtime/value'
 import { substitute } from '../typeUnifier'
 import { createExpressionNode } from './createNode'
 import { compact } from '../../utils/sequence'
@@ -16,7 +16,7 @@ export class NoneLiteral extends Node<AST.NoneLiteral> implements ILiteral {
   }
 
   evaluationEnter(visitor: EvaluationVisitor): void {
-    visitor.addValue(this.syntaxNode.data.id, StandardLibrary.unit())
+    visitor.addValue(this.syntaxNode.data.id, Encode.unit())
   }
 }
 
@@ -30,7 +30,7 @@ export class BooleanLiteral extends Node<AST.BooleanLiteral>
 
   evaluationEnter(visitor: EvaluationVisitor): void {
     const { value, id } = this.syntaxNode.data
-    visitor.addValue(id, StandardLibrary.bool(value))
+    visitor.addValue(id, Encode.bool(value))
   }
 }
 
@@ -43,7 +43,7 @@ export class NumberLiteral extends Node<AST.NumberLiteral> implements ILiteral {
 
   evaluationEnter(visitor: EvaluationVisitor): void {
     const { value, id } = this.syntaxNode.data
-    visitor.addValue(id, StandardLibrary.number(value))
+    visitor.addValue(id, Encode.number(value))
   }
 }
 
@@ -56,7 +56,7 @@ export class StringLiteral extends Node<AST.StringLiteral> implements ILiteral {
 
   evaluationEnter(visitor: EvaluationVisitor): void {
     const { value, id } = this.syntaxNode.data
-    visitor.addValue(id, StandardLibrary.string(value))
+    visitor.addValue(id, Encode.string(value))
   }
 }
 
@@ -69,7 +69,7 @@ export class ColorLiteral extends Node<AST.ColorLiteral> implements ILiteral {
 
   evaluationEnter(visitor: EvaluationVisitor): void {
     const { value, id } = this.syntaxNode.data
-    visitor.addValue(id, StandardLibrary.color(value))
+    visitor.addValue(id, Encode.color(value))
   }
 }
 
@@ -127,7 +127,7 @@ export class ArrayLiteral extends Node<AST.ArrayLiteral> implements ILiteral {
     visitor.add(id, {
       label: 'Array Literal',
       dependencies,
-      f: values => StandardLibrary.array(resolvedType, values),
+      f: values => Encode.array(resolvedType, values),
     })
   }
 }

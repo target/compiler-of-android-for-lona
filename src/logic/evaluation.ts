@@ -95,21 +95,16 @@ export class EvaluationContext {
 const evaluateNode = (
   node: AST.SyntaxNode,
   visitor: EvaluationVisitor
-): EvaluationContext | undefined => {
+): EvaluationContext => {
   // TODO: Handle stopping
-  const context = AST.subNodes(node).reduce<EvaluationContext | undefined>(
+  const context = AST.subNodes(node).reduce<EvaluationContext>(
     (prev, subNode) => {
-      if (!prev) {
-        return undefined
-      }
       return evaluateNode(subNode, visitor)
     },
     visitor.evaluation
   )
 
-  if (!context) {
-    return undefined
-  }
+  if (!context) return context
 
   switch (node.type) {
     case 'identifierExpression':
@@ -176,7 +171,7 @@ export const evaluate = (
   typeChecker: TypeChecker,
   substitution: Substitution,
   reporter: Reporter
-): EvaluationContext | undefined => {
+): EvaluationContext => {
   const visitor = new EvaluationVisitor(
     rootNode,
     scope,

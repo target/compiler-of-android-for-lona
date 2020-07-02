@@ -1,27 +1,45 @@
-import { createComponentClass } from '../component'
+import { createModule } from '../../logic/module'
+import { convertComponentParameter } from '../componentParameter'
+import { createFs } from 'buffs'
+import { findComponentFunction } from '../../logic/component'
+
+const lonaJson = JSON.stringify({
+  format: {
+    android: {
+      packageName: 'com.example.library',
+    },
+  },
+})
 
 describe('Kotlin / Component', () => {
-  it('creates a component class', () => {
-    const componentClass = createComponentClass({
-      namePrefix: 'Example',
-      packagePath: 'com.example',
-      imports: ['android.widget.TextView'],
-      parameters: [
-        {
-          name: 'titleText',
-          type: 'CharSequence',
-          defaultValue: `""`,
-          attributeGetter: 'getString',
-        },
-      ],
-      publicViews: [
-        {
-          name: 'text',
-          type: 'TextView',
-        },
-      ],
+  it('generates a component parameter', () => {
+    const componentFile = `
+func Test(titleText: String = "") -> Element {
+  return View()
+}
+`
+
+    const { fs: workspaceFs } = createFs({
+      'lona.json': lonaJson,
+      'Test.cmp': componentFile,
     })
 
-    expect(componentClass).toMatchSnapshot()
+    const moduleContext = createModule(workspaceFs, '/')
+
+    const componentFunction = findComponentFunction(
+      moduleContext.componentFiles[0]!.rootNode
+    )
+
+    const componentParameter = convertComponentParameter(
+      moduleContext,
+      componentFunction!.parameters[0]
+    )
+
+    expect(componentParameter).toEqual({
+      name: 'titleText',
+      type: 'CharSequence',
+      defaultValue: '""',
+      attributeGetter: 'getString',
+    })
   })
 })

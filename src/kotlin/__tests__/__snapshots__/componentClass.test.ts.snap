@@ -12,21 +12,21 @@ import android.widget.TextView
 
 open class ExampleView : ConstraintLayout {
 
-    //region Private
-
-    private lateinit var binding: ExampleBinding
+    //region Public
 
     open var titleText: CharSequence = \\"\\"
       set(value) {
         field = value
         update()
       }
+    
+    open val textView: TextView by lazy { binding.text }
 
     //endregion
+  
+    //region Private
 
-    //region Public
-
-    open val textView: TextView by lazy { binding.text }
+    private lateinit var binding: ExampleBinding
 
     //endregion
 

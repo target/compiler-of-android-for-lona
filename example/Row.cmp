@@ -1,5 +1,5 @@
 extension Row {
-  func Row() -> Element {
+  func Row(titleText: String = "") -> Element {
     return HorizontalStack(__name: "Container", backgroundColor: primary, height: DimensionSize.fixed(100), children: [
       View(width: DimensionSize.fixed(100), backgroundColor: #color(css: "#00FFAA"), height: DimensionSize.fixed(100)),
       Text(value: "Hello, Lona!")

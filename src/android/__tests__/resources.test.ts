@@ -7,6 +7,7 @@ describe('Android / Resources', () => {
       colorResources: [],
       textStyleResources: [],
       elevationResources: [],
+      attrResources: [],
       drawableResources: [
         ['test.svg', createFs({ 'drawable/test.xml': '' }).fs],
       ],
