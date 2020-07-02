@@ -35,7 +35,7 @@ func Row() -> Element {
 
   if (!componentFunction || !evaluationContext) return
 
-  const layout = createLayout({ evaluationContext }, componentFunction)
+  const { layout } = createLayout({ evaluationContext }, componentFunction)
   const layoutFile = createLayoutFile(layout)
 
   expect(layoutFile).toMatchSnapshot()
@@ -61,7 +61,7 @@ func Row() -> Element {
 
   if (!componentFunction || !evaluationContext) return
 
-  const layout = createLayout({ evaluationContext }, componentFunction)
+  const { layout } = createLayout({ evaluationContext }, componentFunction)
   const layoutFile = createLayoutFile(layout)
 
   expect(layoutFile).toMatchSnapshot()
@@ -86,7 +86,7 @@ func Row() -> Element {
 
   if (!componentFunction || !evaluationContext) return
 
-  const layout = createLayout({ evaluationContext }, componentFunction)
+  const { layout } = createLayout({ evaluationContext }, componentFunction)
   const layoutFile = createLayoutFile(layout)
 
   expect(layoutFile).toMatchSnapshot()
@@ -113,7 +113,7 @@ func Row() -> Element {
 
   if (!componentFunction || !evaluationContext) return
 
-  const layout = createLayout({ evaluationContext }, componentFunction)
+  const { layout } = createLayout({ evaluationContext }, componentFunction)
   const layoutFile = createLayoutFile(layout)
 
   expect(layoutFile).toMatchSnapshot()

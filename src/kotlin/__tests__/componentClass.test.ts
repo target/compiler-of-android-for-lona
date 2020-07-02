@@ -5,7 +5,10 @@ describe('Kotlin / Component', () => {
     const componentClass = createComponentClass({
       namePrefix: 'Example',
       packagePath: 'com.example',
-      imports: ['android.widget.TextView'],
+      imports: [
+        'androidx.constraintlayout.widget.ConstraintLayout',
+        'android.widget.TextView',
+      ],
       parameters: [
         {
           name: 'titleText',

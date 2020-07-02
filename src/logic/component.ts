@@ -16,6 +16,7 @@ import { EvaluationContext } from './evaluation'
 import { Value, Decode } from './runtime/value'
 import { LiteralExpression } from './nodes/LiteralExpression'
 import { ArrayLiteral } from './nodes/literals'
+import { PublicView } from '../kotlin/componentClass'
 
 class ComponentVisitor {
   evaluation: EvaluationContext
@@ -232,14 +233,73 @@ function createViewHierarchy(
   throw new Error('Unhandled element')
 }
 
-function createElementTree(view: AndroidView): XML.Element {
+type ElementTreeContext = {
+  imports: string[]
+  publicViews: PublicView[]
+}
+
+class ElementTreeVisitor {
+  isRoot: boolean = true
+
+  context: ElementTreeContext = {
+    imports: [],
+    publicViews: [],
+  }
+
+  addView(name: string, type: string, importPath: string) {
+    const { imports, publicViews } = this.context
+
+    if (!imports.includes(importPath)) {
+      imports.push(importPath)
+    }
+
+    if (!publicViews.find(view => view.name === name)) {
+      publicViews.push({
+        name,
+        type,
+      })
+    }
+  }
+}
+
+function createElementTree(
+  isRoot: boolean,
+  visitor: ElementTreeVisitor,
+  view: AndroidView
+): XML.Element {
   switch (view.type) {
     case 'View': {
-      const { options, children } = view
-      return createView(options, children.map(createElementTree))
+      const { id, options, children } = view
+
+      if (isRoot) {
+        visitor.addView(
+          id,
+          'ConstraintLayout',
+          'androidx.constraintlayout.widget.ConstraintLayout'
+        )
+
+        return createConstraintLayout(
+          {
+            ...options,
+            layoutHeight: options.layoutHeight ?? 'match_parent',
+            layoutWidth: options.layoutWidth ?? 'match_parent',
+          },
+          children.map(child => createElementTree(false, visitor, child))
+        )
+      } else {
+        visitor.addView(id, 'View', 'android.view.View')
+
+        return createView(
+          options,
+          children.map(child => createElementTree(false, visitor, child))
+        )
+      }
     }
     case 'TextView': {
-      const { options } = view
+      const { id, options } = view
+
+      visitor.addView(id, 'TextView', 'android.widget.TextView')
+
       return createTextView(options)
     }
   }
@@ -248,7 +308,7 @@ function createElementTree(view: AndroidView): XML.Element {
 export function createLayout(
   { evaluationContext }: { evaluationContext: EvaluationContext },
   node: FunctionDeclaration
-): XML.Element {
+): { layout: XML.Element } & ElementTreeContext {
   const returnStatements = node.returnStatements
 
   if (returnStatements.length !== 1) {
@@ -257,24 +317,22 @@ export function createLayout(
 
   const returnExpression = returnStatements[0].expression
 
-  const visitor = new ComponentVisitor(evaluationContext)
+  const componentVisitor = new ComponentVisitor(evaluationContext)
 
-  const viewHierarchy = createViewHierarchy(visitor, returnExpression)
+  const viewHierarchy = createViewHierarchy(componentVisitor, returnExpression)
 
   if (viewHierarchy.type !== 'View') {
     throw new Error('Only View is supported as the top level element (for now)')
   }
 
-  const { options } = viewHierarchy
+  const elementTreeVisitor = new ElementTreeVisitor()
 
-  return createConstraintLayout(
-    {
-      ...options,
-      layoutHeight: options.layoutHeight ?? 'match_parent',
-      layoutWidth: options.layoutWidth ?? 'match_parent',
-    },
-    viewHierarchy.children.map(createElementTree)
-  )
+  const layout = createElementTree(true, elementTreeVisitor, viewHierarchy)
+
+  return {
+    layout,
+    ...elementTreeVisitor.context,
+  }
 }
 
 export function findComponentFunction(

@@ -69,7 +69,6 @@ function createConstraintLayoutSubclass({
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import androidx.constraintlayout.widget.ConstraintLayout
 import ${packagePath}.databinding.${bindingName}
 ${importsRegion}
 

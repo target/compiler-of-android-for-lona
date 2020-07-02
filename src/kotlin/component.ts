@@ -60,17 +60,21 @@ export function convertComponentFiles(
       attrResources.push(createStyleableDeclaration(className, attrs))
     }
 
+    const { layout, imports, publicViews } = createLayout(
+      { evaluationContext },
+      componentFunction
+    )
+
     const componentClass = createComponentClass({
       namePrefix: componentName,
       packagePath: packageName,
-      imports: [],
+      imports,
       parameters: componentParameters,
-      publicViews: [],
+      publicViews,
     })
     const kotlinFileName = `${className}.kt`
     components.writeFileSync(`/${kotlinFileName}`, componentClass)
 
-    const layout = createLayout({ evaluationContext }, componentFunction)
     const layoutFile = createLayoutFile(layout)
     const xmlFileName = formatDrawableName(basename, 'xml', {
       nameTemplate: '${qualifiedName?join("-")}',

@@ -6,8 +6,8 @@ exports[`Kotlin / Component creates a component class 1`] = `
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.databinding.ExampleBinding
+import androidx.constraintlayout.widget.ConstraintLayout
 import android.widget.TextView
 
 open class ExampleView : ConstraintLayout {
