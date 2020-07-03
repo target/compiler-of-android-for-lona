@@ -24,6 +24,7 @@ describe('Kotlin / Component', () => {
         {
           name: 'text',
           type: 'TextView',
+          dynamicAttributes: [],
         },
       ],
     })

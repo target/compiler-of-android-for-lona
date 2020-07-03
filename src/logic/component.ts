@@ -16,20 +16,31 @@ import { EvaluationContext } from './evaluation'
 import { Value, Decode } from './runtime/value'
 import { LiteralExpression } from './nodes/LiteralExpression'
 import { ArrayLiteral } from './nodes/literals'
-import { PublicView } from '../kotlin/componentClass'
+import { PublicView, DynamicAttribute } from '../kotlin/componentClass'
+import { silentReporter } from '../reporter'
+
+type ComponentContext = {
+  intrinsicNameCount: { [key: string]: number }
+  viewAttributeAssignment: {
+    [key: string]: { [key: string]: IExpression }
+  }
+}
 
 class ComponentVisitor {
+  componentContext: ComponentContext = {
+    intrinsicNameCount: {},
+    viewAttributeAssignment: {},
+  }
   evaluation: EvaluationContext
-  intrinsicNameCount: { [key: string]: number } = {}
 
   constructor(evaluation: EvaluationContext) {
     this.evaluation = evaluation
   }
 
   private createIntrinsicNameCount(type: string): number {
-    const count = this.intrinsicNameCount[type] || 1
+    const count = this.componentContext.intrinsicNameCount[type] || 1
 
-    this.intrinsicNameCount[type] = count + 1
+    this.componentContext.intrinsicNameCount[type] = count + 1
 
     return count
   }
@@ -38,6 +49,15 @@ class ComponentVisitor {
     const count = this.createIntrinsicNameCount(type)
 
     return count === 1 ? type.toLowerCase() : `${type.toLowerCase()}${count}`
+  }
+
+  addViewAttributeAssignment(viewId: string, key: string, value: IExpression) {
+    const assignments =
+      this.componentContext.viewAttributeAssignment[viewId] || {}
+
+    assignments[key] = value
+
+    this.componentContext.viewAttributeAssignment[viewId] = assignments
   }
 }
 
@@ -244,10 +264,19 @@ function createViewHierarchy(
 
         if ('value' in argumentExpressionNodes) {
           const expression = argumentExpressionNodes['value']
-          const value = visitor.evaluation.evaluate(expression.id)
-          const text = value && Decode.string(value)
-          if (text) {
-            textViewOptions.text = text
+          const value = visitor.evaluation.evaluate(
+            expression.id,
+            silentReporter
+          )
+          if (value) {
+            const text = Decode.string(value)
+            if (text) {
+              textViewOptions.text = text
+            } else {
+              throw new Error('Failed to decode logic string value')
+            }
+          } else {
+            visitor.addViewAttributeAssignment(id, 'text', expression)
           }
         }
 
@@ -268,14 +297,23 @@ type ElementTreeContext = {
 
 class ElementTreeVisitor {
   isRoot: boolean = true
-
-  context: ElementTreeContext = {
+  componentContext: ComponentContext
+  elementTreeContext: ElementTreeContext = {
     imports: [],
     publicViews: [],
   }
 
-  addView(name: string, type: string, importPath: string) {
-    const { imports, publicViews } = this.context
+  constructor(componentContext: ComponentContext) {
+    this.componentContext = componentContext
+  }
+
+  addView(
+    name: string,
+    type: string,
+    importPath: string,
+    dynamicAttributes: DynamicAttribute[]
+  ) {
+    const { imports, publicViews } = this.elementTreeContext
 
     if (!imports.includes(importPath)) {
       imports.push(importPath)
@@ -285,9 +323,28 @@ class ElementTreeVisitor {
       publicViews.push({
         name,
         type,
+        dynamicAttributes,
       })
     }
   }
+
+  getAttributeAssignments(viewId: string): { [key: string]: IExpression } {
+    return this.componentContext.viewAttributeAssignment[viewId] || {}
+  }
+}
+
+function convertAssignment(
+  viewId: string,
+  key: string,
+  expression: IExpression
+): DynamicAttribute {
+  let value: string = ''
+
+  if (expression instanceof IdentifierExpression) {
+    value = expression.name
+  }
+
+  return { name: `${viewId}View.${key}`, value }
 }
 
 function createElementTree(
@@ -302,7 +359,8 @@ function createElementTree(
       visitor.addView(
         id,
         'ConstraintLayout',
-        'androidx.constraintlayout.widget.ConstraintLayout'
+        'androidx.constraintlayout.widget.ConstraintLayout',
+        []
       )
 
       if (isRoot) {
@@ -325,7 +383,14 @@ function createElementTree(
     case 'TextView': {
       const { id, options } = view
 
-      visitor.addView(id, 'TextView', 'android.widget.TextView')
+      visitor.addView(
+        id,
+        'TextView',
+        'android.widget.TextView',
+        Object.entries(
+          visitor.getAttributeAssignments(id)
+        ).map(([key, expression]) => convertAssignment(id, key, expression))
+      )
 
       return createTextView(options)
     }
@@ -352,13 +417,15 @@ export function createLayout(
     throw new Error('Only View is supported as the top level element (for now)')
   }
 
-  const elementTreeVisitor = new ElementTreeVisitor()
+  const elementTreeVisitor = new ElementTreeVisitor(
+    componentVisitor.componentContext
+  )
 
   const layout = createElementTree(true, elementTreeVisitor, viewHierarchy)
 
   return {
     layout,
-    ...elementTreeVisitor.context,
+    ...elementTreeVisitor.elementTreeContext,
   }
 }
 

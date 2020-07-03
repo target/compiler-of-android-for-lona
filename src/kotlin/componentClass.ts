@@ -55,6 +55,7 @@ function createConstraintLayoutSubclass({
   privateRegion,
   publicRegion,
   initializeFromAttributesRegion,
+  updateRegion,
 }: {
   className: string
   bindingName: string
@@ -63,6 +64,7 @@ function createConstraintLayoutSubclass({
   privateRegion: string
   publicRegion: string
   initializeFromAttributesRegion: string
+  updateRegion: string
 }) {
   const source = `package ${packagePath}
 
@@ -111,7 +113,10 @@ ${indent(initializeFromAttributesRegion, 12, { prefix: '\n' })}
         }
     }
 
-    private fun update() {}
+    private fun update() {${indent(updateRegion, 8, {
+      prefix: '\n',
+      suffix: '\n    ',
+    })}}
 
     //endregion
 }
@@ -120,9 +125,15 @@ ${indent(initializeFromAttributesRegion, 12, { prefix: '\n' })}
   return source
 }
 
+export type DynamicAttribute = {
+  name: string
+  value: string
+}
+
 export type PublicView = {
   name: string
   type: string
+  dynamicAttributes: DynamicAttribute[]
 }
 
 export function createComponentClass({
@@ -167,5 +178,9 @@ export function createComponentClass({
         )
       )
       .join('\n\n'),
+    updateRegion: publicViews
+      .flatMap(view => view.dynamicAttributes)
+      .map(({ name, value }) => `${name} = ${value}`)
+      .join('\n'),
   })
 }

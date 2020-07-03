@@ -55,7 +55,10 @@ export class EvaluationContext {
   /**
    * Evaluate the id to a value, resolving any dependency along the way
    */
-  evaluate(uuid: string): Value | undefined {
+  evaluate(
+    uuid: string,
+    reporter: Reporter | undefined = this.reporter
+  ): Value | undefined {
     const value = this.values[uuid]
 
     if (value) return value
@@ -63,14 +66,16 @@ export class EvaluationContext {
     const thunk = this.thunks[uuid]
 
     if (!thunk) {
-      this.reporter?.error(`no thunk for ${uuid}`)
+      reporter?.error(`no thunk for ${uuid}`)
       return undefined
     }
 
-    const resolvedDependencies = thunk.dependencies.map(x => this.evaluate(x))
+    const resolvedDependencies = thunk.dependencies.map(x =>
+      this.evaluate(x, reporter)
+    )
 
     if (resolvedDependencies.some(x => !x)) {
-      this.reporter?.error(
+      reporter?.error(
         `Failed to evaluate thunk ${uuid} (${thunk.label}) - missing dep ${
           thunk.dependencies[resolvedDependencies.findIndex(x => !x)]
         }`
