@@ -1,21 +1,21 @@
 import * as XML from '../xml/ast'
-import { FunctionDeclaration } from './nodes/FunctionDeclaration'
+import { FunctionDeclaration } from '../logic/nodes/FunctionDeclaration'
 import {
   createView,
   ViewOptions,
   createTextView,
   TextViewOptions,
   createConstraintLayout,
-} from '../android/layoutResources'
+} from './layoutResources'
 import { AST } from '@lona/compiler/lib/helpers/logic-ast'
-import { findNode } from './syntaxNode'
-import { FunctionCallExpression } from './nodes/FunctionCallExpression'
-import { IdentifierExpression } from './nodes/IdentifierExpression'
-import { IExpression } from './nodes/interfaces'
-import { EvaluationContext } from './evaluation'
-import { Value, Decode } from './runtime/value'
-import { LiteralExpression } from './nodes/LiteralExpression'
-import { ArrayLiteral } from './nodes/literals'
+import { findNode } from '../logic/syntaxNode'
+import { FunctionCallExpression } from '../logic/nodes/FunctionCallExpression'
+import { IdentifierExpression } from '../logic/nodes/IdentifierExpression'
+import { IExpression } from '../logic/nodes/interfaces'
+import { EvaluationContext } from '../logic/evaluation'
+import { Value, Decode } from '../logic/runtime/value'
+import { LiteralExpression } from '../logic/nodes/LiteralExpression'
+import { ArrayLiteral } from '../logic/nodes/literals'
 import { PublicView, DynamicAttribute } from '../kotlin/componentClass'
 import { silentReporter } from '../reporter'
 

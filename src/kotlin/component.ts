@@ -8,7 +8,7 @@ import {
   ComponentParameter,
   convertComponentParameter,
 } from '../kotlin/componentParameter'
-import { createLayout, findComponentFunction } from '../logic/component'
+import { createLayout, findComponentFunction } from '../android/component'
 import { ModuleContext } from '../logic/module'
 import * as XML from '../xml/ast'
 import {
