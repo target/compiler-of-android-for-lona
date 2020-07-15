@@ -1,12 +1,10 @@
 import { AST } from '@lona/compiler/lib/helpers/logic-ast'
 import * as Serialization from '@lona/serialization'
-import { createLayout, findComponentFunction } from '../component'
+import { createLayoutFile } from '../../android/layoutResources'
+import { findComponentFunction } from '../component'
 import { run } from '../environment'
 import { EvaluationContext } from '../evaluation'
-import {
-  createLayoutFile,
-  createConstraintLayout,
-} from '../../android/layoutResources'
+import { createLayout } from '../../android/components/createElementTree'
 
 function standardEvaluate(rootNode: AST.SyntaxNode): EvaluationContext {
   const evaluation = run(console, [rootNode])

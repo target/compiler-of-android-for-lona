@@ -62,15 +62,15 @@ open class RowView : ConstraintLayout {
         update()
       }
     
-    open val containerView: ConstraintLayout by lazy { binding.container }
-    
     open val viewView: ConstraintLayout by lazy { binding.view }
-    
-    open val descriptionView: ConstraintLayout by lazy { binding.description }
     
     open val titleView: TextView by lazy { binding.title }
     
     open val subtitleView: TextView by lazy { binding.subtitle }
+    
+    open val descriptionView: ConstraintLayout by lazy { binding.description }
+    
+    open val containerView: ConstraintLayout by lazy { binding.container }
 
     //endregion
   

@@ -8,7 +8,7 @@ import {
   ComponentParameter,
   convertComponentParameter,
 } from '../kotlin/componentParameter'
-import { createLayout, findComponentFunction } from '../android/component'
+import { findComponentFunction } from '../logic/component'
 import { ModuleContext } from '../logic/module'
 import * as XML from '../xml/ast'
 import {
@@ -17,6 +17,7 @@ import {
 } from '../android/valueResources'
 import { compact } from '../utils/sequence'
 import snakeCase from 'lodash.snakecase'
+import { createLayout } from '../android/components/createElementTree'
 
 export function convertComponentFiles(
   moduleContext: ModuleContext,
