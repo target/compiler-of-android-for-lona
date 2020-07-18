@@ -1,8 +1,7 @@
 import { Helpers } from '@lona/compiler/lib/helpers'
 import Tokens from '@lona/compiler/lib/plugins/tokens'
 import { Token } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
-import * as FileSearch from '@lona/compiler/lib/utils/file-search'
-import { copy, IFS } from 'buffs'
+import { copy, IFS, match } from 'buffs'
 import fs from 'fs'
 import path from 'path'
 import { Union } from 'unionfs'
@@ -126,8 +125,9 @@ async function convertSvgFiles(
   nameTemplate: string,
   ignore: string[]
 ): Promise<[string, IFS][]> {
-  const svgRelativePaths = FileSearch.sync(workspacePath, '**/*.svg', {
-    ignore,
+  const svgRelativePaths = match(fs, workspacePath, {
+    includePatterns: ['**/*.svg'],
+    excludePatterns: ignore,
   })
 
   return Promise.all(
