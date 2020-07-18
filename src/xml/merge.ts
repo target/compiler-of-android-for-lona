@@ -1,10 +1,6 @@
-import * as XML from './ast'
-import {
-  TraversalControl,
-  getChildrenElements,
-  getAttributes,
-} from './traverse'
 import groupBy from 'lodash.groupby'
+import * as XML from './ast'
+import { getAttributes } from './traverse'
 
 export type AttributeMerger = (
   a: XML.Attribute | undefined,

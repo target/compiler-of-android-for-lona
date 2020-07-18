@@ -1,3 +1,4 @@
+import { withOptions } from 'tree-visit'
 import * as XML from './ast'
 
 export function getChildrenElements(element: XML.Element): XML.Element[] {
@@ -5,6 +6,10 @@ export function getChildrenElements(element: XML.Element): XML.Element[] {
     child.type === 'element' ? [child.data] : []
   )
 }
+
+const { find, findAll } = withOptions({
+  getChildren: getChildrenElements,
+})
 
 export function getChildrenElementsMap(
   element: XML.Element
@@ -34,37 +39,18 @@ export function getAttributes(element: XML.Element): { [key: string]: string } {
   return makeAttributeMap(element.attributes)
 }
 
-export type TraversalControl = {
-  stop: () => void
-  ancestors: XML.Element[]
+export function findElementByTag(
+  root: XML.Element,
+  tag: string
+): XML.Element | undefined {
+  return find(root, element => element.tag === tag)
 }
 
-export function traverseElements(
-  element: XML.Element,
-  f: (element: XML.Element, control: TraversalControl) => void
-) {
-  let stopped = false
-
-  const control: TraversalControl = {
-    stop: () => {
-      stopped = true
-    },
-    ancestors: [],
-  }
-
-  function inner(element: XML.Element) {
-    if (stopped) return
-
-    control.ancestors.push(element)
-
-    f(element, control)
-
-    getChildrenElements(element).forEach(inner)
-
-    control.ancestors.pop()
-  }
-
-  inner(element)
+export function findElementsByTag(
+  root: XML.Element,
+  tag: string
+): XML.Element[] {
+  return findAll(root, element => element.tag === tag)
 }
 
 export function flatMapContent(
@@ -95,49 +81,4 @@ export function removeWhitespace(root: XML.Element) {
     root,
     content => content.type !== 'charData' || content.data.trim() !== ''
   )
-}
-
-export function findElement(
-  root: XML.Element,
-  predicate: (element: XML.Element) => boolean
-): XML.Element | undefined {
-  let found: XML.Element | undefined
-
-  traverseElements(root, (element, control) => {
-    if (predicate(element)) {
-      found = element
-      control.stop()
-    }
-  })
-
-  return found
-}
-
-export function findElements(
-  root: XML.Element,
-  predicate: (element: XML.Element) => boolean
-): XML.Element[] {
-  const found: XML.Element[] = []
-
-  traverseElements(root, element => {
-    if (predicate(element)) {
-      found.push(element)
-    }
-  })
-
-  return found
-}
-
-export function findElementByTag(
-  root: XML.Element,
-  tag: string
-): XML.Element | undefined {
-  return findElement(root, element => element.tag === tag)
-}
-
-export function findElementsByTag(
-  root: XML.Element,
-  tag: string
-): XML.Element[] {
-  return findElements(root, element => element.tag === tag)
 }

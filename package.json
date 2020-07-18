@@ -45,6 +45,7 @@
     "nearley": "^2.19.4",
     "prettier": "^1.19.1",
     "sharp": "^0.25.2",
+    "tree-visit": "^0.0.5",
     "unionfs": "^4.4.0",
     "uuid": "^7.0.2",
     "web-module-loader": "^0.1.6",
