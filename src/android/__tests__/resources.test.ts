@@ -1,19 +1,17 @@
 import { createResourceFiles } from '../resources'
-import { createFs } from 'buffs'
+import { createFs, toJSON } from 'buffs'
 
 describe('Android / Resources', () => {
   test('creates library resources', () => {
-    const { volume } = createResourceFiles('/main/res', {
+    const fs = createResourceFiles('/main/res', {
       colorResources: [],
       textStyleResources: [],
       elevationResources: [],
       attrResources: [],
-      drawableResources: [
-        ['test.svg', createFs({ 'drawable/test.xml': '' }).fs],
-      ],
-      layoutResources: createFs({ 'row.xml': '' }).fs,
+      drawableResources: [['test.svg', createFs({ 'drawable/test.xml': '' })]],
+      layoutResources: createFs({ 'row.xml': '' }),
     })
 
-    expect(volume.toJSON()).toMatchSnapshot()
+    expect(toJSON(fs)).toMatchSnapshot()
   })
 })

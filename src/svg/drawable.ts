@@ -44,7 +44,7 @@ export async function createFiles(
   data: Buffer,
   options: Options
 ): Promise<IFS> {
-  const { fs } = createFs()
+  const fs = createFs()
 
   const svg = await parse(data.toString('utf8'))
 

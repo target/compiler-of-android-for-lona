@@ -25,8 +25,8 @@ export function convertComponentFiles(
 ): { layoutResources: IFS; componentFiles: IFS; attrResources: XML.Element[] } {
   const { componentFiles, evaluationContext } = moduleContext
 
-  const { fs: layoutResources } = createFs()
-  const { fs: components } = createFs()
+  const layoutResources = createFs()
+  const components = createFs()
   const attrResources: XML.Element[] = []
 
   componentFiles.forEach(({ sourcePath, rootNode }) => {

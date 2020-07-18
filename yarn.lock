@@ -1241,13 +1241,15 @@ buffer@^5.5.0:
     base64-js "^1.0.2"
     ieee754 "^1.1.4"
 
-buffs@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/buffs/-/buffs-0.2.1.tgz#0fe77d2a52fe4b6d5c30c998bd3f0f82365e1197"
-  integrity sha512-Mgp35+7/7lk2Qzv4tSjNv6T4bzfDKh+2TbOYoPi7ILZxkYZR4z7lcf0tSaI1cV/R258OX8rchybhee1COAxmJw==
+buffs@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/buffs/-/buffs-0.4.1.tgz#805c064024fb15706de95e1599429339201651a8"
+  integrity sha512-Ubp+NbUhDN7+N86MbYKwfToRv+dsBjoxMMQOkGYQoXGBqLPHWqmiibHGIrJgWtJFrKDbNoVnp6ElEsTsbXblyw==
   dependencies:
     chalk "^4.0.0"
     memfs "^3.1.2"
+    micromatch "^4.0.2"
+    tree-visit "^0.0.2"
     unionfs "^4.4.0"
 
 cache-base@^1.0.1:
@@ -4935,6 +4937,11 @@ tr46@^2.0.2:
   integrity sha512-3n1qG+/5kg+jrbTzwAykB5yRYtQCTqOGKq5U5PE3b0a1/mzo6snDhjGS0zJVJunO0NrT3Dg1MLy5TjWP/UJppg==
   dependencies:
     punycode "^2.1.1"
+
+tree-visit@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/tree-visit/-/tree-visit-0.0.2.tgz#fc4296034462da2821c8b9ac934122452db0da5e"
+  integrity sha512-H1AJMtmxeFtOUOFAzKPlx33hrAYJJNvTOTfK3XlC2oQDtDu1ArrExvRq7OUwURLYMf3E4vnz8fDPcME/MAuO3A==
 
 trim-lines@^1.0.0:
   version "1.1.3"

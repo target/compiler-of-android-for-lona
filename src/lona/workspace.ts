@@ -215,7 +215,7 @@ export async function convert(
     nameTemplate: drawableResourceNameTemplate,
   })
 
-  const { fs: resourceFiles } = createResourceFiles(resPath, {
+  const resourceFiles = createResourceFiles(resPath, {
     colorResources: valueResources.colors,
     elevationResources: valueResources.elevations,
     textStyleResources: valueResources.textStyles,

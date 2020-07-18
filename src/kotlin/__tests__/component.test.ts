@@ -22,7 +22,7 @@ func Test(titleText: String = "") -> Element {
 }
 `
 
-    const { fs: workspaceFs } = createFs({
+    const workspaceFs = createFs({
       'lona.json': lonaJson,
       'Test.cmp': componentFile,
     })

@@ -2,7 +2,7 @@ import { search } from '../files'
 import { createFs } from 'buffs'
 
 it('searches files', () => {
-  const { fs } = createFs({
+  const fs = createFs({
     a: '',
   })
 
@@ -12,7 +12,7 @@ it('searches files', () => {
 })
 
 it('searches nested files', () => {
-  const { fs } = createFs({
+  const fs = createFs({
     'a/b/c': '',
   })
 
@@ -22,7 +22,7 @@ it('searches nested files', () => {
 })
 
 it('ignores files', () => {
-  const { fs } = createFs({
+  const fs = createFs({
     'a/b/c': '',
   })
 
@@ -32,7 +32,7 @@ it('ignores files', () => {
 })
 
 it('searches multiple files', () => {
-  const { fs } = createFs({
+  const fs = createFs({
     'a.js': '',
     'b/c.js': '',
   })
@@ -43,7 +43,7 @@ it('searches multiple files', () => {
 })
 
 it('searches multiple nested files', () => {
-  const { fs } = createFs({
+  const fs = createFs({
     'a/b.js': '',
     'a/b/c.js': '',
   })

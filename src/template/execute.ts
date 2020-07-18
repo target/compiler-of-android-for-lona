@@ -146,7 +146,7 @@ export function execute(
   recipe: Recipe,
   context: Context
 ): IFS {
-  const { fs: target } = createFs()
+  const target = createFs()
 
   const resolvedCommands = recipe.map(command =>
     resolvePaths(sourcePath, targetPath, command)

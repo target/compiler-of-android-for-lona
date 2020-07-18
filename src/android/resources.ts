@@ -43,9 +43,8 @@ export function createResourceFiles(
     layoutResources: IFS
     drawableResources: [string, IFS][]
   }
-): ReturnType<typeof createFs> {
-  const files = createFs()
-  const { fs: target } = files
+): IFS {
+  const target = createFs()
 
   target.mkdirSync(resPath, { recursive: true })
 
@@ -92,7 +91,7 @@ export function createResourceFiles(
     copy(source, target, '/', resPath)
   })
 
-  return files
+  return target
 }
 
 /**
