@@ -1,11 +1,11 @@
 import { ComponentVisitor } from './ComponentVisitor'
-import { Decode } from '../runtime/value'
+import { Decode } from '@lona/compiler/lib/logic/runtime/value'
 import {
   AndroidElement,
   AndroidTextView,
 } from '../../android/components/AndroidElement'
 import { TextViewOptions } from '../../android/layoutResources'
-import { silentReporter } from '../../reporter'
+import { silentReporter } from '@lona/compiler/lib/utils/reporter'
 import { LonaView, LonaViewConstructor } from './LonaView'
 
 export class LonaText extends LonaView {

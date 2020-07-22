@@ -1,5 +1,5 @@
-import { FunctionParameter } from '../logic/nodes/FunctionParameter'
-import { ModuleContext } from '../logic/module'
+import { FunctionParameter } from '@lona/compiler/lib/logic/nodes/FunctionParameter'
+import { ModuleContext } from '@lona/compiler/lib/logic/module'
 import { convertValue } from './values'
 import {
   convertParameterTypeAnnotation,

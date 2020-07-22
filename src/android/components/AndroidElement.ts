@@ -6,9 +6,9 @@ import {
   createTextView,
 } from '../layoutResources'
 import { ElementTreeVisitor } from './ElementTreeVisitor'
-import { IExpression } from '../../logic/nodes/interfaces'
+import { IExpression } from '@lona/compiler/lib/logic/nodes/interfaces'
 import { DynamicAttribute } from '../../kotlin/componentClass'
-import { IdentifierExpression } from '../../logic/nodes/IdentifierExpression'
+import { IdentifierExpression } from '@lona/compiler/lib/logic/nodes/IdentifierExpression'
 
 export interface AndroidElement {
   id: string

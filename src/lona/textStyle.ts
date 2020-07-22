@@ -1,4 +1,4 @@
-import { TextStyleValue } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
+import { TextStyleValue } from '@lona/compiler/lib/plugins/tokens/tokensAst'
 import * as XML from '../xml/ast'
 import {
   createStyle,

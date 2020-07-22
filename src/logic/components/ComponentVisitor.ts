@@ -1,5 +1,5 @@
-import { IExpression } from '../nodes/interfaces'
-import { EvaluationContext } from '../evaluation'
+import { IExpression } from '@lona/compiler/lib/logic/nodes/interfaces'
+import { EvaluationContext } from '@lona/compiler/lib/logic/evaluation'
 import { ComponentContext } from '../component'
 export class ComponentVisitor {
   componentContext: ComponentContext = {

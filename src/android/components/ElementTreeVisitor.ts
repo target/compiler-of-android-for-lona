@@ -1,4 +1,4 @@
-import { IExpression } from '../../logic/nodes/interfaces'
+import { IExpression } from '@lona/compiler/lib/logic/nodes/interfaces'
 import { DynamicAttribute } from '../../kotlin/componentClass'
 import { ComponentContext } from '../../logic/component'
 import { AndroidElement } from './AndroidElement'
