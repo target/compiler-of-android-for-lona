@@ -27,7 +27,7 @@
     "@types/micromatch": "^4.0.1",
     "@types/moo": "^0.5.3",
     "@types/nearley": "^2.11.1",
-    "buffs": "^0.4.1",
+    "buffs": "^0.5.0",
     "csscolorparser": "^1.0.3",
     "freemarker-parser": "dabbott/freemarker-parser#dist",
     "glob": "^7.1.6",
