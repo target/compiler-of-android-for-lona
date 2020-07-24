@@ -1,4 +1,4 @@
-import { ColorValue } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
+import { ColorValue } from '@lona/compiler/lib/plugins/tokens/tokensAst'
 import * as XML from '../xml/ast'
 import {
   createColor,

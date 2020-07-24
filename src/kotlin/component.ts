@@ -9,7 +9,7 @@ import {
   convertComponentParameter,
 } from '../kotlin/componentParameter'
 import { findComponentFunction } from '../logic/component'
-import { ModuleContext } from '../logic/module'
+import { ModuleContext } from '@lona/compiler/lib/logic/module'
 import * as XML from '../xml/ast'
 import {
   createAttr,

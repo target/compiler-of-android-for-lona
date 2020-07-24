@@ -1,8 +1,8 @@
-import { Value, Decode } from '../logic/runtime/value'
+import { Value, Decode } from '@lona/compiler/lib/logic/runtime/value'
 
 export function convertValue(logicValue: Value): string {
   switch (logicValue.type.type) {
-    case 'constant': {
+    case 'constructor': {
       const { name } = logicValue.type
 
       switch (name) {

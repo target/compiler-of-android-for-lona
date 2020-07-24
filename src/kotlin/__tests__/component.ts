@@ -1,4 +1,4 @@
-import { createModule } from '../../logic/module'
+import { createModule } from '@lona/compiler/lib/logic/module'
 import {
   convertComponentParameter,
   ComponentParameter,

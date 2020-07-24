@@ -9,11 +9,13 @@
   ],
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "rm -rf ./lib && tsc --declaration",
-    "build:watch": "rm -rf ./lib && tsc --declaration --watch",
+    "build": "npm run clean && tsc --declaration",
+    "build:watch": "npm run clean && tsc --declaration --watch",
     "build:example": "ts-node ./src/bin.ts convert ./example ./build",
     "gradle:example": "./build/gradlew --project-dir build assembleRelease",
-    "example": "yarn build:example && yarn gradle:example",
+    "example": "yarn clean:example && yarn build:example && yarn gradle:example",
+    "clean": "rm -rf ./lib",
+    "clean:example": "rm -rf ./build",
     "test": "jest",
     "test:watch": "jest --watch",
     "svg2vector": "ts-node ./src/bin.ts svg2vector"
@@ -24,13 +26,9 @@
   "dependencies": {
     "@lona/serialization": "^0.3.10",
     "@lona/svg-model": "3.0.0-alpha.3",
-    "@types/micromatch": "^4.0.1",
-    "@types/moo": "^0.5.3",
-    "@types/nearley": "^2.11.1",
     "buffs": "^0.5.0",
     "csscolorparser": "^1.0.3",
     "freemarker-parser": "dabbott/freemarker-parser#dist",
-    "glob": "^7.1.6",
     "lodash.camelcase": "^4.3.0",
     "lodash.escape": "^4.0.1",
     "lodash.escaperegexp": "^4.1.2",
@@ -52,9 +50,7 @@
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
-    "@lona/compiler": "^0.1.12",
-    "@types/color": "^3.0.1",
-    "@types/glob": "^7.1.1",
+    "@lona/compiler": "^0.2.0",
     "@types/jest": "^25.2.3",
     "@types/lodash.camelcase": "^4.3.6",
     "@types/lodash.escape": "^4.0.6",
@@ -65,6 +61,9 @@
     "@types/lodash.lowerfirst": "^4.3.6",
     "@types/lodash.snakecase": "^4.1.6",
     "@types/lodash.upperfirst": "^4.3.6",
+    "@types/micromatch": "^4.0.1",
+    "@types/moo": "^0.5.3",
+    "@types/nearley": "^2.11.1",
     "@types/node": "^13.7.6",
     "@types/prettier": "^1.19.0",
     "@types/sharp": "^0.25.0",
@@ -75,6 +74,9 @@
     "ts-node": "^8.6.2",
     "typescript": "^3.8.2"
   },
+  "peerDependencies": {
+    "@lona/compiler": "^0.2.0"
+  },
   "prettier": {
     "proseWrap": "never",
     "singleQuote": true,
@@ -83,6 +85,9 @@
   },
   "jest": {
     "preset": "ts-jest",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "lib"
+    ]
   }
 }

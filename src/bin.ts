@@ -7,6 +7,7 @@ import { inflateFile } from './freemarker'
 
 import plugin from './index'
 import { createTemplateContext } from './template/context'
+import { createHelpers } from '@lona/compiler/lib/helpers'
 
 const [, , command, inputPath, outputPath] = process.argv
 
@@ -58,7 +59,7 @@ async function convert() {
     process.exit(1)
   }
 
-  const helpers = await createHelpers(inputPath)
+  const helpers = createHelpers(fs, inputPath)
 
   const formatConfig = (helpers.config.format || {}) as { android?: any }
   const pluginConfig = formatConfig.android || {}
@@ -110,18 +111,4 @@ async function freemarker() {
   )
 
   writeSingleFileOutput(outputPath, result)
-}
-
-function createHelpers(workspacePath: string) {
-  try {
-    const helpers = require('@lona/compiler/lib/helpers').default
-    return helpers(workspacePath)
-  } catch (error) {
-    if (error.code === 'MODULE_NOT_FOUND') {
-      console.error('\n@lona/compiler must be installed to run this command\n')
-      process.exit(1)
-    } else {
-      throw error
-    }
-  }
 }

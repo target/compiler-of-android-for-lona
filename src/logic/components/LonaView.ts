@@ -1,10 +1,10 @@
-import { IExpression } from '../nodes/interfaces'
-import { FunctionCallExpression } from '../nodes/FunctionCallExpression'
+import { IExpression } from '@lona/compiler/lib/logic/nodes/interfaces'
+import { FunctionCallExpression } from '@lona/compiler/lib/logic/nodes/FunctionCallExpression'
 import { ComponentVisitor } from './ComponentVisitor'
-import { Value, Decode } from '../runtime/value'
-import { IdentifierExpression } from '../nodes/IdentifierExpression'
-import { LiteralExpression } from '../nodes/LiteralExpression'
-import { ArrayLiteral } from '../nodes/literals'
+import { Value, Decode } from '@lona/compiler/lib/logic/runtime/value'
+import { IdentifierExpression } from '@lona/compiler/lib/logic/nodes/IdentifierExpression'
+import { LiteralExpression } from '@lona/compiler/lib/logic/nodes/LiteralExpression'
+import { ArrayLiteral } from '@lona/compiler/lib/logic/nodes/literals'
 import { createViewHierarchy } from '../component'
 import {
   AndroidElement,

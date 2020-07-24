@@ -1,6 +1,7 @@
 import path from 'path'
+import fs from 'fs'
 import { describe as describeFs } from 'buffs'
-import createHelpers from '@lona/compiler/lib/helpers'
+import { createHelpers } from '@lona/compiler/lib/helpers'
 import plugin from '..'
 import { convert } from '../lona/workspace'
 import { DEFAULT_VALUE_NAME_TEMPLATE } from '../android/valueResources'
@@ -18,7 +19,7 @@ describe('Convert', () => {
     const workspacePath = path.join(__dirname, '../../example')
     const outputPath = '/build'
 
-    const helpers = await createHelpers(workspacePath)
+    const helpers = createHelpers(fs, workspacePath)
     const result = await convert(workspacePath, helpers, {
       verbose: false,
       outputPath,
@@ -54,11 +55,9 @@ describe('Convert', () => {
     const workspacePath = path.join(__dirname, '../../example')
     const output = path.join(__dirname, '../../example')
 
-    const helpers = await createHelpers(
-      workspacePath,
-      undefined,
-      silentReporter
-    )
+    const helpers = await createHelpers(fs, workspacePath, {
+      reporter: silentReporter,
+    })
 
     await plugin.convertWorkspace(workspacePath, helpers, {
       ...helpers.config.format.android,

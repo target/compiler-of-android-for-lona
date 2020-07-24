@@ -1,4 +1,4 @@
-import { ShadowValue } from '@lona/compiler/lib/plugins/tokens/tokens-ast'
+import { ShadowValue } from '@lona/compiler/lib/plugins/tokens/tokensAst'
 import * as XML from '../xml/ast'
 import {
   createDimen,

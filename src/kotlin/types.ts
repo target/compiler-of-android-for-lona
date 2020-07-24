@@ -1,4 +1,4 @@
-import { StaticType } from '../logic/staticType'
+import { StaticType } from '@lona/compiler/lib/logic/staticType'
 
 export type StyleableAttribute = {
   format: string
@@ -7,7 +7,7 @@ export type StyleableAttribute = {
 
 export function convertParameterTypeAnnotation(logicType: StaticType): string {
   switch (logicType.type) {
-    case 'constant': {
+    case 'constructor': {
       const { name } = logicType
 
       switch (name) {

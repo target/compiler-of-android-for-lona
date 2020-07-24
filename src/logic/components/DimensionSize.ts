@@ -1,4 +1,4 @@
-import { Value } from '../runtime/value'
+import { Value } from '@lona/compiler/lib/logic/runtime/value'
 
 export type DimensionSize =
   | {
@@ -12,7 +12,7 @@ export function getDimensionSize({
   memory,
 }: Value): DimensionSize | undefined {
   if (
-    type.type === 'constant' &&
+    type.type === 'constructor' &&
     type.name === 'DimensionSize' &&
     memory.type === 'enum'
   ) {

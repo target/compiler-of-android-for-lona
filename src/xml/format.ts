@@ -1,5 +1,5 @@
 import { Doc, builders, indent, group } from '@lona/compiler/lib/utils/printer'
-import { assertNever } from '@lona/compiler/lib/utils/assert-never'
+import { assertNever } from '@lona/compiler/lib/utils/typeHelpers'
 
 import * as Xml from './ast'
 
